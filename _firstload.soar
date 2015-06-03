@@ -1,0 +1,5 @@
+# This loads the macros needed to do the rest of the loading
+source _CORE_Macros.tcl
+
+# Now we can use the core macros for loading
+CORE_Source load.soar
