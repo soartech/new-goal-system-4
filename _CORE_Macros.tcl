@@ -111,7 +111,7 @@ proc CORE_IfLT { var_name check_val code } {
 ##!
 # @brief Pull in all of the globally available variables 
 #
-# @devnote The variables come from CORE_CreateSoarVar
+# @devnote The variables come from CORE_CreateMacroVar
 proc CORE_RefMacroVars { } {
    variable CORE_macro_var_list
    foreach var $CORE_macro_var_list {
@@ -121,7 +121,7 @@ proc CORE_RefMacroVars { } {
 
 ##!
 # @brief Create a globally-avialable variable
-proc CORE_CreateSoarVar { variable_name variable_value } {
+proc CORE_CreateMacroVar { variable_name variable_value } {
    
    variable CORE_macro_var_list
    variable $variable_name
@@ -142,6 +142,13 @@ proc CORE_CreateSoarVar { variable_name variable_value } {
    uplevel 1 variable $variable_name
 }
 
+# A helper function to make it easier to set values for absent
+#  macro parameters
+proc CORE_SetIfEmpty { var val } {
+  upvar 1 $var var_to_set
+  if {$var_to_set == ""} {set var_to_set $val}
+}
+  
 # Generates a unique symbol that is typically used
 #  to create new soar variables within macros
 # This version creates a string of the form

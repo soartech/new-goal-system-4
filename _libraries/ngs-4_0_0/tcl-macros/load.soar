@@ -1,0 +1,3 @@
+CORE_Source ngs-variables.tcl # must be loaded first
+CORE_Source lhs-fragments.tcl
+CORE_Source rhs-fragments.tcl

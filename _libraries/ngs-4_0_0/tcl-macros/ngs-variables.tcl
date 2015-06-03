@@ -28,37 +28,19 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-## since these definitions may vary per application,
-## use macro expansion to define these universally
+# Working memory attributes that are commonly accessed
+CORE_CreateMacroVar WM_GOAL_SET "goals"
+CORE_CreateMacroVar WM_ACTIVE_GOAL "active-goal"
 
-## echo "\n ... Loading file: [pwd]/standard-variables.tcl";
- 
-# Binding variables to use to reference common working memory items
-CORE_CreateMacroVar WM_STATE "state"
-CORE_CreateMacroVar WM_TOP_STATE "top-state"
-CORE_CreateMacroVar WM_SUPERSTATE "superstate"
-CORE_CreateMacroVar WM_INPUT_LINK "io.input-link"
-CORE_CreateMacroVar WM_OUTPUT_LINK "io.output-link"
-CORE_CreateMacroVar WM_SIM_TIME "$WM_INPUT_LINK.sim-time"
-CORE_CreateMacroVar WM_CYCLE_COUNT "$WM_INPUT_LINK.cycle-count"
-CORE_CreateMacroVar WM_REAL_TIME "$WM_INPUT_LINK.world-time"
+# Standard boolean and trilean values
+CORE_CreateMacroVar NGS_YES "*yes*"
+CORE_CreateMacroVar NGS_NO "*no*"
+CORE_CreateMacroVar NGS_UNKNOWN "*unknown*"
 
+# Goal States
+CORE_CreateMacroVar NGS_GS_ACTIVE "active"
 
-##########################################################
-# Infrastructure use
+# Types of operators. Atomic do some action, decide generate impasses
+CORE_CreateMacroVar NGS_OP_ATOMIC "atomic"
+CORE_CreateMacroVar NGS_OP_DECIDE "decide"
 
-CORE_CreateMacroVar CORE_var_creation_counter 0
-
-#################################################
-# Debug printing configuration
-
-# Level 0: nothing is output
-# Level 1: program level traces output (what you really want to see to know status)
-# Level 2: program debugging only
-# Level 3: system level (e.g. operators, goals, etc) output
-CORE_CreateMacroVar CORE_DLVL_NO_DBG 0
-CORE_CreateMacroVar CORE_DLVL_LOW 1
-CORE_CreateMacroVar CORE_DLVL_MED 2
-CORE_CreateMacroVar CORE_DLVL_HIGH 3
-
-CORE_CreateMacroVar CORE_DEBUG_OUTPUT_LEVEL $CORE_DLVL_HIGH
