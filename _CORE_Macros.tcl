@@ -148,6 +148,13 @@ proc CORE_SetIfEmpty { var val } {
   upvar 1 $var var_to_set
   if {$var_to_set == ""} {set var_to_set $val}
 }
+
+# A helper function to make it easier to set values for absent
+#  macro parameters
+proc CORE_GenVarIfEmpty { var base } {
+  upvar 1 $var var_to_set
+  if {$var_to_set == ""} {set var_to_set [CORE_GenVarName $base]}
+}
   
 # Generates a unique symbol that is typically used
 #  to create new soar variables within macros

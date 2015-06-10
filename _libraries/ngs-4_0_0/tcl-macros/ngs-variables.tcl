@@ -32,6 +32,8 @@
 CORE_CreateMacroVar WM_GOAL_SET "goals"
 CORE_CreateMacroVar WM_ACTIVE_GOAL "active-goal"
 
+CORE_CreateMacroVar NGS_OP_ATTRIBUTE "operator"
+
 # Standard boolean and trilean values
 CORE_CreateMacroVar NGS_YES "*yes*"
 CORE_CreateMacroVar NGS_NO "*no*"
@@ -39,8 +41,15 @@ CORE_CreateMacroVar NGS_UNKNOWN "*unknown*"
 
 # Goal States
 CORE_CreateMacroVar NGS_GS_ACTIVE "active"
+CORE_CreateMacroVar NGS_GS_ACHIEVED "achieved"
+
+# Goal Behaviors
+CORE_CreateMacroVar NGS_GB_ACHIEVE "achievement"
+CORE_CreateMacroVar NGS_GB_MAINT   "maintenance"
 
 # Types of operators. Atomic do some action, decide generate impasses
 CORE_CreateMacroVar NGS_OP_ATOMIC "atomic"
 CORE_CreateMacroVar NGS_OP_DECIDE "decide"
 
+# Standard operators
+CORE_CreateMacroVar NGS_OP_REMOVE_ACHIEVED "ngs-std-remove-achieved-goal"
