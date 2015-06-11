@@ -1,2 +1,2 @@
 CORE_LoadDir tcl-macros
-CORE_Source ngs-goals.soar
+CORE_Source ngs-goals.tcl

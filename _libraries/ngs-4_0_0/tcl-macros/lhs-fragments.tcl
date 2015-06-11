@@ -161,7 +161,7 @@ proc ngs-is-subgoal { goal subgoal {subgoal_name ""} } {
 #         -->
 #         [ngs-create-achievement-goal <goal-list> ... ]
 #
-proc ngs-match-goalpool { state_id goal_pool {goal_name = ""} } {
+proc ngs-match-goalpool { state_id goal_pool {goal_name ""} } {
   CORE_RefMacroVars
 
   if {$goal_name != ""} {
@@ -193,7 +193,7 @@ proc ngs-match-goal { state_id
   CORE_RefMacroVars
 
   # Default value initialization
-  [CORE_GenVarIfEmpty $goal_pool_id "goal-pool"]
+  CORE_GenVarIfEmpty $goal_pool_id "goal-pool"
 
   return "[ngs-match-goalpool $goal_pool $goal_name $state_id]
           ($goal_pool ^goal $goal_id)"
@@ -212,12 +212,10 @@ proc ngs-match-substate { substate_id {top_state_id ""} {superstate_id ""}} {
 
   variable superstate_test
   variable top_state_test
+
+  CORE_GenVarIfEmpty superstate_id "superstate"
   
-  if {$superstate_id != ""} {
-     set superstate_test "^$WM_SUPERSTATE $superstate_id"
-  } else {
-     set superstate_test "-^$WM_SUPERSTATE nil"
-  }
+  set superstate_test "^$WM_SUPERSTATE $superstate_id <> $substate_id"
   
   if {$top_state_id != ""} {
      set top_state_test "\n^$WM_TOP_STATE $top_state_id"
@@ -243,11 +241,11 @@ proc ngs-match-active-goal { substate_id
                              goal_name 
                              {goal_id ""} 
                              {top_state_id ""}
-                             {superstate_id ""} {
+                             {superstate_id ""} } {
   CORE_RefMacroVars
 
   # Default value initialization
-  [CORE_GenVarIfEmpty goal_id $goal_name]
+  CORE_GenVarIfEmpty goal_id $goal_name
 
   return "[ngs-match-substate $substate_id $top_state_id $superstate_id]
           ($substate_id ^$WM_ACTIVE_GOAL $goal_id)
@@ -272,7 +270,7 @@ proc ngs-match-top-state-active-goal { state_id
   CORE_RefMacroVars
 
   # Default value initialization
-  [CORE_GenVarIfEmpty goal_id $goal_name]
+  CORE_GenVarIfEmpty goal_id $goal_name
 
   return "(state $state_id ^$WM_GOAL_SET.$goal_name $goal_id)
           [ngs-is-tagged $goal_id $NGS_GS_ACTIVE]"
@@ -295,7 +293,7 @@ proc ngs-match-proposed-operator { state_id
                                    {op_id ""} 
                                    {goal_id ""}} {
   # Default value initialization
-  [CORE_GenVarIfEmpty op_id "o"]
+  CORE_GenVarIfEmpty op_id "o"
 
    set goal_test ""
    if {$goal_id != ""} { set $goal_test "\n($op_id ^goal $goal_id" }
@@ -331,8 +329,8 @@ proc ngs-match-two-proposed-operators { state_id
                                         {op2_behavior ""}} {
 
    # Default value initialization
-   [CORE_GenVarIfEmpty op1_id "o"]
-   [CORE_GenVarIfEmpty op2_id "o"]
+   CORE_GenVarIfEmpty op1_id "o"
+   CORE_GenVarIfEmpty op2_id "o"
 
    set goal1_test ""
    set goal2_test ""
@@ -360,8 +358,8 @@ proc ngs-match-selected-operator {state_id
                                   {goal_id ""} 
                                   {goal_tags_id ""}} {
 
-  [CORE_GenVarIfEmpty op_id "o"]
-  [CORE_GenVarIfEmpty goal_id "goal"]
+  CORE_GenVarIfEmpty op_id "o"
+  CORE_GenVarIfEmpty goal_id "goal"
 
   if {$goal_tags != ""} {
     return "(state $state_id ^operator $op_id)
@@ -388,8 +386,8 @@ proc ngs-match-selected-operator-on-top-state {state_id
                                                {goal_id ""} 
                                                {goal_tags_id ""} } {
  
-  [CORE_GenVarIfEmpty op_id "o"]
-  [CORE_GenVarIfEmpty goal_id "goal"]
+  CORE_GenVarIfEmpty op_id "o"
+  CORE_GenVarIfEmpty goal_id "goal"
 
   if {$goal_tags_id != ""} {
     return "(state $state_id ^superstate nil)
@@ -419,11 +417,11 @@ proc ngs-match-selected-operator-in-substate {substate_id
                                               {top_state_id ""}
                                               {superstate_id ""} } {
 
-  [CORE_GenVarIfEmpty top_state_id "top-state"]
-  [CORE_GenVarIfEmpty superstate_id "superstate"]
+  CORE_GenVarIfEmpty top_state_id "top-state"
+  CORE_GenVarIfEmpty superstate_id "superstate"
   
-  [CORE_GenVarIfEmpty op_id "o"]
-  [CORE_GenVarIfEmpty goal_id "goal"]
+  CORE_GenVarIfEmpty op_id "o"
+  CORE_GenVarIfEmpty goal_id "goal"
 
   if {$goal_tags_id != ""} {
     return "[ngs-match-substate $substate_id $top_state_id $superstate_id]
@@ -438,40 +436,4 @@ proc ngs-match-selected-operator-in-substate {substate_id
             ($goal_id        ^tags $goal_tags_id)"    
    }
   
-}
-
-
-
-############################################################
-# These are left over from the old NGS (3.0). They are conceptually useful
-#  but because TCL does not support closures, a bit awkward to use.
-#  I'm leaving them in for now to see if they are useful or to use them
-#  as references if I think of a better way to do them.
-#
-# For each of these, test_condition must be a TCL procedure that takes one
-#  variable and returns SoarCode that generates data that tests the object for the
-#  desired condition
-
-proc ngs-is-exactly-one { obj_id set_attribute set_item_attribute test_condition } {
-  return "($obj_id ^$set_attribute.$set_item_attribute <obj1>)
-          [eval $test_condition <obj1>]
-          -{
-             ($obj_id ^$set_attribute.$set_item_attribute { <obj2> <> <obj1> } )
-             [eval $test_condition <obj2>]
-           }"
-}
-
-proc ngs-is-more-than-one { obj_id set_attribute set_item_attribute test_condition } {
-  return "($obj_id ^$set_attribute.$set_item_attribute <obj1>)
-          [eval $test_condition <obj1>]
-          ($obj_id ^$set_attribute.$set_item_attribute { <obj2> <> <obj1> } )
-          [eval $test_condition <obj2>]"
-}
-
-# This should match in the case that we have one or more (obj ^attr ^test) matches,
-# but should not produce a multimatch causing multiple rule firings.
-proc ngs-is-at-least-one { obj_id set_attribute set_item_attribute test_condition } {
-  return "-{
-	     -{ [ngs-is-exactly-one $obj_id $set_attribute $set_item_attribute $test_condition] }
-	   }"
 }

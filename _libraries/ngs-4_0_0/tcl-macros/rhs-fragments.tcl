@@ -3,7 +3,8 @@
 # add a tag to the given 'tags' structure.
 #
 proc ngs-tag {tags_id tag_name {tag_value ""}} {
-  [CORE_SetIfEmpty tag_value $NGS_YES]
+  CORE_RefMacroVars
+  CORE_SetIfEmpty tag_value $NGS_YES
   return "($tags_id ^$tag_name $tag_value)"
 }
 
@@ -33,13 +34,12 @@ proc ngs-create-object { parent_obj_id
                          {new_obj_attribute_pairs ""} 
                          {new_obj_tag_pairs ""}
                          {new_obj_id ""}
-                         {new_obj_tags_id ""} 
- {
+                         {new_obj_tags_id ""} } {
 
-    [CORE_GenVarIfEmpty new_obj_id "new-obj"]
-    [CORE_GenVarIfEmpty new_obj_tags_id "tags"]
+  CORE_GenVarIfEmpty new_obj_id "new-obj"
+  CORE_GenVarIfEmpty new_obj_tags_id "tags"
     
-    if {$attribute == ""} { set attribute $obj_type }
+  if {$attribute == ""} { set attribute $obj_type }
     
  	return "($parent_obj_id ^$attribute $new_obj_id)
  	        ($new_obj_id    ^tags       $new_obj_tags_id)
@@ -72,13 +72,12 @@ proc ngs-create-named-object { parent_obj_id
                                {new_obj_attribute_pairs ""} 
                                {new_obj_tag_pairs ""}
                                {new_obj_id ""}
-                               {new_obj_tags_id ""} 
- {
+                               {new_obj_tags_id ""} } {
 
-    [CORE_GenVarIfEmpty new_obj_id "new-obj"]
-    [CORE_GenVarIfEmpty new_obj_tags_id "tags"]
+  CORE_GenVarIfEmpty new_obj_id "new-obj"
+  CORE_GenVarIfEmpty new_obj_tags_id "tags"
     
-    if {$attribute == ""} { set attribute $obj_type }
+  if {$attribute == ""} { set attribute $obj_type }
     
  	return "[ngs-create-object $parent_obj_id $attribute 
  	                           $new_obj_attribute_pairs
@@ -112,13 +111,12 @@ proc ngs-create-typed-object { parent_obj_id
                                {new_obj_attribute_pairs ""} 
                                {new_obj_tag_pairs ""}
                                {new_obj_id ""}
-                               {new_obj_tags_id ""} 
- {
+                               {new_obj_tags_id ""} } {
 
-    [CORE_GenVarIfEmpty new_obj_id "new-obj"]
-    [CORE_GenVarIfEmpty new_obj_tags_id "tags"]
+  CORE_GenVarIfEmpty new_obj_id "new-obj"
+  CORE_GenVarIfEmpty new_obj_tags_id "tags"
     
-    if {$attribute == ""} { set attribute $obj_type }
+  if {$attribute == ""} { set attribute $obj_type }
     
  	return "[ngs-create-object $parent_obj_id $attribute 
  	                           $new_obj_attribute_pairs
@@ -162,8 +160,8 @@ proc ngs-create-operator { op_name
                            {new_obj_tag_pairs ""}
                            {new_obj_tags_id ""} } {
 
-    [CORE_GenVarIfEmpty new_obj_id "o"]
-    [CORE_SetIfEmpty state_id $NGS_DEF_STATE_ID]
+  CORE_GenVarIfEmpty new_obj_id "o"
+  CORE_SetIfEmpty state_id $NGS_DEF_STATE_ID
     
 	return "[ngs-create-named-object $state_id 
                                     $NGS_OP_ATTRIBUTE
@@ -262,8 +260,8 @@ proc ngs-create-decide-operator { op_name
                                  {new_obj_tag_pairs ""}
                                  {new_obj_tags_id ""} } {
 
-    [CORE_GenVarIfEmpty new_obj_id "o"]
-    [CORE_SetIfEmpty state_id $NGS_DEF_STATE_ID]
+    CORE_GenVarIfEmpty new_obj_id "o"
+    CORE_SetIfEmpty state_id $NGS_DEF_STATE_ID
     
     variable ret_val_tests
     if {$ret_val_list != ""} {
@@ -319,7 +317,7 @@ proc ngs-create-goal { named_goal_set_id
                        {new_obj_tag_pairs ""}
                        {new_obj_tags_id ""} } {
 
-    [CORE_GenVarIfEmpty new_obj_id "goal"]
+    CORE_GenVarIfEmpty new_obj_id "goal"
     
     return "[ngs-create-named-object $named_goal_set_id 
                                      goal
@@ -433,8 +431,8 @@ proc ngs-create-maintenance-goal { named_goal_set_id
 proc ngs-create-op-ret-val { ret_val_set_id dest_obj_id attribute new_val {add_to_set ""} } {
 
     variable ret_val_id
-    [CORE_SetIfEmpty add_to_set $NGS_NO]
-    [CORE_GenVarName ret_val_id "ret-val"]
+    CORE_SetIfEmpty add_to_set $NGS_NO
+    CORE_GenVarName ret_val_id "ret-val"
 
     return "($ret_val_set_id ^ret-val $ret_val_id)
             ($ret_val_id     ^dest-object $dest_obj_id
@@ -454,7 +452,7 @@ proc ngs-create-op-ret-val { ret_val_set_id dest_obj_id attribute new_val {add_t
 #
 proc ngs-construct-ret-vals-from-list { ret_val_set_id list_of_ret_val_structs } {
 
-    set ret_val_tests ""
+  set ret_val_tests ""
 	foreach ret_val_struct $list_of_ret_val_structs {
 	
 	    # Note that lindex $ret_val_struct 3 may return an empty value (this
