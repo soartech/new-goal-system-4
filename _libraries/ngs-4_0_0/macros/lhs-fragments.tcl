@@ -189,14 +189,22 @@ proc ngs-match-goalpool { state_id goal_pool {goal_name ""} } {
 proc ngs-match-goal { state_id
                       goal_name 
                       goal_id 
+                      {behavior ""}
                       {goal_pool_id ""}} {
   CORE_RefMacroVars
 
   # Default value initialization
   CORE_GenVarIfEmpty $goal_pool_id "goal-pool"
+  CORE_SetIfEmpty $behavior $NGS_GB_ACHIEVE
 
-  return "[ngs-match-goalpool $goal_pool $goal_name $state_id]
-          ($goal_pool ^goal $goal_id)"
+  if {$behavior = ""} {
+    return "[ngs-match-goalpool $goal_pool $goal_name $state_id]
+            ($goal_pool ^goal $goal_id)"
+  } else {
+    return "[ngs-match-goalpool $goal_pool $goal_name $state_id]
+            ($goal_pool ^goal     $goal_id)
+            ($goal_id   ^behavior $behavior)"
+  }
 }
 
 # Create a condition that matches and binds within a substate.
@@ -215,7 +223,7 @@ proc ngs-match-substate { substate_id {top_state_id ""} {superstate_id ""}} {
 
   CORE_GenVarIfEmpty superstate_id "superstate"
   
-  set superstate_test "^$WM_SUPERSTATE $superstate_id <> $substate_id"
+  set superstate_test "^$WM_SUPERSTATE \{ $superstate_id <> nil \}"
   
   if {$top_state_id != ""} {
      set top_state_test "\n^$WM_TOP_STATE $top_state_id"

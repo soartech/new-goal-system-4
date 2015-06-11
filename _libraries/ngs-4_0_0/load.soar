@@ -1,2 +1,4 @@
-CORE_LoadDir tcl-macros
-CORE_Source ngs-goals.tcl
+CORE_LoadDir macros
+
+CORE_Source ngs-elaborations.tcl
+CORE_Source goal-declarations.tcl

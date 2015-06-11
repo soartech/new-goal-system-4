@@ -163,7 +163,7 @@ proc ngs-create-operator { op_name
   CORE_GenVarIfEmpty new_obj_id "o"
   CORE_SetIfEmpty state_id $NGS_DEF_STATE_ID
     
-	return "[ngs-create-named-object $state_id 
+  return "[ngs-create-named-object $state_id 
                                     $NGS_OP_ATTRIBUTE
                                     $op_name
                                     $new_obj_attribute_pairs
@@ -171,6 +171,7 @@ proc ngs-create-operator { op_name
                                     "$new_obj_id + $add_prefs"
                                     $new_obj_tags_id]
             ($new_obj_id ^behavior $behavior)"
+    
 }
 
 # Create an atomic operator

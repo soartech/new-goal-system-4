@@ -39,9 +39,9 @@ CORE_CreateMacroVar WM_TOP_STATE "top-state"
 CORE_CreateMacroVar WM_SUPERSTATE "superstate"
 CORE_CreateMacroVar WM_INPUT_LINK "io.input-link"
 CORE_CreateMacroVar WM_OUTPUT_LINK "io.output-link"
-CORE_CreateMacroVar WM_SIM_TIME "$WM_INPUT_LINK.sim-time"
-CORE_CreateMacroVar WM_CYCLE_COUNT "$WM_INPUT_LINK.cycle-count"
-CORE_CreateMacroVar WM_REAL_TIME "$WM_INPUT_LINK.world-time"
+CORE_CreateMacroVar WM_SIM_TIME "$WM_INPUT_LINK.system.sim-time"
+CORE_CreateMacroVar WM_CYCLE_COUNT "$WM_INPUT_LINK.system.cycle-count"
+CORE_CreateMacroVar WM_REAL_TIME "$WM_INPUT_LINK.system.world-time"
 
 
 ##########################################################
@@ -62,3 +62,6 @@ CORE_CreateMacroVar CORE_DLVL_MED 2
 CORE_CreateMacroVar CORE_DLVL_HIGH 3
 
 CORE_CreateMacroVar CORE_DEBUG_OUTPUT_LEVEL $CORE_DLVL_HIGH
+
+CORE_CreateMacroVar CORE_DBG_PRINT_PRODUCTION "PRINT_PRODUCTION"
+CORE_CreateMacroVar CORE_DBG_PRODUCTION_DUMP_FILE ""

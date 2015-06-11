@@ -32,6 +32,15 @@
 # the goal pool, etc. See CORE_MacroVariables.tcl
 variable CORE_macro_var_list ""
 
+# Use this to source productions instead of sp. This allows
+#  easy printout and logging of productions when using TCL
+#  macros
+# The second optional parameter, if set to 
+proc sp* { production_body {debug_flag ""} } {
+
+
+}
+
 # Use this like C's #ifdef statements - the 'code' parameter executes only if 
 # the soar variable named '$var_name' has been defined.
 #

@@ -1,0 +1,11 @@
+
+setup {
+
+source "common.soar"
+
+}
+
+test goal-creation {
+
+
+}

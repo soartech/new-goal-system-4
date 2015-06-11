@@ -1,0 +1,10 @@
+source "../../../_core/_CORE_Macros.tcl"
+source helpers.tcl
+
+watch 1
+
+#srand 1
+
+
+# fail faster than the default (which is 50000 dcs)
+FailAfterNDecisionCycles 100
