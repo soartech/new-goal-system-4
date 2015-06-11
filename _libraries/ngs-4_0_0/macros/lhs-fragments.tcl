@@ -56,7 +56,7 @@ proc ngs-is-not-type { object_id type_name } {
            }"
 }
 
-# Use to test an object (usuall operators/goals) for a name
+# Use to test an object (usually operators/goals) for a name
 #
 # e.g. [ngs-is-named <o> send-message]
 #
@@ -65,6 +65,17 @@ proc ngs-is-named { object_id name } {
 }
 proc ngs-is-not-named { object_id name } {
   return "($object_id -^name $name)"
+}
+
+# Use to test an object (usually operators/goals) for a behavior
+#
+# e.g. [ngs-has-behavior <o> $NGS_ATOMIC]
+#
+proc ngs-has-behavior { object_id behavior } {
+  return "($object_id ^behavior $behavior)"
+}
+proc ngs-has-behavior { object_id name } {
+  return "($object_id -^behavior $bebavior)"
 }
 
 # Use to test an object for a tag

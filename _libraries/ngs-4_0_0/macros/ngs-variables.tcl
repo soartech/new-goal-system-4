@@ -53,3 +53,4 @@ CORE_CreateMacroVar NGS_OP_DECIDE "decide"
 
 # Standard operators
 CORE_CreateMacroVar NGS_OP_REMOVE_ACHIEVED "ngs-std-remove-achieved-goal"
+CORE_CreateMacroVar NGS_OP_CREATE_GOAL     "ngs-std-create-goal"

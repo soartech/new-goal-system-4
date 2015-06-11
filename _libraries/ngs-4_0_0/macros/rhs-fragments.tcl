@@ -237,24 +237,29 @@ proc ngs-create-decide-operator { state_id
 #  respectively
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
+# supergoal_id: If provided, this will be the goal's supergoal
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
 proc ngs-create-goal { named_goal_set_id
                        goal_name
                        behavior
                        {new_obj_id ""}
+                       {supergoal_id ""}
                        {new_obj_tags_id ""} } {
 
     CORE_RefMacroVars
     CORE_GenVarIfEmpty new_obj_id "goal"
-    
-    return "[ngs-create-named-object $named_goal_set_id \
-                                     goal \
-                                     $goal_name \
-                                     $new_obj_id \
-                                     $new_obj_tags_id]
-             ($new_obj_id ^behavior $behavior)"
-   
+
+    set lhs_val "[ngs-create-named-object $named_goal_set_id \
+	                                        goal \
+	                                        $goal_name \
+	                                        $new_obj_id \
+	                                        $new_obj_tags_id]
+	              ($new_obj_id ^behavior $behavior)"
+
+    if { $supergoal_id != "" } { set lhs_val "$lhs_val \n($new_obj_id ^supergoal $supergoal_id" }
+
+    return $lhs_val   
 }        
 
 # Create an achievement goal
@@ -270,13 +275,14 @@ proc ngs-create-goal { named_goal_set_id
 # goal_name: name of the goal. There should only be one goal name.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
+# supergoal_id: If provided, this will be the goal's supergoal
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
 proc ngs-create-achievement-goal { named_goal_set_id
                                    goal_name
                                    {new_obj_attribute_pairs ""} 
                                    {new_obj_id ""}
-                                   {new_obj_tag_pairs ""}
+                                   {supergoal_id ""}
                                    {new_obj_tags_id ""} } {
     
     CORE_RefMacroVars
@@ -285,6 +291,7 @@ proc ngs-create-achievement-goal { named_goal_set_id
                              $NGS_GB_ACHIEVE \
                              $goal_name \
                              $new_obj_id \
+                             $supergoal_id \
                              $new_obj_tags_id]"
    
 }                  
@@ -302,14 +309,14 @@ proc ngs-create-achievement-goal { named_goal_set_id
 # goal_name: name of the goal. There should only be one goal name.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
+# supergoal_id: If provided, this will be the goal's supergoal
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
-
 proc ngs-create-maintenance-goal { named_goal_set_id
                                    goal_name
                                    {new_obj_attribute_pairs ""} 
                                    {new_obj_id ""}
-                                   {new_obj_tag_pairs ""}
+                                   {supergoal_id ""}
                                    {new_obj_tags_id ""} } {
 
     CORE_RefMacroVars
@@ -318,6 +325,7 @@ proc ngs-create-maintenance-goal { named_goal_set_id
                              $NGS_GB_MAINT \
                              $goal_name \
                              $new_obj_id \
+                             $supergoal \
                              $new_obj_tags_id]"
    
 }                  

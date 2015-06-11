@@ -1,4 +1,3 @@
-
 # Create the top level goal set for all NGS goals
 sp {ngs*core*goals*elaborate-goal-set-on-top-state
   (state <s> ^superstate nil)
@@ -37,5 +36,12 @@ sp "ngs*core*goal*apply*$NGS_OP_REMOVE_ACHIEVED
 -->
   (<goals> ^goal <g> -)"
 
-
+# Apply rule that cleans up an achieved goal
+sp "ngs*core*goal*apply*$NGS_OP_CREATE_GOAL
+  [ngs-match-selected-operator-on-top-state <s> $NGS_OP_CREATE_GOAL <o>]
+  [ngs-match-goalpool <s> <goals> <gname>]
+  (<o> ^goal <g>)
+  [ngs-is-named <g> <gname>]
+-->
+  (<goals> ^goal <g>)"
 
