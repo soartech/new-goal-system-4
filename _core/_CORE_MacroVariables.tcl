@@ -43,6 +43,8 @@ CORE_CreateMacroVar WM_SIM_TIME "$WM_INPUT_LINK.system.sim-time"
 CORE_CreateMacroVar WM_CYCLE_COUNT "$WM_INPUT_LINK.system.cycle-count"
 CORE_CreateMacroVar WM_REAL_TIME "$WM_INPUT_LINK.system.world-time"
 
+CORE_CreateMacroVar WM_OUT_STATUS_COMPLETE "complete"
+
 
 ##########################################################
 # Infrastructure use

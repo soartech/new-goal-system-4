@@ -74,10 +74,12 @@ proc ngs-is-not-named { object_id name } {
 # e.g. [ngs-is-tagged <mission> completed *yes*]
 #
 proc ngs-is-tagged { object_id tag_name {tag_val "" } } {
+  CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
   return "($object_id ^tags.$tag_name $tag_val)"
 }
 proc ngs-is-not-tagged { object_id tag_name {tag_val "" } } {
+  CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
   return "-{
              ($object_id ^tags.$tag_name $tag_val)
@@ -96,9 +98,11 @@ proc ngs-is-not-tagged { object_id tag_name {tag_val "" } } {
 #
 # e.g. [ngs-is-not-active <goal>]
 proc ngs-is-active { goal_id } {
+  CORE_RefMacroVars
   return "[ngs-is-tagged $goal_id $NGS_GS_ACTIVE $NGS_YES]"
 }
 proc ngs-is-not-active { goal_id } {
+  CORE_RefMacroVars
   return "[ngs-is-not-tagged $goal_id $NGS_GS_ACTIVE $NGS_YES]"
 }
 
@@ -108,9 +112,11 @@ proc ngs-is-not-active { goal_id } {
 # e.g. [ngs-is-achieved <goal>]
 #
 proc ngs-is-achieved { goal_id } {
+  CORE_RefMacroVars
   return "[ngs-is-tagged $goal_id $NGS_GS_ACHIEVED $NGS_YES]"
 }
 proc ngs-is-not-achieved { goal_id } {
+  CORE_RefMacroVars
   return "[ngs-is-not-tagged $goal_id $NGS_GS_ACHIEVED $NGS_YES]"
 }
 
@@ -126,7 +132,7 @@ proc ngs-is-not-achieved { goal_id } {
 #
 proc ngs-is-supergoal { goal supergoal {supergoal_name ""} } {
 
-  set main_test_line = "($goal ^supergoal $supergoal)"
+  set main_test_line "($goal ^supergoal $supergoal)"
   if { $supergoal_name != "" } {
 	   return "$main_test_line 
             [ngs-is-named $supergoal $supergoal_name]"
@@ -194,15 +200,15 @@ proc ngs-match-goal { state_id
   CORE_RefMacroVars
 
   # Default value initialization
-  CORE_GenVarIfEmpty $goal_pool_id "goal-pool"
-  CORE_SetIfEmpty $behavior $NGS_GB_ACHIEVE
+  CORE_GenVarIfEmpty goal_pool_id "goal-pool"
+  CORE_SetIfEmpty behavior $NGS_GB_ACHIEVE
 
-  if {$behavior = ""} {
-    return "[ngs-match-goalpool $goal_pool $goal_name $state_id]
-            ($goal_pool ^goal $goal_id)"
+  if {$behavior == ""} {
+    return "[ngs-match-goalpool $state_id $goal_pool_id $goal_name]
+            ($goal_pool_id ^goal $goal_id)"
   } else {
-    return "[ngs-match-goalpool $goal_pool $goal_name $state_id]
-            ($goal_pool ^goal     $goal_id)
+    return "[ngs-match-goalpool $state_id $goal_pool_id $goal_name]
+            ($goal_pool_id ^goal     $goal_id)
             ($goal_id   ^behavior $behavior)"
   }
 }
@@ -274,7 +280,7 @@ proc ngs-match-active-goal { substate_id
 #
 proc ngs-match-top-state-active-goal { state_id
                                        goal_name 
-                             	        {goal_id ""} } {
+                             	      {goal_id ""} } {
   CORE_RefMacroVars
 
   # Default value initialization
@@ -297,7 +303,7 @@ proc ngs-match-top-state-active-goal { state_id
 #
 proc ngs-match-proposed-operator { state_id
                                    op_name
- 								                   {op_behavior ""}
+ 								   {op_behavior ""}
                                    {op_id ""} 
                                    {goal_id ""}} {
   # Default value initialization

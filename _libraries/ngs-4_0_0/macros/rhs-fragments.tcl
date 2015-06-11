@@ -16,35 +16,25 @@ proc ngs-tag {tags_id tag_name {tag_value ""}} {
 #
 # parent_obj_id: the identifier for the object that will contain the new object
 # attribute: the attribute to which the new object should be attached
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
+# new_obj_prefs: The preferences for the new object (typically only used for operators)
 proc ngs-create-object { parent_obj_id 
                          attribute
-                         {new_obj_attribute_pairs ""} 
-                         {new_obj_tag_pairs ""}
                          {new_obj_id ""}
-                         {new_obj_tags_id ""} } {
+                         {new_obj_tags_id ""} 
+                         {new_obj_prefs ""} } {
 
+  CORE_RefMacroVars
   CORE_GenVarIfEmpty new_obj_id "new-obj"
   CORE_GenVarIfEmpty new_obj_tags_id "tags"
     
   if {$attribute == ""} { set attribute $obj_type }
     
- 	return "($parent_obj_id ^$attribute $new_obj_id)
- 	        ($new_obj_id    ^tags       $new_obj_tags_id)
- 	        [ngs-create-object-structure $new_obj_id      $new_obj_attribute_pairs]
- 	        [ngs-create-object-structure $new_obj_tags_id $new_obj_tag_pairs]"
+ 	return "($parent_obj_id ^$attribute $new_obj_id $new_obj_prefs)
+ 	        ($new_obj_id    ^tags       $new_obj_tags_id)"
  	        
 }
 
@@ -53,37 +43,29 @@ proc ngs-create-object { parent_obj_id
 # parent_obj_id: the identifier for the object that will contain the new object
 # attribute: the attribute to which the new object should be attached
 # name: the name of the object (used for operators)
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
+# new_obj_prefs: The preferences for the new object (typically only used for operators)
 proc ngs-create-named-object { parent_obj_id 
                                attribute
                                name
-                               {new_obj_attribute_pairs ""} 
-                               {new_obj_tag_pairs ""}
                                {new_obj_id ""}
-                               {new_obj_tags_id ""} } {
+                               {new_obj_tags_id ""} 
+                               {new_obj_prefs ""} } {
 
+  CORE_RefMacroVars
   CORE_GenVarIfEmpty new_obj_id "new-obj"
   CORE_GenVarIfEmpty new_obj_tags_id "tags"
     
   if {$attribute == ""} { set attribute $obj_type }
     
- 	return "[ngs-create-object $parent_obj_id $attribute 
- 	                           $new_obj_attribute_pairs
- 	                           $new_obj_tag_pairs
- 	                           $new_obj_id
- 	                           $new_obj_tags_id]
+ 	return "[ngs-create-object $parent_obj_id \
+                               $attribute \
+ 	                           $new_obj_id \
+ 	                           $new_obj_tags_id \
+                               $new_obj_prefs]
  	        ($new_obj_id ^name $name)" 	        
 }
 
@@ -92,37 +74,29 @@ proc ngs-create-named-object { parent_obj_id
 # parent_obj_id: the identifier for the object that will contain the new object
 # attribute: the attribute to which the new object should be attached
 # type: the type of the object (used for goals)
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
+# new_obj_prefs: The preferences for the new object (typically only used for operators)
 proc ngs-create-typed-object { parent_obj_id 
                                attribute
                                type
-                               {new_obj_attribute_pairs ""} 
-                               {new_obj_tag_pairs ""}
                                {new_obj_id ""}
-                               {new_obj_tags_id ""} } {
+                               {new_obj_tags_id ""} 
+                               {new_obj_prefs} } {
 
+  CORE_RefMacroVars
   CORE_GenVarIfEmpty new_obj_id "new-obj"
   CORE_GenVarIfEmpty new_obj_tags_id "tags"
     
   if {$attribute == ""} { set attribute $obj_type }
     
- 	return "[ngs-create-object $parent_obj_id $attribute 
- 	                           $new_obj_attribute_pairs
- 	                           $new_obj_tag_pairs
- 	                           $new_obj_id
- 	                           $new_obj_tags_id]
+ 	return "[ngs-create-object $parent_obj_id \
+                               $attribute \
+ 	                           $new_obj_id \
+ 	                           $new_obj_tags_id \
+                               $new_obj_prefs]
  	        ($new_obj_id ^type $type)" 	        
 }
 # Create an operator
@@ -130,46 +104,35 @@ proc ngs-create-typed-object { parent_obj_id
 # This creates a basic operator without a specified behavior type. Typically you
 #  will not use this. Instead use create-atomic-operator or create-decide-operator.
 #
+# state_id: If provided, the soar variable that is bound to the state in which to
+#  create the operator.
 # op_name: the name of the operator
 # behavior: One of NGS_OP_ATOMIC or NGS_OP_DECIDE. Atomic operators are should be
 #  applied immediately after selection while Decide operators should create operator
 #  no change impasses.
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object. The default is <o#>
-# state_id: If provided, the soar variable that is bound to the state in which to
-#  create the operator. The default is given by NGS_DEF_STATE_ID. 
 # add_prefs: Additional preferences beyond acceptable ('+'). By default this is the
 #  indifferent preference ('='). So by default an operator gets the + = preferences.
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
-proc ngs-create-operator { op_name
+proc ngs-create-operator { state_id
+                           op_name
                            behavior
-                           {new_obj_attribute_pairs ""} 
                            {new_obj_id ""}
-                           {state_id ""}
                            {add_prefs "="}
-                           {new_obj_tag_pairs ""}
                            {new_obj_tags_id ""} } {
 
+  CORE_RefMacroVars
   CORE_GenVarIfEmpty new_obj_id "o"
-  CORE_SetIfEmpty state_id $NGS_DEF_STATE_ID
+  CORE_GenVarIfEmpty state_id "s"
     
-  return "[ngs-create-named-object $state_id 
-                                    $NGS_OP_ATTRIBUTE
-                                    $op_name
-                                    $new_obj_attribute_pairs
-                                    $new_obj_tag_pairs
-                                    "$new_obj_id + $add_prefs"
-                                    $new_obj_tags_id]
+  return "[ngs-create-named-object $state_id \
+                                    $NGS_OP_ATTRIBUTE \
+                                    $op_name \
+                                    $new_obj_id \
+                                    $new_obj_tags_id \
+                                    "+ $add_prefs"]
             ($new_obj_id ^behavior $behavior)"
     
 }
@@ -180,39 +143,26 @@ proc ngs-create-operator { op_name
 #  operators should be applied immediately after selection and should not generate
 #  substates.
 #
+# state_id: If provided, the soar variable that is bound to the state in which to
+#  create the operator.
 # op_name: the name of the operator
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object. The default is <o#>
-# state_id: If provided, the soar variable that is bound to the state in which to
-#  create the operator. The default is given by NGS_DEF_STATE_ID. 
 # add_prefs: Additional preferences beyond acceptable ('+'). By default this is the
 #  indifferent preference ('='). So by default an operator gets the + = preferences.
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
-proc ngs-create-atomic-operator { op_name
-                                 {new_obj_attribute_pairs ""} 
+proc ngs-create-atomic-operator { state_id
+                                  op_name
                                  {new_obj_id ""}
-                                 {state_id ""}
                                  {add_prefs "="}
-                                 {new_obj_tag_pairs ""}
                                  {new_obj_tags_id ""} } {
-                                 
-  return "[ngs-create-operator $op_name
-                               $NGS_OP_ATOMIC
-                               $new_obj_attribute_pairs
-                               $new_obj_id
-                               $state_id
-                               $add_prefs
-                               $new_obj_tag_pairs
+  CORE_RefMacroVars
+  return "[ngs-create-operator $state_id \
+                               $op_name \
+                               $NGS_OP_ATOMIC \
+                               $new_obj_id \
+                               $add_prefs \
                                $new_obj_tags_id]"                                 
 }
             
@@ -225,21 +175,14 @@ proc ngs-create-atomic-operator { op_name
 #  flags or return values in order to properly return, these can be passed into the 
 #  substate via the ret_val_list parameter.
 #
+# state_id: If provided, the soar variable that is bound to the state in which to
+#  create the operator. 
 # op_name: the name of the operator
 # behavior: One of NGS_OP_ATOMIC or NGS_OP_DECIDE. Atomic operators are should be
 #  applied immediately after selection while Decide operators should create operator
 #  no change impasses.
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object. The default is <o#>
-# state_id: If provided, the soar variable that is bound to the state in which to
-#  create the operator. The default is given by NGS_DEF_STATE_ID. 
 # add_prefs: Additional preferences beyond acceptable ('+'). By default this is the
 #  indifferent preference ('='). So by default an operator gets the + = preferences.
 # ret_val_list: A list of tuples that describe one or more return value structures
@@ -247,22 +190,19 @@ proc ngs-create-atomic-operator { op_name
 #  (e.g. at operator proposal time) one or more of the values you need to set when
 #  the sub-goal completes (e.g. "complete" flags). See ngs-create-op-ret-val to 
 #  see the structure of ret-value objects. Example: {{<my-goal-tags> processed $NGS_YES}} 
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
-proc ngs-create-decide-operator { op_name
+proc ngs-create-decide-operator { state_id
+                                  op_name
                                   behavior
-                                 {new_obj_attribute_pairs ""} 
                                  {new_obj_id ""}
-                                 {state_id ""}
                                  {add_prefs "="}
                                  {ret_val_list ""}
-                                 {new_obj_tag_pairs ""}
                                  {new_obj_tags_id ""} } {
 
+    CORE_RefMacroVars
     CORE_GenVarIfEmpty new_obj_id "o"
-    CORE_SetIfEmpty state_id $NGS_DEF_STATE_ID
+    CORE_GenVarIfEmpty state_id "s"
     
     variable ret_val_tests
     if {$ret_val_list != ""} {
@@ -274,13 +214,11 @@ proc ngs-create-decide-operator { op_name
        set ret_val_tests ""
     }
 
-   return  "[ngs-create-operator $op_name
-                                 $NGS_OP_DECIDE
-                                 $new_obj_attribute_pairs
-                                 $new_obj_id
-                                 $state_id
-                                 $add_prefs
-                                 $new_obj_tag_pairs
+   return  "[ngs-create-operator $state_id \
+                                 $op_name \
+                                 $NGS_OP_DECIDE \
+                                 $new_obj_id \
+                                 $add_prefs \
                                  $new_obj_tags_id]
             $ret_val_tests"
 }
@@ -297,35 +235,23 @@ proc ngs-create-decide-operator { op_name
 # goal_name: name of the goal. There should only be one goal name.
 # behavior: One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement or maintenance goal
 #  respectively
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
 proc ngs-create-goal { named_goal_set_id
                        goal_name
                        behavior
-                       {new_obj_attribute_pairs ""} 
                        {new_obj_id ""}
-                       {new_obj_tag_pairs ""}
                        {new_obj_tags_id ""} } {
 
+    CORE_RefMacroVars
     CORE_GenVarIfEmpty new_obj_id "goal"
     
-    return "[ngs-create-named-object $named_goal_set_id 
-                                     goal
-                                     $goal_name
-                                     $new_obj_attribute_pairs
-                                     $new_obj_tag_pairs
-                                     $new_obj_id
+    return "[ngs-create-named-object $named_goal_set_id \
+                                     goal \
+                                     $goal_name \
+                                     $new_obj_id \
                                      $new_obj_tags_id]
              ($new_obj_id ^behavior $behavior)"
    
@@ -342,17 +268,8 @@ proc ngs-create-goal { named_goal_set_id
 #  In NGS 4, this is not the top level goal set (under top-state.goals), instead it is
 #  one level lower under the goal's name (top-state.goals.goal-name <named_goal_set_id>).
 # goal_name: name of the goal. There should only be one goal name.
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
 proc ngs-create-achievement-goal { named_goal_set_id
@@ -362,13 +279,12 @@ proc ngs-create-achievement-goal { named_goal_set_id
                                    {new_obj_tag_pairs ""}
                                    {new_obj_tags_id ""} } {
     
-    return "[ngs-create-goal $named_goal_set_id 
-                             goal
-                             $NGS_GB_ACHIEVE
-                             $goal_name
-                             $new_obj_attribute_pairs
-                             $new_obj_tag_pairs
-                             $new_obj_id
+    CORE_RefMacroVars
+    return "[ngs-create-goal $named_goal_set_id \
+                             goal \
+                             $NGS_GB_ACHIEVE \
+                             $goal_name \
+                             $new_obj_id \
                              $new_obj_tags_id]"
    
 }                  
@@ -384,17 +300,8 @@ proc ngs-create-achievement-goal { named_goal_set_id
 #  In NGS 4, this is not the top level goal set (under top-state.goals), instead it is
 #  one level lower under the goal's name (top-state.goals.goal-name <named_goal_set_id>).
 # goal_name: name of the goal. There should only be one goal name.
-# new_obj_attribute_pairs: a list of lists, where the inner list is a pair. Each pair
-#  is an (attribute, value) to place within the object. If no value is specified in 
-#  the inner list, a generic ID is created for that attribute. For example, 
-#  {{x 5}{y 10}{z -4}{contact-id}} creates four attributes for the new object. x with
-#  a value of 5, y with a value of 10, z with a value of -4, and contact-id with a
-#  automatically generated identifier value (an empty reference to an object). Specify
-#  "" (the default) if no attributes are needed.
 # new_obj_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object
-# new_obj_tag_pairs: The same as new_obj_attribute_pairs, but the attributes are added
-#  under the object's "tags" attribute. Specify "" (the default) if no tags are needed.
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
 
@@ -405,13 +312,12 @@ proc ngs-create-maintenance-goal { named_goal_set_id
                                    {new_obj_tag_pairs ""}
                                    {new_obj_tags_id ""} } {
 
-    return "[ngs-create-goal $named_goal_set_id 
-                             goal
-                             $NGS_GB_MAINT
-                             $goal_name
-                             $new_obj_attribute_pairs
-                             $new_obj_tag_pairs
-                             $new_obj_id
+    CORE_RefMacroVars
+    return "[ngs-create-goal $named_goal_set_id \
+                             goal \
+                             $NGS_GB_MAINT \
+                             $goal_name \
+                             $new_obj_id \
                              $new_obj_tags_id]"
    
 }                  
@@ -431,6 +337,7 @@ proc ngs-create-maintenance-goal { named_goal_set_id
 #
 proc ngs-create-op-ret-val { ret_val_set_id dest_obj_id attribute new_val {add_to_set ""} } {
 
+    CORE_RefMacroVars
     variable ret_val_id
     CORE_SetIfEmpty add_to_set $NGS_NO
     CORE_GenVarName ret_val_id "ret-val"
@@ -460,40 +367,14 @@ proc ngs-construct-ret-vals-from-list { ret_val_set_id list_of_ret_val_structs }
 	    #  is an optional variable). If so, the ngs-create-op-ret-val will
 	    #  replace with the default of NGS_NO.
 		set ret_val_tests "$ret_val_tests
-		                   [ngs-create-op-ret-val $ret_val_set_id
-		                       [lindex $ret_val_struct 0]
-		                       [lindex $ret_val_struct 1]
-		                       [lindex $ret_val_struct 2]
+		                   [ngs-create-op-ret-val $ret_val_set_id \
+		                       [lindex $ret_val_struct 0] \
+		                       [lindex $ret_val_struct 1] \
+		                       [lindex $ret_val_struct 2] \
 		                       [lindex $ret_val_struct 3]]"
 	
 	}
 	
 	return $ret_val_tests
-}
-
-# INTERNAL
-#
-# Used by the various create macros to generate Soar code
-#  for lists of attributes and tags
-#
-proc ngs-create-object-structure { obj_id list_of_pairs } {
-  set param_output ""
-  
-  foreach param $list_of_pairs {
-     
-     set param_attribute [lindex param 0] 
-     set param_val ""
-     
-     # If no param value is provided, we just set it to a generic id type
-     if {[llength param] == 1} { 
-       set param_val [CORE_GenVarName $param_attribute]
-     } else {
-       set param_val [lindex param 1]
-     }
-       
-     set param_output "$param_output ($obj_id ^$param_attribute $param_val)\n"
-  }
-
-  return $param_output
 }
 

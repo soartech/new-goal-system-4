@@ -1,11 +1,24 @@
 
-setup {
+setup { 
+  source "common.soar"
 
-source "common.soar"
+  NGS_DeclareGoal TestAchievementGoal
+
+sp "test*create-achievement*goal
+    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
+    (<s> ^$WM_CYCLE_COUNT > 5)
+-->
+    [ngs-create-goal <goals> TestAchievementGoal $NGS_GB_ACHIEVE]" 
 
 }
 
-test goal-creation {
+#  { {foo bar} {foobar yes} } <obj> { {tagme} } <tags>
+test goal-i-support-goal-creation { 
 
-
+sp "test
+    [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE]
+-->
+    (pass)"
 }
+
+#}

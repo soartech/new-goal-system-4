@@ -1,5 +1,6 @@
 source "../../../_core/_CORE_Macros.tcl"
-source helpers.tcl
+CORE_LoadDir ".."
+CORE_Source helpers.tcl
 
 watch 1
 
@@ -8,3 +9,44 @@ watch 1
 
 # fail faster than the default (which is 50000 dcs)
 FailAfterNDecisionCycles 100
+
+##########################################
+# Default output handling
+
+# Mark output command with the cycle count after which to mark
+# it complete.
+sp "unit-test*mark-output*removal-time
+   :o-support
+   (state <s> ^superstate nil
+              ^$WM_OUTPUT_LINK.<any-cmd> <cmdid>
+              ^$WM_CYCLE_COUNT <cc>)
+   (<cmdid>  -^tags.remove-at)
+-->
+   (<cmdid> ^tags <tags>)
+   (<tags>  ^remove-at (+ <cc> 1))"
+
+# Marks the status complete after the given decision cycle
+sp "unit-test*mark-output*status*complete
+   :o-support
+   (state <s> ^superstate nil
+              ^$WM_OUTPUT_LINK.<any-cmd> <cmdid>
+              ^$WM_CYCLE_COUNT <cc>)
+   (<cmdid>   ^tags.remove-at  <cc>)
+-->
+   (<cmdid>   ^status $WM_OUT_STATUS_COMPLETE)
+"
+
+##########################################
+# Basic input link stuff
+
+sp "unit-test*create-system-attribute
+    (state <s> ^$WM_INPUT_LINK <il>)
+-->
+    (<il> ^system <sys>)"
+
+sp "unit-test*elaborate-unit-test-cycle-count
+    (state <s> ^$WM_INPUT_LINK <il>)
+    (<il>      ^soar-unit.cycle-count <cc>
+               ^system <sys>)
+-->
+    (<sys>     ^cycle-count <cc>)"

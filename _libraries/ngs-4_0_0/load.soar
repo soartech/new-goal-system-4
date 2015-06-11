@@ -1,4 +1,4 @@
 CORE_LoadDir macros
 
-CORE_Source ngs-elaborations.tcl
+CORE_Source ngs-elaborations.soar
 CORE_Source goal-declarations.tcl

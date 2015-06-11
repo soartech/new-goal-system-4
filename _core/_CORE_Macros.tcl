@@ -151,20 +151,6 @@ proc CORE_CreateMacroVar { variable_name variable_value } {
    uplevel 1 variable $variable_name
 }
 
-# A helper function to make it easier to set values for absent
-#  macro parameters
-proc CORE_SetIfEmpty { var val } {
-  upvar 1 $var var_to_set
-  if {$var_to_set == ""} {set var_to_set $val}
-}
-
-# A helper function to make it easier to set values for absent
-#  macro parameters
-proc CORE_GenVarIfEmpty { var base } {
-  upvar 1 $var var_to_set
-  if {$var_to_set == ""} {set var_to_set [CORE_GenVarName $base]}
-}
-  
 # Generates a unique symbol that is typically used
 #  to create new soar variables within macros
 # This version creates a string of the form
@@ -184,6 +170,21 @@ proc CORE_GenUniqueSym { base } {
 proc CORE_GenVarName { base } {
    return "<[CORE_GenUniqueSym $base]>"
 }
+
+# A helper function to make it easier to set values for absent
+#  macro parameters
+proc CORE_SetIfEmpty { var val } {
+  upvar 1 $var var_to_set
+  if {$var_to_set == ""} {set var_to_set $val}
+}
+
+# A helper function to make it easier to set values for absent
+#  macro parameters
+proc CORE_GenVarIfEmpty { var base } {
+  upvar 1 $var var_to_set
+  if {$var_to_set == ""} {set var_to_set [CORE_GenVarName $base]}
+}
+  
 
 # Source the global macro variables
 source _CORE_MacroVariables.tcl
