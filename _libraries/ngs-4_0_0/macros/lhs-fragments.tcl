@@ -206,22 +206,27 @@ proc ngs-match-goalpool { state_id goal_pool {goal_name ""} } {
 proc ngs-match-goal { state_id
                       goal_name 
                       goal_id 
+                      {goal_tags_id ""}
                       {behavior ""}
                       {goal_pool_id ""}} {
   CORE_RefMacroVars
 
   # Default value initialization
   CORE_GenVarIfEmpty goal_pool_id "goal-pool"
-  CORE_SetIfEmpty behavior $NGS_GB_ACHIEVE
 
-  if {$behavior == ""} {
-    return "[ngs-match-goalpool $state_id $goal_pool_id $goal_name]
-            ($goal_pool_id ^goal $goal_id)"
-  } else {
-    return "[ngs-match-goalpool $state_id $goal_pool_id $goal_name]
-            ($goal_pool_id ^goal     $goal_id)
-            ($goal_id   ^behavior $behavior)"
+  set lhs_ret "[ngs-match-goalpool $state_id $goal_pool_id $goal_name]
+               ($goal_pool_id ^goal $goal_id)"
+
+  if { $goal_tags_id != "" } {
+    set lhs_ret "$lhs_ret
+                 ($goal_id ^tags $goal_tags_id)"
   }
+  if { $behavior != "" } {
+    set lhs_ret "$lhs_ret
+                 ($goal_id ^behavior $behavior)"
+  }
+
+  return $lhs_ret
 }
 
 # Create a condition that matches and binds within a substate.
@@ -264,17 +269,22 @@ proc ngs-match-substate { substate_id {top_state_id ""} {superstate_id ""}} {
 #          ...do something...
 proc ngs-match-active-goal { substate_id
                              goal_name 
-                             {goal_id ""} 
+                             goal_id
+                             {goal_tags_id ""}
                              {top_state_id ""}
                              {superstate_id ""} } {
   CORE_RefMacroVars
 
-  # Default value initialization
-  CORE_GenVarIfEmpty goal_id $goal_name
+  set lhs_ret "[ngs-match-substate $substate_id $top_state_id $superstate_id]
+               ($substate_id ^$WM_ACTIVE_GOAL $goal_id)
+               [ngs-is-named $goal_id $goal_name]"
 
-  return "[ngs-match-substate $substate_id $top_state_id $superstate_id]
-          ($substate_id ^$WM_ACTIVE_GOAL $goal_id)
-          [ngs-is-named $goal_id $goal_name]"
+  if { $goal_tags_id != "" } {
+    set lhs_ret "$lhs_ret
+                 ($goal_id ^tags $goal_tags_id)"
+  }
+
+  return $lhs_ret
 }
 
 # Start a production to bind to an active goal at the top-state
@@ -291,14 +301,19 @@ proc ngs-match-active-goal { substate_id
 #
 proc ngs-match-top-state-active-goal { state_id
                                        goal_name 
-                             	      {goal_id ""} } {
+                             	         goal_id 
+                                       {goal_tags_id ""}} {
   CORE_RefMacroVars
 
-  # Default value initialization
-  CORE_GenVarIfEmpty goal_id $goal_name
+  set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_name $goal_id)
+                 [ngs-is-tagged $goal_id $NGS_GS_ACTIVE]"
 
-  return "(state $state_id ^$WM_GOAL_SET.$goal_name $goal_id)
-          [ngs-is-tagged $goal_id $NGS_GS_ACTIVE]"
+  if { $goal_tags_id != "" } {
+    set lhs_ret "$lhs_ret
+                 ($goal_id ^tags $goal_tags_id)"
+  }
+
+  return $ret_val
 }
 
 
@@ -314,7 +329,7 @@ proc ngs-match-top-state-active-goal { state_id
 #
 proc ngs-match-proposed-operator { state_id
                                    op_name
- 								   {op_behavior ""}
+ 								                   {op_behavior ""}
                                    {op_id ""} 
                                    {goal_id ""}} {
   # Default value initialization
@@ -379,24 +394,26 @@ proc ngs-match-two-proposed-operators { state_id
 #
 proc ngs-match-selected-operator {state_id
                                   op_name 
-                                  {op_id ""} 
+                                  op_id
                                   {goal_id ""} 
                                   {goal_tags_id ""}} {
 
-  CORE_GenVarIfEmpty op_id "o"
-  CORE_GenVarIfEmpty goal_id "goal"
+  set lhs_ret "(state $state_id ^operator $op_id)
+               ($op_id          ^name     $op_name)"
 
-  if {$goal_tags != ""} {
-    return "(state $state_id ^operator $op_id)
-            ($op_id          ^name $op_name
-                             ^goal $goal_id)"
-  } else {
-    return "(state $state_id ^operator $op_id)
-            ($op_id          ^name $op_name
-                             ^goal $goal_id)
-            ($goal_id        ^tags $goal_tags_id)"    
-   }
-  
+  if { $goal_id != "" } {
+
+    set lhs_ret "$lhs_ret
+                 ($op_id        ^goal     $goal_id)"
+
+    if {$goal_tags != ""} {
+      set lhs_ret "$lhs_ret
+                   ($goal_id        ^tags $goal_tags_id)"    
+    }
+
+  }
+
+  return $lhs_ret  
 }
 
 
@@ -407,26 +424,12 @@ proc ngs-match-selected-operator {state_id
 #
 proc ngs-match-selected-operator-on-top-state {state_id
                                                op_name 
-                                               {op_id ""} 
+                                               op_id
                                                {goal_id ""} 
                                                {goal_tags_id ""} } {
  
-  CORE_GenVarIfEmpty op_id "o"
-  CORE_GenVarIfEmpty goal_id "goal"
-
-  if {$goal_tags_id != ""} {
-    return "(state $state_id ^superstate nil)
-            ($state_id       ^operator $op_id)
-            ($op_id          ^name $op_name
-                             ^goal $goal_id)"
-  } else {
-    return "(state $state_id ^superstate nil)
-            ($state_id       ^operator $op_id)
-            ($op_id          ^name $op_name
-                             ^goal $goal_id)
-            ($goal_id        ^tags $goal_tags_id)"    
-   }
-  
+  return "[ngs-match-selected-operator $state_id $op_name $op_id $goal_id $goal_tags_id]
+          ($state_id ^superstate nil)"
 }
 
 # Use start a production to apply an operator
@@ -436,7 +439,7 @@ proc ngs-match-selected-operator-on-top-state {state_id
 #
 proc ngs-match-selected-operator-in-substate {substate_id
                                               op_name 
-                                              {op_id ""} 
+                                              op_id
                                               {goal_id ""} 
                                               {goal_tags_id ""} 
                                               {top_state_id ""}
@@ -445,20 +448,7 @@ proc ngs-match-selected-operator-in-substate {substate_id
   CORE_GenVarIfEmpty top_state_id "top-state"
   CORE_GenVarIfEmpty superstate_id "superstate"
   
-  CORE_GenVarIfEmpty op_id "o"
-  CORE_GenVarIfEmpty goal_id "goal"
-
-  if {$goal_tags_id != ""} {
-    return "[ngs-match-substate $substate_id $top_state_id $superstate_id]
-            (#substate_id    ^operator $op_id)
-            ($op_id          ^name $op_name
-                             ^goal $goal_id)"
-  } else {
-    return "[ngs-match-substate $substate_id $top_state_id $superstate_id]
-            (#substate_id    ^operator $op_id)
-            ($op_id          ^name $op_name
-                             ^goal $goal_id)
-            ($goal_id        ^tags $goal_tags_id)"    
-   }
+  return "[ngs-match-substate $substate_id $top_state_id $superstate_id]
+          [ngs-match-selected-operator $substate_id $op_name $op_id $goal_id $goal_tags_id]"
   
 }

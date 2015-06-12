@@ -51,6 +51,19 @@ CORE_CreateMacroVar NGS_GB_MAINT   "maintenance"
 CORE_CreateMacroVar NGS_OP_ATOMIC "atomic"
 CORE_CreateMacroVar NGS_OP_DECIDE "decide"
 
+# Methods of goal and typed object creation
+CORE_CreateMacroVar NGS_PROPOSE_OPERATOR "operator"
+CORE_CreateMacroVar NGS_CONSTRUCT_IN_PLACE "in-place"
+
+# Substate Tags
+CORE_CreateMacroVar NGS_TAG_SUBSTATE_RESULT_RETURNED "substate-result-returned"
+
 # Standard operators
-CORE_CreateMacroVar NGS_OP_REMOVE_ACHIEVED "ngs-std-remove-achieved-goal"
-CORE_CreateMacroVar NGS_OP_CREATE_GOAL     "ngs-std-create-goal"
+CORE_CreateMacroVar NGS_OP_REMOVE_ACHIEVED    "ngs-op-remove-achieved-goal"
+CORE_CreateMacroVar NGS_OP_CREATE_GOAL        "ngs-op-create-goal"
+CORE_CreateMacroVar NGS_OP_CREATE_OBJECT      "ngs-op-create-object"
+CORE_CreateMacroVar NGS_OP_SET_RETURN_VALUE   "ngs-op-set-return-value"
+CORE_CreateMacroVar NGS_OP_COPY_RETURN_VALUES "ngs-op-copy-return-values-to-destination"
+
+# Built-in Types
+CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "ngs-type-state-return-value"

@@ -1,0 +1,19 @@
+# Apply operator to create a goal
+sp "ngs*core*goal*apply*$NGS_OP_CREATE_GOAL
+  [ngs-match-selected-operator-on-top-state <s> $NGS_OP_CREATE_GOAL <o>]
+  [ngs-match-goalpool <s> <goals> <gname>]
+  (<o> ^new-obj <g>)
+  [ngs-is-named <g> <gname>]
+-->
+  (<goals> ^goal (deep-copy <g>))"
+
+# Apply operator to create any object
+sp "ngs*core*goal*apply*$NGS_OP_CREATE_OBJECT
+  [ngs-match-selected-operator-on-top-state <s> $NGS_OP_CREATE_OBJECT <o>]
+  (<o> ^dest-obj <dest>
+  	   ^dest-attr <attr>
+  	   ^new-obj <obj>)
+-->
+  (<dest> ^<attr> (deep-copy <obj>))"
+
+
