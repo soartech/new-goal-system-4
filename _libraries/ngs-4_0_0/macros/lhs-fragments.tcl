@@ -287,6 +287,35 @@ proc ngs-match-active-goal { substate_id
   return $lhs_ret
 }
 
+# Start a production to bind to an active goal with a given most derived type
+#
+# Active goals have been selected for processing in a sub-state. This macro
+#  binds to the sub-state and tests the WM_ACTIVE_GOAL attribute in the 
+#  substate. If you want to bind through the top-state goal pool use
+#  ngs-match-top-state-active-goal instead.
+#
+# e.g. sp "my-production
+#          [ngs-match-active-goal myGoalName <my-goal> <ss>]
+#          -->
+#          ...do something...
+proc ngs-match-to-set-return-value { substate_id
+                                     goal_name 
+                                     goal_id
+                                     return_value_name
+                                     {goal_tags_id ""}
+                                     {top_state_id ""}
+                                     {superstate_id ""} } {
+  CORE_RefMacroVars
+  set val_desc [CORE_GenVarName val_desc]
+
+  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $goal_tags_id $top_state_id $superstate_id]
+               ($substate_id ^return-values.value-description $val_desc)
+               ($val_desc    ^name  $return_value_name
+                            -^value)"
+
+  return $lhs_ret
+}
+
 # Start a production to bind to an active goal at the top-state
 #
 # Active goals have been selected for processing in a sub-state, but this version

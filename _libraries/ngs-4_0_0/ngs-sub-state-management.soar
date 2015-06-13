@@ -1,28 +1,28 @@
 # Elaborate the operator's return values to the substate
 sp "ngs*core*substate*elaborate-return-values
     [ngs-match-substate <ss> <top-state> <superstate>]
-    (<superstate> ^operator.ret-values <ret-values>)
+    (<superstate> ^operator.return-values <ret-values>)
 -->
-    (<ss> ^ret-values <ret-values>)"
+    (<ss> ^return-values <ret-values>)"
 
 # Copy a return value into the set of all return values for a substate
 sp "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*with-name
   [ngs-match-selected-operator <s> $NGS_OP_SET_RETURN_VALUE <o>]
-  (<o> ^ret-val-name <ret-val-name>
-  	   ^ret-val      <ret-val>)
-  (<s> ^ret-values   <ret-val-set>)
-  (<ret-val-set> ^ret-val <rv-obj>)
-  (<rv-obj>      ^ret-val-name <ret-val-name>
-                -^ret-val)
+  (<o> ^name           <ret-val-name>
+  	   ^value          <ret-val>)
+  (<s> ^return-values  <ret-val-set>)
+  (<ret-val-set> ^value-description <v-desc>)
+  (<v-desc>      ^name <ret-val-name>
+                -^value)
 -->
-  (<rv-obj> ^ret-val (deep-copy <ret-val>))"
+  (<v-desc> ^value (deep-copy <ret-val>))"
 
 # In every substate with a ret-values attribute, we propose a least
 #  preference operator to copy the return values to the top-state
 #
 sp "ngs*core*substate*propose*$NGS_OP_COPY_RETURN_VALUES
 	[ngs-match-substate <ss> <top-state> <superstate>]
-	(<ss> ^ret-values <ret-val-set>)
+	(<ss> ^return-values <ret-val-set>)
 	[ngs-is-not-tagged <ss> $NGS_TAG_SUBSTATE_RESULT_RETURNED]
 -->
 	[ngs-create-atomic-operator <ss> $NGS_OP_COPY_RETURN_VALUES <o> <]"
@@ -34,24 +34,24 @@ sp "ngs*core*substate*propose*$NGS_OP_COPY_RETURN_VALUES
 
 sp "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*single-copy*create-new
 	[ngs-match-selected-operator-in-substate <ss> $NGS_OP_COPY_RETURN_VALUES <o>]
-	(<ss> ^ret-values <ret-val-set>)
-	(<ret-val-set> ^ret-val <rv-obj>)
-	(<rv-obj>      ^dest-obj       <dest>
-	 			   ^dest-attribute <attr>
-	 			   ^ret-val        <ret-val>
-	 			   ^add-to-set     $NGS_NO)
+	(<ss> ^return-values <ret-val-set>)
+	(<ret-val-set> ^value-description <rv-obj>)
+	(<rv-obj>      ^destination-object    <dest>
+	 			   ^destination-attribute <attr>
+	 			   ^value                 <ret-val>
+	 			   ^add-to-set            $NGS_NO)
 	(<dest>       -^<attr>)
 -->
-	(<dest>        ^<attr>         <ret-val>)"
+	(<dest>        ^<attr>         <ret-val> +)"
 
 sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*single-copy*replace-existing
 	[ngs-match-selected-operator-in-substate <ss> $NGS_OP_COPY_RETURN_VALUES <o>]
-	(<ss> ^ret-values <ret-val-set>)
-	(<ret-val-set> ^ret-val <rv-obj>)
-	(<rv-obj>      ^dest-obj       <dest>
-	 			   ^dest-attribute <attr>
-	 			   ^ret-val        <ret-val>
-	 			   ^add-to-set     $NGS_NO)
+	(<ss> ^return-values <ret-val-set>)
+	(<ret-val-set> ^value-description     <rv-obj>)
+	(<rv-obj>      ^destination-object    <dest>
+	 			   ^destination-attribute <attr>
+	 			   ^value                 <ret-val>
+	 			   ^add-to-set            $NGS_NO)
 	(<dest>        ^<attr>         <old-val>)
 -->
 	(<dest>        ^<attr>         <old-val> -)
@@ -59,12 +59,12 @@ sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*single-copy*replace-existing
 
 sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*insert-into-set
 	[ngs-match-selected-operator-in-substate <ss> $NGS_OP_COPY_RETURN_VALUES <o>]
-	(<ss> ^ret-values <ret-val-set>)
-	(<ret-val-set> ^ret-val <rv-obj>)
-	(<rv-obj>      ^dest-obj       <dest>
-	 			   ^dest-attribute <attr>
-	 			   ^ret-val        <ret-val>
-	 			   ^add-to-set     $NGS_YES)
+	(<ss> ^return-values <ret-val-set>)
+	(<ret-val-set> ^value-description     <rv-obj>)
+	(<rv-obj>      ^destination-object    <dest>
+	 			   ^destination-attribute <attr>
+	 			   ^value                 <ret-val>
+	 			   ^add-to-set            $NGS_YES)
 -->
 	(<dest>        ^<attr>         <ret-val> +)"
 

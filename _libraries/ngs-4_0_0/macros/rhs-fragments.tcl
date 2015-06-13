@@ -226,8 +226,8 @@ proc ngs-create-decide-operator { state_id
                                  $new_obj_id \
                                  $add_prefs \
                                  $new_obj_tags_id]
-            ($new_obj_id ^goal   $goal_id
-                         ^ret-values $ret_val_set_id)"
+            ($new_obj_id ^goal          $goal_id
+                         ^return-values $ret_val_set_id)"
 }
 
 # Create a basic goal
@@ -366,15 +366,15 @@ proc ngs-create-op-ret-val { ret_val_name
     
     set ret_val_id [CORE_GenVarName new-ret-val]
 
-    set rhs_val  "[ngs-create-typed-object $NGS_CONSTRUCT_IN_PLACE $ret_val_set_id ret-val $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id]
-                  ($ret_val_id     ^ret-val-name $ret_val_name
-                                   ^dest-obj $dest_obj_id
-                                   ^dest-attribute $attribute
+    set rhs_val  "[ngs-create-typed-object $NGS_CONSTRUCT_IN_PLACE $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id]
+                  ($ret_val_id     ^name $ret_val_name
+                                   ^destination-object $dest_obj_id
+                                   ^destination-attribute $attribute
                                    ^add-to-set $add_to_set)"
     
     if { $new_val != "" } {
       set rhs_val "$rhs_val
-                   ($ret_val_id ^ret-val $new_val)"
+                   ($ret_val_id ^value $new_val)"
     }
 
     return $rhs_val
@@ -393,13 +393,13 @@ proc ngs-create-op-ret-val { ret_val_name
 #  to set.
 proc ngs-set-ret-val { ret_val_name 
                        state_id
-                       ret_val } {
+                       value } {
 
     CORE_RefMacroVars
 
     set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE <o>]
-                  (<o> ^ret-val      $ret_val
-                       ^ret-val-name $ret_val_name)"
+                  (<o> ^value  $value
+                       ^name   $ret_val_name)"
 
     return $rhs_val
 }
