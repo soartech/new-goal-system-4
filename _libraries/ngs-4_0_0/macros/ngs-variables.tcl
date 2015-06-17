@@ -39,6 +39,10 @@ CORE_CreateMacroVar NGS_YES "*yes*"
 CORE_CreateMacroVar NGS_NO "*no*"
 CORE_CreateMacroVar NGS_UNKNOWN "*unknown*"
 
+# Methods of creating objects
+CORE_CreateMacroVar NGS_REPLACE_IF_EXISTS "ngs-replace"
+CORE_CreateMacroVar NGS_ADD_TO_SET        "ngs-add-to-set"
+
 # Goal States
 CORE_CreateMacroVar NGS_GS_ACTIVE "active"
 CORE_CreateMacroVar NGS_GS_ACHIEVED "achieved"
@@ -59,9 +63,12 @@ CORE_CreateMacroVar NGS_CONSTRUCT_IN_PLACE "in-place"
 CORE_CreateMacroVar NGS_TAG_SUBSTATE_RESULT_RETURNED "substate-result-returned"
 
 # Standard operators
+CORE_CreateMacroVar NGS_OP_MARK_ACHIEVED      "ngs-op-mark-goal-achieved"
 CORE_CreateMacroVar NGS_OP_REMOVE_ACHIEVED    "ngs-op-remove-achieved-goal"
 CORE_CreateMacroVar NGS_OP_CREATE_GOAL        "ngs-op-create-goal"
+CORE_CreateMacroVar NGS_OP_CREATE_GOAL_RET    "ngs-op-create-goal-as-return-value"
 CORE_CreateMacroVar NGS_OP_CREATE_OBJECT      "ngs-op-create-object"
+CORE_CreateMacroVar NGS_OP_CREATE_PRIMITIVE   "ngs-op-create-primitive-object"
 CORE_CreateMacroVar NGS_OP_SET_RETURN_VALUE   "ngs-op-set-return-value"
 CORE_CreateMacroVar NGS_OP_COPY_RETURN_VALUES "ngs-op-copy-return-values-to-destination"
 

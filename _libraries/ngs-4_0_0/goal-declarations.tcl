@@ -23,13 +23,22 @@ proc NGS_DeclareGoal { goal_name } {
     (<goals> ^$goal_name <g>)"
   
   # Remove a goal from the pool, if its supergoal disappears
+  # The -^tags check is a check for existance
   sp "ngs*core*goals*mark-goal-achieved-if-supergoal-removed*$goal_name
     [ngs-match-goal <s> $goal_name <g> <tags> $NGS_GB_ACHIEVE <goals>]
     [ngs-is-supergoal <g> <supergoal>]
-    (<supergoal> -^name)
+    (<supergoal> -^tags)
   -->
     [ngs-tag <tags> $NGS_GS_ACHIEVED]"
- 
+
+  # Remove a goal from the pool, if its supergoal disappears
+  sp* "ngs*core*goals*mark-goal-active-if-subgoal-active*$goal_name
+    [ngs-match-goal <s> $goal_name <g> <tags>]
+    [ngs-is-supergoal <g> <supergoal>]
+    [ngs-is-active <g>]
+    [ngs-match-tags <supergoal> <sg-tags>]
+  -->
+    [ngs-tag <sg-tags> $NGS_GS_ACTIVE]" true 
 
   # Proposes to remove a goal that is achieved. This only will fire
   #  if the goal is o-supported.

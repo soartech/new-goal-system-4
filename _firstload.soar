@@ -1,6 +1,6 @@
 # This loads the macros needed to do the rest of the loading
 # Before we load this line, the sourcing macros are not available
-source "./_core/_CORE_Macros.tcl"
+source "./_libraries/_core/_CORE_Macros.tcl"
 
 # Now we can use the core macros for loading
 CORE_Source load.soar

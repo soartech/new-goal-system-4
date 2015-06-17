@@ -74,8 +74,8 @@ proc ngs-is-not-named { object_id name } {
 proc ngs-has-behavior { object_id behavior } {
   return "($object_id ^behavior $behavior)"
 }
-proc ngs-has-behavior { object_id name } {
-  return "($object_id -^behavior $bebavior)"
+proc ngs-does-not-have-behavior { object_id behavior } {
+  return "($object_id -^behavior $behavior)"
 }
 
 # Use to test an object for a tag
@@ -316,6 +316,23 @@ proc ngs-match-to-set-return-value { substate_id
   return $lhs_ret
 }
 
+# Start a production to bind to an active goal with a given most derived type
+#
+proc ngs-match-to-create-new-ret-val { substate_id
+                                       goal_name 
+                                       goal_id
+                                       ret_val_set_id
+                                      {goal_tags_id ""}
+                                      {top_state_id ""}
+                                      {superstate_id ""} } {
+  CORE_RefMacroVars
+
+  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $goal_tags_id $top_state_id $superstate_id]
+               ($substate_id ^return-values $ret_val_set_id)"
+
+  return $lhs_ret
+}
+
 # Start a production to bind to an active goal at the top-state
 #
 # Active goals have been selected for processing in a sub-state, but this version
@@ -330,19 +347,19 @@ proc ngs-match-to-set-return-value { substate_id
 #
 proc ngs-match-top-state-active-goal { state_id
                                        goal_name 
-                             	         goal_id 
+                             	       goal_id 
                                        {goal_tags_id ""}} {
   CORE_RefMacroVars
 
   set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_name $goal_id)
-                 [ngs-is-tagged $goal_id $NGS_GS_ACTIVE]"
+                 [ngs-is-active $goal_id]"
 
   if { $goal_tags_id != "" } {
     set lhs_ret "$lhs_ret
                  ($goal_id ^tags $goal_tags_id)"
   }
 
-  return $ret_val
+  return $lhs_ret
 }
 
 
@@ -357,24 +374,29 @@ proc ngs-match-top-state-active-goal { state_id
 #          ...
 #
 proc ngs-match-proposed-operator { state_id
-                                   op_name
- 								                   {op_behavior ""}
-                                   {op_id ""} 
-                                   {goal_id ""}} {
-  # Default value initialization
-  CORE_GenVarIfEmpty op_id "o"
+								   op_id
+                                   {op_name ""}
+								   {goal_id ""}
+ 								   {op_behavior ""} } {
 
-   set goal_test ""
-   if {$goal_id != ""} { set $goal_test "\n($op_id ^goal $goal_id" }
+  set lhs_ret "(state $state_id ^operator $op_id +)"
 
-  if {op_behavior == "" } {
-    return "(state $state_id ^operator $op_id +)
-            ($op_id ^name $op_name)"
-  } else {
-    return return "(state $state_id ^operator $op_id +)
-                   ($op_id ^name $op_name)
-                   ($op_id ^behavior $op_behavior) $goal_test"
-  } 
+   if { $op_name != "" } {
+     set lhs_ret "$lhs_ret
+            	  ($op_id ^name $op_name)"
+	} 
+
+  if { $goal_id != ""} { 
+	set lhs_ret "$lhs_ret
+           		($op_id ^goal $goal_id)" 
+  }
+
+  if { $op_behavior != ""} { 
+	set lhs_ret "$lhs_ret
+                 ($op_id ^behavior $op_behavior)"
+  }
+
+  return $lhs_ret
 }
 
 # Return the bindings for two proposed-but-not-necessarily-selected operators
@@ -388,32 +410,48 @@ proc ngs-match-proposed-operator { state_id
 #          anything else.
 
 proc ngs-match-two-proposed-operators { state_id
-                                        op1_name 
-                                        op2_name 
-                                        {op1_id ""} 
-                                        {op2_id ""}
+                                        op1_id 
+                                        op2_id
+                                        {op1_name ""}
+                                        {op2_name ""} 
                                         {goal1_id ""}
                                         {goal2_id ""}
                                         {op1_behavior ""}
-                                        {op2_behavior ""}} {
+                                        {op2_behavior ""} } {
 
-   # Default value initialization
-   CORE_GenVarIfEmpty op1_id "o"
-   CORE_GenVarIfEmpty op2_id "o"
 
-   set goal1_test ""
-   set goal2_test ""
-   if {$goal1_id != ""} { set $goal1_test "\n($op1_id ^goal $goal1_id" }
-   if {$goal2_id != ""} { set $goal2_test "\n($op2_id ^goal $goal2_id" }
+   set lhs_ret "(state $state_id ^operator $op1_id +
+							     ^operator $op2_id +)"
 
-   set behavior1_test ""
-   set behavior2_test ""
-   if {$behavior1_id != ""} { set $behavior1_test "\n($op1_id ^behavior $behavior1_id" }
-   if {$behavior2_id != ""} { set $behavior2_test "\n($op2_id ^behavior $behavior2_id" }
 
-   return "(state $state_id ^operator $op1_id + $op2_id +)
-           ($op1_id ^name $op1_name)
-           ($op2_id ^name $op2_name) $goal1_test $goal2_test $behavior1_test $behavior2_test"
+   if { $op1_name != "" } {
+     set lhs_ret "$lhs_ret
+            	  ($op1_id ^name $op1_name)"
+	} 
+   if { $op2_name != "" } {
+     set lhs_ret "$lhs_ret
+            	  ($op2_id ^name $op2_name)"
+	} 
+
+  if { $goal1_id != "" } { 
+	set lhs_ret "$lhs_ret
+           		($op1_id ^goal $goal1_id)" 
+  }
+  if { $goal2_id != "" } { 
+	set lhs_ret "$lhs_ret
+           		($op2_id ^goal $goal2_id)" 
+  }
+
+  if { $op1_behavior != "" } {
+	set lhs_ret "$lhs_ret
+                 ($op1_id ^behavior $op1_behavior)"
+  }
+  if { $op2_behavior != "" } { 
+	set lhs_ret "$lhs_ret
+                 ($op2_id ^behavior $op2_behavior)"
+  }
+
+  return $lhs_ret
 }
 
 # Use start a production to apply an operator
@@ -435,7 +473,7 @@ proc ngs-match-selected-operator {state_id
     set lhs_ret "$lhs_ret
                  ($op_id        ^goal     $goal_id)"
 
-    if {$goal_tags != ""} {
+    if {$goal_tags_id != ""} {
       set lhs_ret "$lhs_ret
                    ($goal_id        ^tags $goal_tags_id)"    
     }

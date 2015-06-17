@@ -7,6 +7,5 @@ proc FailAfterNDecisionCycles { numdcs } {
        (<su> ^cycle-count $numdcs)
     -->
        (fail)
-       (write |\nFailed by running too long|)
     "
 }

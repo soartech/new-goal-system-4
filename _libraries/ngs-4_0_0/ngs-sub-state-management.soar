@@ -39,7 +39,7 @@ sp "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*single-copy*create-new
 	(<rv-obj>      ^destination-object    <dest>
 	 			   ^destination-attribute <attr>
 	 			   ^value                 <ret-val>
-	 			   ^add-to-set            $NGS_NO)
+	 			   ^replacement-behavior  $NGS_REPLACE_IF_EXISTS)
 	(<dest>       -^<attr>)
 -->
 	(<dest>        ^<attr>         <ret-val> +)"
@@ -51,7 +51,7 @@ sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*single-copy*replace-existing
 	(<rv-obj>      ^destination-object    <dest>
 	 			   ^destination-attribute <attr>
 	 			   ^value                 <ret-val>
-	 			   ^add-to-set            $NGS_NO)
+	 			   ^replacement-behavior  $NGS_REPLACE_IF_EXISTS)
 	(<dest>        ^<attr>         <old-val>)
 -->
 	(<dest>        ^<attr>         <old-val> -)
@@ -64,7 +64,7 @@ sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*insert-into-set
 	(<rv-obj>      ^destination-object    <dest>
 	 			   ^destination-attribute <attr>
 	 			   ^value                 <ret-val>
-	 			   ^add-to-set            $NGS_YES)
+	 			   ^replacement-behavior  $NGS_ADD_TO_SET)
 -->
 	(<dest>        ^<attr>         <ret-val> +)"
 

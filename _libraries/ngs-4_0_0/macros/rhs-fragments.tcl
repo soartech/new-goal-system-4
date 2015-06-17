@@ -64,10 +64,10 @@ proc ngs-create-named-object { parent_obj_id
   CORE_GenVarIfEmpty new_obj_tags_id "tags"
         
  	return "[ngs-create-object $parent_obj_id \
-                             $attribute \
+                               $attribute \
  	                           $new_obj_id \
  	                           $new_obj_tags_id \
-                             $new_obj_prefs]
+                               $new_obj_prefs]
  	        ($new_obj_id ^name $name)" 	        
 }
 
@@ -80,27 +80,70 @@ proc ngs-create-named-object { parent_obj_id
 #  to the newly created object
 # new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
 #  to the newly created object tag set
-proc ngs-create-typed-object { method
-                               parent_obj_id 
-                               attribute
-                               type
-                               new_obj_id
-                               {state_id ""}
-                               {new_obj_tags_id ""} } {
+proc ngs-create-typed-object-in-place { parent_obj_id 
+		                                attribute
+		                                type
+		                                new_obj_id
+		                               {new_obj_tags_id ""} } {
 
   CORE_RefMacroVars
   CORE_GenVarIfEmpty new_obj_tags_id "tags"
 
-  if { $method == $NGS_PROPOSE_OPERATOR } {
-    return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT <o>]
-            (<o> ^dest-object    $parent_obj_id
-                 ^dest-attribute $attribute)
-            [ngs-create-object <o> new-obj $new_obj_id $new_obj_tags_id]
-            ($new_obj_id ^type $type)"
-  } else {
-    return "[ngs-create-object $parent_obj_id $attribute $new_obj_id $new_obj_tags_id]
-            ($new_obj_id ^type $type)"          
-  }
+  return "[ngs-create-object $parent_obj_id $attribute $new_obj_id $new_obj_tags_id]
+          ($new_obj_id ^type $type)"          
+}
+
+proc ngs-create-typed-object-by-operator { state_id
+	                                       parent_obj_id 
+	                                       attribute
+	                                       type
+	                                       new_obj_id
+	                                       {replacement_behavior ""}
+	                                       {new_obj_tags_id ""} } {
+
+  CORE_RefMacroVars
+  CORE_GenVarIfEmpty new_obj_tags_id "tags"
+  CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT <o>]
+          (<o> ^dest-object    $parent_obj_id
+               ^dest-attribute $attribute
+               ^replacement-behavior $replacement_behavior)
+          [ngs-create-object <o> new-obj $new_obj_id $new_obj_tags_id]
+          ($new_obj_id ^type $type)"
+}
+
+#
+# Always creates using an operator, because it's not necessary to use macros if not using operator
+proc ngs-create-primitive-by-operator { state_id
+                                        parent_obj_id 
+                                        attribute
+                                        value
+                                       {replacement_behavior ""} } {
+
+  CORE_RefMacroVars
+  CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_PRIMITIVE <o>]
+          (<o> ^dest-object    $parent_obj_id
+               ^dest-attribute $attribute
+               ^new-val        $value
+               ^replacement-behavior $replacement_behavior)"
+
+}
+
+#
+# Add default body to an object (if id already exists)
+#
+proc ngs-create-named-object-structure { new_obj_id
+                                         name
+                                         {new_obj_tags_id ""} } {
+
+  CORE_RefMacroVars
+  CORE_GenVarIfEmpty new_obj_tags_id "tags"
+
+  return "($new_obj_id ^tags $new_obj_tags_id
+                       ^name $name)"          
 }
 
 #
@@ -256,7 +299,8 @@ proc ngs-create-goal { method
                        {new_obj_tags_id ""} } {
 
     CORE_RefMacroVars
-    
+    CORE_GenVarIfEmpty new_obj_tags_id gtags
+
     variable lhs_val
 
     if { $method == $NGS_PROPOSE_OPERATOR } {
@@ -269,7 +313,7 @@ proc ngs-create-goal { method
                    ($new_obj_id ^behavior $behavior)"
     }
 
-    if { $supergoal_id != "" } { set lhs_val "$lhs_val\n($new_obj_id ^supergoal $supergoal_id" }
+    if { $supergoal_id != "" } { set lhs_val "$lhs_val\n($new_obj_id ^supergoal $supergoal_id)" }
 
     return $lhs_val   
 }        
@@ -342,6 +386,45 @@ proc ngs-create-maintenance-goal { method
    
 }                  
 
+# Create a goal to be returned from a sub-state
+#
+# Creates a special return value in a sub-state that will result in a new goal
+#  being created in the top-state, once the sub-state is completed.
+#
+proc ngs-create-goal-as-return-value { method
+                                       state_id
+                                       ret_val_set
+                                       goal_behavior
+                                       goal_name
+                                       new_obj_id
+                                       {supergoal_id ""}
+                                       {goal_pool_id ""}
+                                       {new_obj_tags_id ""} } {
+    
+    CORE_RefMacroVars
+    CORE_GenVarIfEmpty new_obj_tags_id gtags
+
+    variable lhs_val
+
+    if { $method == $NGS_PROPOSE_OPERATOR } {
+	    set lhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL_RET <o>]
+	                 (<o> ^return-value-set $ret_val_set)
+	                 [ngs-create-named-object <o> new-goal-to-return $goal_name $new_obj_id $new_obj_tags_id]
+	                 ($new_obj_id ^behavior $goal_behavior)"
+    } else {
+        set lhs_val "[ngs-create-ret-val new-goal <ret-vals> $goal_pool_id goal $new_obj_id $NGS_ADD_TO_SET]
+                     [ngs-create-named-object-structure $new_obj_id $goal_name $new_obj_tags_id]
+                     ($new_obj_id ^behavior $goal_behavior)"
+    }
+                   
+    if { $supergoal_id != "" } { set lhs_val "$lhs_val\n($new_obj_id ^supergoal $supergoal_id)" }
+
+    return $lhs_val
+   
+}                  
+
+
+
 # Creates a single return value
 #
 # Use this when you need to create a value to be returned from a sub-state.
@@ -354,23 +437,23 @@ proc ngs-create-maintenance-goal { method
 # add_to_set: a boolean that indicates whether to add new_val to a set (e.g. allow 
 #  multi-valued attributes) or to replace any current value.
 #
-proc ngs-create-op-ret-val { ret_val_name
-                             ret_val_set_id
-                             dest_obj_id 
-                             attribute 
-                             {new_val ""} 
-                             {add_to_set ""} } {
+proc ngs-create-ret-val { ret_val_name
+                          ret_val_set_id
+                          dest_obj_id 
+                          attribute 
+                          {new_val ""} 
+                          {replacement_behavior ""} } {
 
     CORE_RefMacroVars
-    CORE_SetIfEmpty add_to_set $NGS_NO
-    
+    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
     set ret_val_id [CORE_GenVarName new-ret-val]
 
-    set rhs_val  "[ngs-create-typed-object $NGS_CONSTRUCT_IN_PLACE $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id]
+    set rhs_val  "[ngs-create-typed-object-in-place $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id]
                   ($ret_val_id     ^name $ret_val_name
                                    ^destination-object $dest_obj_id
                                    ^destination-attribute $attribute
-                                   ^add-to-set $add_to_set)"
+                                   ^replacement-behavior $replacement_behavior)"
     
     if { $new_val != "" } {
       set rhs_val "$rhs_val
@@ -387,7 +470,7 @@ proc ngs-create-op-ret-val { ret_val_name
 #  in a substate.
 #
 # state_id: Id for the sub-state into which to place the return value
-# ret_val: Id for the return value object (can be created with ngs-create-typed-object)
+# ret_val: Id for the return value object (can be created with ngs-create-typed-object-*)
 # ret_val_name: The name of the return value. You may leave this empty if there is only
 #  one return value in a state. Otherwise, it is the name of the specific return value
 #  to set.

@@ -1,0 +1,10 @@
+
+# This says that if we propose a new operator to remove a currently active goal, we should prefer to execute that operator
+#  (and remove the active goal)
+sp* "ngs*core*goals*prefer-new-operator-if-same-as-active-goal
+	[ngs-match-two-proposed-operators <s> <o1> <o2> $NGS_OP_REMOVE_ACHIEVED <o2-name> <g1> <g2> {} $NGS_OP_DECIDE]
+    [ngs-match-active-goal <s2> <any-goal-name> <g2>]
+    [ngs-is-named <s2> <o2-name>]
+    [ngs-is-active <g1>]
+-->
+	(<s> ^operator <o1> > <o2>)" true
