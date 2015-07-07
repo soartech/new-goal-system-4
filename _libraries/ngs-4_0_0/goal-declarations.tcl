@@ -23,27 +23,26 @@ proc NGS_DeclareGoal { goal_name } {
     (<goals> ^$goal_name <g>)"
   
   # Remove a goal from the pool, if its supergoal disappears
-  # The -^tags check is a check for existance
+  # The -^name check is a check for existance
   sp "ngs*core*goals*mark-goal-achieved-if-supergoal-removed*$goal_name
-    [ngs-match-goal <s> $goal_name <g> <tags> $NGS_GB_ACHIEVE <goals>]
+    [ngs-match-goal <s> $goal_name <g> $NGS_GB_ACHIEVE]
     [ngs-is-supergoal <g> <supergoal>]
-    (<supergoal> -^tags)
+    (<supergoal> -^name)
   -->
-    [ngs-tag <tags> $NGS_GS_ACHIEVED]"
+    [ngs-tag <g> $NGS_GS_ACHIEVED]"
 
-  # Remove a goal from the pool, if its supergoal disappears
+  # Mark a goal active if its subgoal is active
   sp* "ngs*core*goals*mark-goal-active-if-subgoal-active*$goal_name
-    [ngs-match-goal <s> $goal_name <g> <tags>]
+    [ngs-match-goal <s> $goal_name <g>]
     [ngs-is-supergoal <g> <supergoal>]
     [ngs-is-active <g>]
-    [ngs-match-tags <supergoal> <sg-tags>]
   -->
-    [ngs-tag <sg-tags> $NGS_GS_ACTIVE]" true 
+    [ngs-tag <supergoal> $NGS_GS_ACTIVE]" true 
 
   # Proposes to remove a goal that is achieved. This only will fire
   #  if the goal is o-supported.
   sp "ngs*core*goals*propose-to-remove-achieved-goals*$goal_name
-    [ngs-match-goal <s> $goal_name <g> {} $NGS_GB_ACHIEVE <goals>]
+    [ngs-match-goal <s> $goal_name <g> $NGS_GB_ACHIEVE <goals>]
     [ngs-is-tagged <g> $NGS_GS_ACHIEVED]
   -->
     [ngs-create-atomic-operator <s> $NGS_OP_REMOVE_ACHIEVED <o>]

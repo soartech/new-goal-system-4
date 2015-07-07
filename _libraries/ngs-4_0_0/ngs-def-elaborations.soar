@@ -11,10 +11,9 @@ sp {ngs*core*goals*elaborate-goal-set-on-top-state
 sp "ngs*core*goals*mark-goal-as-active
   [ngs-match-substate <ss> <top-state>]
   (<top-state> ^operator.goal <g>)
-  [ngs-match-tags <g> <gtags>]
 -->
   (<ss> ^$WM_ACTIVE_GOAL <g> +)
-  [ngs-tag <gtags> $NGS_GS_ACTIVE]"
+  [ngs-tag <g> $NGS_GS_ACTIVE]"
 
 
 # This is the traditional way names are given to substates

@@ -63,7 +63,7 @@ proc ngs-create-typed-object-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
-  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT*$attribute <o> $add_prefs]
+  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT <o> $add_prefs]
           (<o> ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
                ^replacement-behavior $replacement_behavior)
@@ -83,11 +83,12 @@ proc ngs-create-primitive-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
-  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_PRIMITIVE*$attribute <o> $add_prefs]
+  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_PRIMITIVE <o> $add_prefs]
           (<o> ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
-               ^new-val        $value
-               ^replacement-behavior $replacement_behavior)"
+               ^new-obj        $value
+               ^replacement-behavior $replacement_behavior)
+          [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]"
 
 }
 
@@ -180,7 +181,7 @@ proc ngs-create-goal-in-place { goal_set_id
   CORE_RefMacroVars
   variable lhs_val
 
-  set lhs_val "[ngs-create-attribute $$goal_set_id $NGS_GOAL_ATTRIBUTE $new_obj_id]
+  set lhs_val "[ngs-create-attribute $goal_set_id $NGS_GOAL_ATTRIBUTE $new_obj_id]
                ($new_obj_id ^name $goal_name
                             ^type $type)"
 
@@ -199,7 +200,7 @@ proc ngs-create-goal-by-operator { state_id
   CORE_RefMacroVars
   variable lhs_val
 
-  set lhs_val "[ngs-create-atomic-operator $named_goal_set_or_state_id $NGS_OP_CREATE_GOAL*$goal_name <o>]
+  set lhs_val "[ngs-create-atomic-operator $named_goal_set_or_state_id $NGS_OP_CREATE_GOAL <o>]
                [ngs-create-attribute <o> new-obj $new_obj_id]
                [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
                ($new_obj_id ^name $goal_name
@@ -275,13 +276,13 @@ proc ngs-create-ret-val-in-place { ret_val_name
 }
 
 # Needs to work with an elaboration to set the ret_val_set_id (dest-obj)
-proc ngs-create-ret-val-by-operator{ state_id
-                                     ret_val_name
-                                     dest_obj_id
-                                     attribute 
-                                     {new_val ""} 
-                                     {replacement_behavior ""}
-                                     {add_prefs ""} } {
+proc ngs-create-ret-val-by-operator { state_id
+                                      ret_val_name
+                                      dest_obj_id
+                                      attribute 
+                                      {new_val ""} 
+                                      {replacement_behavior ""}
+                                      {add_prefs ""} } {
 
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS

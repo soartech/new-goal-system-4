@@ -1,6 +1,6 @@
 # Apply rule that cleans up an achieved goal
 sp "ngs*core*goal*apply*$NGS_OP_REMOVE_ACHIEVED
-  [ngs-match-selected-operator-on-top-state <s> $NGS_OP_REMOVE_ACHIEVED <o>]
+  [ngs-match-selected-operator-on-top-state <s> <o> $NGS_OP_REMOVE_ACHIEVED]
   (<o> ^goal <g>
        ^goal-set <goals>)
 -->
