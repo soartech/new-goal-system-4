@@ -27,16 +27,16 @@ proc ngs-create-attribute { parent_obj_id
 
   CORE_RefMacroVars
     
- 	return "($parent_obj_id ^$attribute $value $prefs)"
+  return "($parent_obj_id ^$attribute $value $prefs)"
  	        
 }
 
 # Create an object that has a name
 #
 proc ngs-create-typed-object-in-place { parent_obj_id 
-		                                    attribute
-		                                    type
-		                                    new_obj_id 
+		                                attribute
+		                                type
+		                                new_obj_id 
                                         {support_type ""}} {
 
   CORE_RefMacroVars
@@ -45,11 +45,12 @@ proc ngs-create-typed-object-in-place { parent_obj_id
   set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]
                ($new_obj_id ^type $type)"
 
-  if { support_type == $NGS_I_SUPPORT } {
+  if { $support_type == $NGS_I_SUPPORT } {
     set rhs_val "$rhs_val
                  [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]"
   }
-    
+  
+  return $rhs_val
 }
 
 proc ngs-create-typed-object-by-operator { state_id

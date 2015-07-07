@@ -104,6 +104,16 @@ proc ngs-is-not-achieved { goal_id } {
   return "[ngs-is-not-tagged $goal_id $NGS_GS_ACHIEVED]"
 }
 
+proc ngs-is-constructed { parent_id attribute object_id } {
+  CORE_RefMacroVars
+  return "($parent_id ^$attribute $object_id)
+          [ngs-is-tagged $object_id $NGS_TAG_CONSTRUCTED]"
+}
+proc ngs-is-not-constructed { parent_id attribute {object_id ""} } {
+  CORE_RefMacroVars
+  CORE_GenVarIfEmpty object_id "__new-obj"
+  return "-{ [ngs-is-constructed $parent_id $attribute $object_id] }"
+}
 
 ########################################################
 ##

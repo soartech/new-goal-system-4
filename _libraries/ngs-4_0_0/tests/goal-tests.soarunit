@@ -45,7 +45,115 @@ sp "test*create-primitive-object*3
     [ngs-create-primitive-by-operator <s> <s> primitive 7 $NGS_ADD_TO_SET]"
 
 sp "test
-    (state <s> ^primitive 7 ^primitive 6)
+    (state <s> ^primitive 7 ^primitive 6 -^primitive 5)
+-->
+    (pass)"
+}
+
+test create-layered-value {
+
+sp "test*setup-shallow-copy-object
+  (state <s> ^superstate nil)
+-->
+  [ngs-create-typed-object-in-place <s> sub-structure Foo <new-obj>]
+  (<new-obj> ^existing-attribute-1 foo
+             ^existing-attribute-2 bar
+             ^existing-attribute-set 1
+             ^existing-attribute-set 2)"
+
+sp* "test*create-new-object-1
+    (state <s> ^superstate nil
+               ^sub-structure <sub-structure>
+              -^step)
+    [ngs-is-not-constructed <s> complex]
+-->
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
+    (<new-obj> ^already-exists <sub-structure>
+               ^primitive1 foo
+               ^primitive2 10)
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_O_SUPPORT]
+    (<deep> ^copy-me-1 a
+            ^copy-me-2 b
+            ^copy-me-set 1
+            ^copy-me-set 2
+            ^copy-me-set 3)" true
+
+sp* "test*step1*done
+     (state <s> ^superstate nil
+                ^sub-structure <sub-structure>
+               -^step)
+     [ngs-is-constructed <s> complex <complex>]
+     (<complex> -^primitive1 bar)
+-->
+     [ngs-create-primitive-by-operator <s> <s> step 2]"
+    
+
+sp* "test*create-new-object-2
+    (state <s> ^superstate nil
+               ^sub-structure <sub-structure>
+               ^step 2)
+    -{
+        [ngs-is-constructed <s> complex <complex>]
+        (<complex> ^primitive1 bar)
+     }
+-->
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
+    (<new-obj> ^already-exists <sub-structure>
+               ^primitive1 bar
+               ^primitive2 10)
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_O_SUPPORT]
+    (<deep> ^copy-me-1 a
+            ^copy-me-2 b
+            ^copy-me-set 1
+            ^copy-me-set 2
+            ^copy-me-set 3)" true
+
+sp* "test*step2*done
+    (state <s> ^superstate nil
+               ^sub-structure <sub-structure>
+               ^step 2)
+    [ngs-is-constructed <s> complex <complex>]
+    (<complex> ^primitive1 bar)
+    -{
+        [ngs-is-constructed <s> complex <complex2>]
+        (<complex2> -^primitive1 bar)
+     }
+-->
+     [ngs-create-primitive-by-operator <s> <s> step 3]"
+
+sp* "test*create-new-object-3
+    (state <s> ^superstate nil
+               ^sub-structure <sub-structure>
+               ^step 3)
+    [ngs-is-constructed <s> complex <complex>]
+    (<complex> ^primitive1 bar)
+    -{
+        [ngs-is-constructed <s> complex <complex2>]
+        (<complex2> -^primitive1 bar)
+     }
+-->
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> $NGS_ADD_TO_SET]
+    (<new-obj> ^already-exists <sub-structure>
+               ^primitive1 foo
+               ^primitive2 10)
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_O_SUPPORT]
+    (<deep> ^copy-me-1 a
+            ^copy-me-2 b
+            ^copy-me-set 1
+            ^copy-me-set 2
+            ^copy-me-set 3)" true
+
+sp "test
+    (state <s> ^superstate nil
+               ^sub-structure <alerady>
+               ^complex <complex1>
+               ^complex {<complex2> <> <complex1> })
+    (<complex1> ^primitive1 foo
+                ^deep-structure <deep1>
+                ^already-exists <already>)
+    (<complex2> ^primitive1 bar
+                ^deep-structure { <deep2> <> <deep1> }
+                ^already-exists <already>) 
 -->
     (pass)"
 }
