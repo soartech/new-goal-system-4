@@ -158,6 +158,165 @@ sp "test
     (pass)"
 }
 
+# This test shows that the deep copy process, as implemented, does not properly copy
+#  set items with sub-structure. It will properly shallow copy set items.
+# The result is a cross-product of attributes for the set items. The obvious solution
+#  to this is to drop into a sub-state to do copying deeper than one level (this
+#  could be an enhancement added down the road).                                                                      
+test deep-copy-with-set-values {
+
+sp* "test*create-new-object-1
+    (state <s> ^superstate nil)
+    [ngs-is-not-constructed <s> complex]
+-->
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep1> $NGS_O_SUPPORT]
+    (<deep1> ^copy-me-1 a)
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep2> $NGS_O_SUPPORT]
+    (<deep2> ^different a)" true
+
+sp "test
+    (state <s> ^complex <complex>)
+    (<complex> ^deep-structure <d1>
+               ^deep-structure { <d2> <> <d1> })
+    (<d1> ^copy-me-1 a
+         -^different a)
+    (<d2> ^different a
+         -^copy-me-1 a)
+   -{
+        (<complex> ^deep-structure { <d3> <> <d1> <> <d2> })
+    }
+-->
+    (pass)"
+          
+}
+
+test stress-copy-levels {
+
+sp "test*setup-shallow-copy-object
+  (state <s> ^superstate nil)
+-->
+  [ngs-create-typed-object-in-place <s> sub-structure Foo <new-obj>]
+  (<new-obj> ^existing-attribute-1 foo
+             ^existing-attribute-2 bar
+             ^existing-attribute-set 1
+             ^existing-attribute-set 2)"
+
+sp* "test*create-new-object-1
+    (state <s> ^superstate nil
+               ^sub-structure <sub-structure>
+              -^step)
+    [ngs-is-not-constructed <s> complex]
+-->
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <level1>]
+    (<level1>  ^already-exists <sub-structure>
+               ^primitive1 foo
+               ^set-val    1
+               ^set-val    2)
+    [ngs-create-typed-object-in-place <level1> deep-structure DeepType <level2> $NGS_O_SUPPORT]
+    (<level2> ^already-exists <sub-structure>
+               ^primitive1 foo
+               ^set-val    1
+               ^set-val    2)
+    [ngs-create-typed-object-in-place <level2> deep-structure DeepType <level3> $NGS_O_SUPPORT]
+    (<level3> ^already-exists <sub-structure>
+               ^primitive1 foo
+               ^set-val    1
+               ^set-val    2)
+    [ngs-create-typed-object-in-place <level3> deep-structure DeepType <level4> $NGS_O_SUPPORT]
+    (<level4> ^already-exists <sub-structure>
+               ^primitive1 foo
+               ^set-val    1
+               ^set-val    2)
+    [ngs-create-typed-object-in-place <level4> deep-structure DeepType <level5> $NGS_O_SUPPORT]
+    (<level5> ^already-exists <sub-structure>
+               ^primitive1 foo
+               ^set-val    1
+               ^set-val    2)
+    [ngs-create-typed-object-in-place <level5> deep-structure DeepType <level6> $NGS_O_SUPPORT]
+    (<level6> ^already-exists <sub-structure>
+               ^primitive1 foo
+               ^set-val    1
+               ^set-val    2)" true
+
+sp "test
+    (state <s> ^superstate nil
+               ^complex <d1>
+               ^sub-structure <existing>)
+    (<d1>      ^already-exists <existing>
+               ^primitive1 foo
+               ^set-val 1
+               ^set-val 2
+               ^deep-structure <d2>)
+    (<d2>      ^already-exists <existing>
+               ^primitive1 foo
+               ^set-val 1
+               ^set-val 2
+               ^deep-structure <d3>)
+    (<d3>      ^already-exists <existing>
+               ^primitive1 foo
+               ^set-val 1
+               ^set-val 2
+               ^deep-structure <d4>)
+    (<d4>      ^already-exists <existing>
+               ^primitive1 foo
+               ^set-val 1
+               ^set-val 2
+               ^deep-structure <d5>)
+    (<d5>      ^already-exists <existing>
+               ^primitive1 foo
+               ^set-val 1
+               ^set-val 2
+               ^deep-structure <d6>)
+  -(<d6>       ^<attr>)
+-->
+    (pass)"
+
+}
+
+
+# This test shows that if set items are shallow copied, the deep copy
+#  process works properly.
+test shallow-copy-with-set-values {
+
+sp "test*setup-shallow-copy-object*1
+  (state <s> ^superstate nil)
+-->
+  [ngs-create-typed-object-in-place <s> set-item-1 Foo <new-obj>]
+  (<new-obj> ^copy-me-1 a)"
+
+sp "test*setup-shallow-copy-object*2
+  (state <s> ^superstate nil)
+-->
+  [ngs-create-typed-object-in-place <s> set-item-2 Foo <new-obj>]
+  (<new-obj> ^different a)"
+
+sp* "test*create-new-object-1
+    (state <s> ^superstate nil
+               ^set-item-1 <set-item-1>
+               ^set-item-2 <set-item-2>)
+    [ngs-is-not-constructed <s> complex]
+-->
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
+    (<new-obj> ^set-item <set-item-1>
+               ^set-item <set-item-2>)" true
+
+sp "test
+    (state <s> ^complex <complex>)
+    (<complex> ^set-item <s1>
+               ^set-item { <s2> <> <s1> })
+    (<s1> ^copy-me-1 a
+         -^different a)
+    (<s2> ^different a
+         -^copy-me-1 a)
+   -{
+        (<complex> ^set-item { <s3> <> <s1> <> <s2> })
+    }
+-->
+    (pass)"
+          
+}
+
 #test goal-o-support-goal-creation { 
 #
 #sp "test*create-achievement-goal
