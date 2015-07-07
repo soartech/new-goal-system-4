@@ -33,6 +33,15 @@ CORE_CreateMacroVar WM_GOAL_SET "goals"
 CORE_CreateMacroVar WM_ACTIVE_GOAL "active-goal"
 
 CORE_CreateMacroVar NGS_OP_ATTRIBUTE "operator"
+CORE_CreateMacroVar NGS_GOAL_ATTRIBUTE "goal"
+CORE_CreateMacroVar NGS_RETURN_VALUES "return-values"
+
+# Support types for object creation
+CORE_CreateMacroVar NGS_I_SUPPORT "i-support"
+CORE_CreateMacroVar NGS_O_SUPPORT "o-support"
+
+# The prefix placed on all tags
+CORE_CreateMacroVar NGS_TAG_PREFIX "__tagged*"
 
 # Standard boolean and trilean values
 CORE_CreateMacroVar NGS_YES "*yes*"
@@ -60,13 +69,18 @@ CORE_CreateMacroVar NGS_PROPOSE_OPERATOR "operator"
 CORE_CreateMacroVar NGS_CONSTRUCT_IN_PLACE "in-place"
 
 # Substate Tags
-CORE_CreateMacroVar NGS_TAG_SUBSTATE_RESULT_RETURNED "substate-result-returned"
+CORE_CreateMacroVar NGS_TAG_SUBSTATE_RESULT_RETURNED "ngs*substate-result-returned"
+CORE_CreateMacroVar NGS_TAG_CONSTRUCTED 			 "ngs*constructed"
+CORE_CreateMacroVar NGS_TAG_INTELLIGENT_DEEP_COPY    "ngs*intelligent-deep-copy"
+CORE_CreateMacroVar NGS_TAG_COPY_COMPLETE			 "ngs*copy-complete"
+CORE_CreateMacroVar NGS_TAG_COPIED_LEVEL			 "ngs*copied-level"
 
 # Standard operators
 CORE_CreateMacroVar NGS_OP_MARK_ACHIEVED      "ngs-op-mark-goal-achieved"
 CORE_CreateMacroVar NGS_OP_REMOVE_ACHIEVED    "ngs-op-remove-achieved-goal"
 CORE_CreateMacroVar NGS_OP_CREATE_GOAL        "ngs-op-create-goal"
 CORE_CreateMacroVar NGS_OP_CREATE_GOAL_RET    "ngs-op-create-goal-as-return-value"
+CORE_CreateMacroVar NGS_OP_CREATE_RET_VAL     "ngs-op-create-ret-val"
 CORE_CreateMacroVar NGS_OP_CREATE_OBJECT      "ngs-op-create-object"
 CORE_CreateMacroVar NGS_OP_CREATE_PRIMITIVE   "ngs-op-create-primitive-object"
 CORE_CreateMacroVar NGS_OP_SET_RETURN_VALUE   "ngs-op-set-return-value"

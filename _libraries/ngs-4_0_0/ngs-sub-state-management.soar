@@ -5,18 +5,55 @@ sp "ngs*core*substate*elaborate-return-values
 -->
     (<ss> ^return-values <ret-values>)"
 
+#########
+# Augments operator to create a return value with the destination object (the ret-val-set)
+sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_CREATE_RET_VAL*fill-in-return-val-set
+  [ngs-match-proposed-operator <s> $NGS_OP_CREATE_RET_VAL <o>]
+  (<s> ^$NGS_RETURN_VALUES <ret-val-set>) 
+-->
+  (<o> ^dest-object <ret-val-set> +)"
+
+#########
+# Augments operator to set a return value with the destination object (the ret-val-set)
+sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_SET_RETURN_VALUE*fill-in-missing-values
+  [ngs-match-proposed-operator <s> $NGS_OP_CREATE_RET_VAL <o>]
+  (<o>           ^ret-val-name       <ret-val-name>)
+  (<s>           ^$NGS_RETURN_VALUES <ret-val-set>)
+  (<ret-val-set> ^value-description  <v-desc>)
+  (<v-desc>      ^name               <ret-val-name>) 
+-->
+  (<o> ^dest-object <v-desc> +)
+  (<o> ^dest-attribute value +)"
+
+# Augments operator to create a goal as a return value
+sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_CREATE_GOAL_RET*fill-in-return-val-set
+  [ngs-match-proposed-operator <s> $NGS_OP_CREATE_GOAL_RET <o>]
+  [ngs-match-goalpool <top-state> <goals>] 
+  (<s> ^$NGS_RETURN_VALUES <ret-val-set>)
+  (<o> ^new-obj            <new-ret-val>)
+-->
+  (<o>           ^dest-object        <ret-val-set> +)
+  (<new-ret-val> ^destination-object <goals>)"
+
+########### FIXED ##################
 # Copy a return value into the set of all return values for a substate
 sp "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*with-name
-  [ngs-match-selected-operator <s> $NGS_OP_SET_RETURN_VALUE <o>]
-  (<o> ^name           <ret-val-name>
-  	   ^value          <ret-val>)
-  (<s> ^return-values  <ret-val-set>)
+  [ngs-match-substate <ss> <top-state> <superstate>]
+  [ngs-match-selected-operator <superstate> <op-name> <o>]
+  (<o> ^type           $NGS_OP_DECIDE
+       ^return-values  <op-ret-val-set>)
+  (<op-ret-val-set>   ^value-description <op-ret-val>)
+  (<op-ret_val>       ^name <ret-val-name>
+                      ^value <ret-val>)
+  (<ss> ^return-values  <ret-val-set>)
   (<ret-val-set> ^value-description <v-desc>)
   (<v-desc>      ^name <ret-val-name>
                 -^value)
 -->
-  (<v-desc> ^value (deep-copy <ret-val>))"
+  (<v-desc> ^value <ret-val>)"
 
+
+########## THIS IS GOOD AS IT IS ########
 # In every substate with a ret-values attribute, we propose a least
 #  preference operator to copy the return values to the top-state
 #
@@ -27,6 +64,7 @@ sp "ngs*core*substate*propose*$NGS_OP_COPY_RETURN_VALUES
 -->
 	[ngs-create-atomic-operator <ss> $NGS_OP_COPY_RETURN_VALUES <o> <]"
 
+############ THIS HAS TO REMAIN A SHALLOW COPY ####################
 # Apply operator to return the return values to the locations specified in the
 #  return value set. There are three variations depending on whether the return
 #  value is a member of a set or whether there already exists a value for the

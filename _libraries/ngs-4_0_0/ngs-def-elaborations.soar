@@ -5,6 +5,7 @@ sp {ngs*core*goals*elaborate-goal-set-on-top-state
   (<s> ^goals <gs>)
 }
 
+
 # Marks a goal with the NGS_GS_ACTIVE tag after that
 #  goal is selected for execution in a substate
 sp "ngs*core*goals*mark-goal-as-active
@@ -15,12 +16,15 @@ sp "ngs*core*goals*mark-goal-as-active
   (<ss> ^$WM_ACTIVE_GOAL <g> +)
   [ngs-tag <gtags> $NGS_GS_ACTIVE]"
 
+
 # This is the traditional way names are given to substates
-sp "ngs*core*substate*set-name
-  [ngs-match-substate <ss> <top-state>]
-  (<top-state> ^operator.name <name>)
+sp "ngs*core*substate*set-name-and-top-state
+  [ngs-match-substate <ss> <top-state> <superstate>]
+  (<superstate> ^operator.name <name>)
 -->
-  (<ss> ^name <name>)"
+  (<ss> ^top-state <top-state> +)
+  (<ss> ^name <name> +)"
+
 
 # This is the traditional way names are given to substates
 sp "ngs*core*substate*set-active-goal
@@ -29,12 +33,7 @@ sp "ngs*core*substate*set-active-goal
 -->
   (<ss> ^active-goal <g>)"
 
-# This is the traditional way names are given to substates
-sp "ngs*core*substate*set-top-state
-  (state <top-state> ^superstate nil)
-  (state <s> ^superstate <> nil)
--->
-  (<s> ^top-state <top-state>)"
+
 
 # Generates the return value infrastructure when a subgoal is created
 sp "ngs*core*sub-state*tags
