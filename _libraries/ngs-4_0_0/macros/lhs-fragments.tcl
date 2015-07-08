@@ -273,15 +273,14 @@ proc ngs-match-to-set-return-value { substate_id
                                      goal_name 
                                      goal_id
                                      return_value_name
+                                     return_value_id
                                      {top_state_id ""}
                                      {superstate_id ""} } {
   CORE_RefMacroVars
-  set val_desc [CORE_GenVarName val_desc]
 
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $top_state_id $superstate_id]
-               ($substate_id ^$NGS_RETURN_VALUES.value-description $val_desc)
-               ($val_desc    ^name  $return_value_name
-                            -^value)"
+               ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_id)
+               ($return_value_id    ^name  $return_value_name)"
 
   return $lhs_ret
 }
