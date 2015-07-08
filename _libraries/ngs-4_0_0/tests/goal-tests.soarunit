@@ -11,11 +11,11 @@ setup {
 
 test goal-i-support-goal-creation { 
 
-sp* "test*create-achievement-goal
+sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
     (<s> ^$WM_CYCLE_COUNT > 2)
 -->
-    [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]" true 
+    [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]" 
 
 sp "test
     [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE]
@@ -61,7 +61,7 @@ sp "test*setup-shallow-copy-object
              ^existing-attribute-set 1
              ^existing-attribute-set 2)"
 
-sp* "test*create-new-object-1
+sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
               -^step)
@@ -76,9 +76,9 @@ sp* "test*create-new-object-1
             ^copy-me-2 b
             ^copy-me-set 1
             ^copy-me-set 2
-            ^copy-me-set 3)" true
+            ^copy-me-set 3)"
 
-sp* "test*step1*done
+sp "test*step1*done
      (state <s> ^superstate nil
                 ^sub-structure <sub-structure>
                -^step)
@@ -88,7 +88,7 @@ sp* "test*step1*done
      [ngs-create-primitive-by-operator <s> <s> step 2]"
     
 
-sp* "test*create-new-object-2
+sp "test*create-new-object-2
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
                ^step 2)
@@ -106,9 +106,9 @@ sp* "test*create-new-object-2
             ^copy-me-2 b
             ^copy-me-set 1
             ^copy-me-set 2
-            ^copy-me-set 3)" true
+            ^copy-me-set 3)"
 
-sp* "test*step2*done
+sp "test*step2*done
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
                ^step 2)
@@ -121,7 +121,7 @@ sp* "test*step2*done
 -->
      [ngs-create-primitive-by-operator <s> <s> step 3]"
 
-sp* "test*create-new-object-3
+sp "test*create-new-object-3
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
                ^step 3)
@@ -141,7 +141,7 @@ sp* "test*create-new-object-3
             ^copy-me-2 b
             ^copy-me-set 1
             ^copy-me-set 2
-            ^copy-me-set 3)" true
+            ^copy-me-set 3)" 
 
 sp "test
     (state <s> ^superstate nil
@@ -165,7 +165,7 @@ sp "test
 #  could be an enhancement added down the road).                                                                      
 test deep-copy-with-set-values {
 
-sp* "test*create-new-object-1
+sp "test*create-new-object-1
     (state <s> ^superstate nil)
     [ngs-is-not-constructed <s> complex]
 -->
@@ -173,7 +173,7 @@ sp* "test*create-new-object-1
     [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep1> $NGS_O_SUPPORT]
     (<deep1> ^copy-me-1 a)
     [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep2> $NGS_O_SUPPORT]
-    (<deep2> ^different a)" true
+    (<deep2> ^different a)" 
 
 sp "test
     (state <s> ^complex <complex>)
@@ -202,7 +202,7 @@ sp "test*setup-shallow-copy-object
              ^existing-attribute-set 1
              ^existing-attribute-set 2)"
 
-sp* "test*create-new-object-1
+sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
               -^step)
@@ -237,7 +237,7 @@ sp* "test*create-new-object-1
     (<level6> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
-               ^set-val    2)" true
+               ^set-val    2)"
 
 sp "test
     (state <s> ^superstate nil
@@ -248,26 +248,31 @@ sp "test
                ^set-val 1
                ^set-val 2
                ^deep-structure <d2>)
+    [ngs-is-tagged <d1> $NGS_TAG_CONSTRUCTED]
     (<d2>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d3>)
+    [ngs-is-tagged <d2> $NGS_TAG_CONSTRUCTED]
     (<d3>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d4>)
+    [ngs-is-tagged <d3> $NGS_TAG_CONSTRUCTED]
     (<d4>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d5>)
+    [ngs-is-tagged <d4> $NGS_TAG_CONSTRUCTED]
     (<d5>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d6>)
+    [ngs-is-tagged <d5> $NGS_TAG_CONSTRUCTED]
   -(<d6>       ^<attr>)
 -->
     (pass)"
@@ -291,7 +296,7 @@ sp "test*setup-shallow-copy-object*2
   [ngs-create-typed-object-in-place <s> set-item-2 Foo <new-obj>]
   (<new-obj> ^different a)"
 
-sp* "test*create-new-object-1
+sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^set-item-1 <set-item-1>
                ^set-item-2 <set-item-2>)
@@ -299,7 +304,7 @@ sp* "test*create-new-object-1
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
     (<new-obj> ^set-item <set-item-1>
-               ^set-item <set-item-2>)" true
+               ^set-item <set-item-2>)"
 
 sp "test
     (state <s> ^complex <complex>)
@@ -317,32 +322,33 @@ sp "test
           
 }
 
-#test goal-o-support-goal-creation { 
-#
-#sp "test*create-achievement-goal
-#    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
-#    (<s> ^$WM_CYCLE_COUNT 1)
-#-->
-#    [ngs-create-achievement-goal $NGS_PROPOSE_OPERATOR <s> TestAchievementGoal <new-goal>]" 
-#
-#sp "test*mark-goal-achieved
-#:o-support
-#    [ngs-match-goal <s> TestAchievementGoal <g> {} $NGS_GB_ACHIEVE]
-#    [ngs-match-tags <g> <gtags>]
-#-->
-#    [ngs-tag-goal-achieved <gtags>]
-#    (<s> ^goal-created $NGS_YES)"
-#
-#sp "test
-#    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
-#    (<s> ^goal-created $NGS_YES)
-#    (<goals> -^goal)
-#-->
-#    (pass)"
-#
-#
-#}
-#
+
+test goal-o-support-goal-creation { 
+
+sp "test*create-achievement-goal
+    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
+    (<s> ^$WM_CYCLE_COUNT 1)
+-->
+    [ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]" 
+
+sp "test*mark-goal-achieved
+:o-support
+    [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE]
+    [ngs-is-tagged <g> $NGS_TAG_CONSTRUCTED]
+-->
+    [ngs-tag-goal-achieved <g>]
+    (<s> ^goal-created $NGS_YES)"
+
+sp "test
+    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
+    (<s> ^goal-created $NGS_YES)
+    (<goals> -^goal)
+-->
+    (pass)"
+
+
+}
+
 #test decide-operator-function-with-goal {
 #    
 #sp "test*create-achievement-goal
@@ -351,12 +357,19 @@ sp "test
 #    [ngs-create-maintenance-goal $NGS_CONSTRUCT_IN_PLACE <goals> TestMaintenanceGoal <new-goal>]" 
 #
 #sp "test*create-decide-operator
-#    [ngs-match-goal <s> TestMaintenanceGoal <g> <gtags>]
+#    [ngs-match-goal <s> TestMaintenanceGoal <g>]
 #    [ngs-is-not-tagged <g> executed]
 #-->
 #    [ngs-create-decide-operator <s> test-decide <o> <ret-vals> <g>]
-#    [ngs-create-ret-val end-tag <ret-vals> <gtags> executed $NGS_YES]
-#    [ngs-create-ret-val planning-result <ret-vals> <s> updated-plan]"
+#    [ngs-create-ret-val-in-place end-tag <ret-vals> <g> executed $NGS_YES]
+#    [ngs-create-ret-val-in-place planning-result <ret-vals> <s> updated-plan]"
+#
+#ngs-create-ret-val-in-place { ret_val_name
+#                                   ret_val_set_id
+#                                   dest_obj_id 
+#                                   attribute 
+#                                   {new_val ""} 
+#                                   {replacement_behavior ""}
 #
 #sp "test*create-fake-plan
 #    [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> planning-result]
@@ -374,7 +387,7 @@ sp "test
 #-->
 #    (pass)"
 #}
-#
+
 #test subgoal-creation-destruction {
 #    
 #sp "test*create-achievement-goal

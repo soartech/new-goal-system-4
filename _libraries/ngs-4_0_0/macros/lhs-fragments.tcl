@@ -61,13 +61,12 @@ proc ngs-is-not-named { object_id name } {
 proc ngs-is-tagged { object_id tag_name {tag_val "" } } {
   CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
-  return "($object_id  ^$NGS_TAG_PREFIX$tag_name $tag_val)"
+  return "($object_id  ^[ngs-tag-for-name $tag_name] $tag_val)"
 }
 proc ngs-is-not-tagged { object_id tag_name {tag_val "" } } {
   CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
-  
-  return "($object_id -^$NGS_TAG_PREFIX$tag_name $tag_val)"
+  return "($object_id -^[ngs-tag-for-name $tag_name] $tag_val)"
 }
 
 ########################################################

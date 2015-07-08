@@ -43,7 +43,7 @@ sp "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*with-name
   (<o> ^type           $NGS_OP_DECIDE
        ^return-values  <op-ret-val-set>)
   (<op-ret-val-set>   ^value-description <op-ret-val>)
-  (<op-ret_val>       ^name <ret-val-name>
+  (<op-ret-val>       ^name <ret-val-name>
                       ^value <ret-val>)
   (<ss> ^return-values  <ret-val-set>)
   (<ret-val-set> ^value-description <v-desc>)

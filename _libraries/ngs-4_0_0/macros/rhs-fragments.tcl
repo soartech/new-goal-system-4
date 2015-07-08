@@ -1,11 +1,16 @@
 
+proc ngs-tag-for-name { tag_name } {
+  variable NGS_TAG_PREFIX
+  return $NGS_TAG_PREFIX$tag_name
+}
+
 #
 # add a tag to the given 'tags' structure.
 #
 proc ngs-tag {obj_id tag_name {tag_value ""}} {
   CORE_RefMacroVars
   CORE_SetIfEmpty tag_value $NGS_YES
-  return "($obj_id ^$NGS_TAG_PREFIX$tag_name $tag_value)"
+  return "($obj_id ^[ngs-tag-for-name $tag_name] $tag_value)"
 }
 
 #
@@ -135,23 +140,6 @@ proc ngs-create-atomic-operator { state_id
 #  flags or return values in order to properly return, these can be passed into the 
 #  substate via the ret_val_list parameter.
 #
-# state_id: If provided, the soar variable that is bound to the state in which to
-#  create the operator. 
-# op_name: the name of the operator
-# behavior: One of NGS_OP_ATOMIC or NGS_OP_DECIDE. Atomic operators are should be
-#  applied immediately after selection while Decide operators should create operator
-#  no change impasses.
-# new_obj_id: If provided, this variable is used as a soar variable that will bind
-#  to the newly created object. The default is <o#>
-# add_prefs: Additional preferences beyond acceptable ('+'). By default this is the
-#  indifferent preference ('='). So by default an operator gets the + = preferences.
-# ret_val_list: A list of tuples that describe one or more return value structures
-#  that should be copied onto the sub-state. Use this list when you know in advance
-#  (e.g. at operator proposal time) one or more of the values you need to set when
-#  the sub-goal completes (e.g. "complete" flags). See ngs-create-op-ret-val to 
-#  see the structure of ret-value objects. Example: {{<my-goal-tags> processed $NGS_YES}} 
-# new_obj_tags_id: If provided, this variable is used as a soar variable that will bind
-#  to the newly created object tag set
 proc ngs-create-decide-operator { state_id
                                   op_name
                                   new_obj_id
@@ -201,7 +189,7 @@ proc ngs-create-goal-by-operator { state_id
   CORE_RefMacroVars
   variable lhs_val
 
-  set lhs_val "[ngs-create-atomic-operator $named_goal_set_or_state_id $NGS_OP_CREATE_GOAL <o>]
+  set lhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL <o>]
                [ngs-create-attribute <o> new-obj $new_obj_id]
                [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
                ($new_obj_id ^name $goal_name

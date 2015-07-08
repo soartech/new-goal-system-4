@@ -219,15 +219,13 @@ proc CORE_LoadDir { directory } {
 #  easy printout and logging of productions when using TCL
 #  macros
 # The second optional parameter, if set to 
-proc sp* { production_body {debug_print false} } {
+proc sp* { production_body } {
 
-	if {$debug_print == true} {
-        echo "\n"
-        echo "--------------------------------------------------------------------------------------------------"
-        echo $production_body
-        echo "--------------------------------------------------------------------------------------------------"
-        echo "\n"
-    }
+    echo "\n"
+    echo "--------------------------------------------------------------------------------------------------"
+    echo $production_body
+    echo "--------------------------------------------------------------------------------------------------"
+    echo "\n"
 	
 	# Call Soar's "sp" command
 	sp $production_body

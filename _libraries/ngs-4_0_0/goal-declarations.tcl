@@ -32,12 +32,12 @@ proc NGS_DeclareGoal { goal_name } {
     [ngs-tag <g> $NGS_GS_ACHIEVED]"
 
   # Mark a goal active if its subgoal is active
-  sp* "ngs*core*goals*mark-goal-active-if-subgoal-active*$goal_name
+  sp "ngs*core*goals*mark-goal-active-if-subgoal-active*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-is-supergoal <g> <supergoal>]
     [ngs-is-active <g>]
   -->
-    [ngs-tag <supergoal> $NGS_GS_ACTIVE]" true 
+    [ngs-tag <supergoal> $NGS_GS_ACTIVE]" 
 
   # Proposes to remove a goal that is achieved. This only will fire
   #  if the goal is o-supported.

@@ -1,14 +1,14 @@
-sp* "ngs*core*elaborate-operator*intelligent-deep-copy*level-0
+sp "ngs*core*elaborate-operator*intelligent-deep-copy*level-0
   [ngs-match-proposed-operator <s> <o>]
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^new-obj <obj-0>)
   (<obj-0> -^<attr>)
 -->
-  (<o> ^copy-depth 0 +)" true
+  (<o> ^copy-depth 0 +)"
 
 # If we have an object to copy, it has sub-structure, and it
 #  hasn't yet been copied ...
-sp* "ngs*core*elaborate-operator*intelligent-deep-copy*level-1
+sp "ngs*core*elaborate-operator*intelligent-deep-copy*level-1
   [ngs-match-proposed-operator <s> <o>]
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> -^copy-depth > 1)
@@ -16,7 +16,7 @@ sp* "ngs*core*elaborate-operator*intelligent-deep-copy*level-1
   (<obj-0> ^<attr-1>)
   [ngs-is-not-tagged <obj-0> $NGS_TAG_CONSTRUCTED]
 -->
-  (<o> ^copy-depth 1 +)" true
+  (<o> ^copy-depth 1 +)"
 
 sp "ngs*core*elaborate-operator*intelligent-deep-copy*level-2
   [ngs-match-proposed-operator <s> <o>]
@@ -70,7 +70,7 @@ sp "ngs*core*elaborate-operator*intelligent-deep-copy*level-5
 
 ################### ELABORATE COPY DEPTHS AS STRUCTURE IS CREATED ###############################
 
-sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*0
+sp "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*0
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth >= 0
@@ -81,9 +81,9 @@ sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*0
   (<dest> ^<attr> <new-obj-0>)
   (<new-obj-0> -^<attr-1>)
 -->
-  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 0]" true
+  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 0]"
   
-sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*1
+sp "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*1
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth > 0
@@ -95,9 +95,9 @@ sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*1
   (<new-obj-0> ^<attr-1> <new-obj-1>)
   [ngs-is-not-tagged <new-obj-0> $NGS_TAG_CONSTRUCTED]
 -->
-  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 1]" true
+  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 1]"
 
-sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*2
+sp "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*2
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth > 1
@@ -110,9 +110,9 @@ sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*2
   (<new-obj-1> ^<attr-2> <new-obj-2>)
   [ngs-is-not-tagged <new-obj-1> $NGS_TAG_CONSTRUCTED]
 -->
-  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 2]" true
+  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 2]"
 
-sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*3
+sp "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*3
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth > 2
@@ -126,9 +126,9 @@ sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*3
   (<new-obj-2> ^<attr-3> <new-obj-3>)
   [ngs-is-not-tagged <new-obj-2> $NGS_TAG_CONSTRUCTED]
 -->
-  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 3]" true
+  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 3]"
 
-sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*4
+sp "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*4
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth > 3
@@ -143,9 +143,9 @@ sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*4
   (<new-obj-3> ^<attr-4> <new-obj-4>)
   [ngs-is-not-tagged <new-obj-3> $NGS_TAG_CONSTRUCTED]
 -->
-  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 4]" true
+  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 4]"
 
-sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*5
+sp "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*5
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth > 4
@@ -161,12 +161,12 @@ sp* "ngs*core*elaborate-operator*intelligent-deep-copy*copied-level*5
   (<new-obj-4> ^<attr-5> <new-obj-5>)
   [ngs-is-not-tagged <new-obj-4> $NGS_TAG_CONSTRUCTED]
 -->
-  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 5]" true
+  [ngs-tag <o> $NGS_TAG_COPIED_LEVEL 5]"
 
 #################################### COPY AT TOP LEVEL: PRIMITVES ###############################
 
 # For shallow copies, copy-depth will be 0
-sp* "ngs*core*apply*intelligent-deep-copy*level-0*shallow*not-exist-so-create
+sp "ngs*core*apply*intelligent-deep-copy*level-0*shallow*not-exist-so-create
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth 0
@@ -176,7 +176,7 @@ sp* "ngs*core*apply*intelligent-deep-copy*level-0*shallow*not-exist-so-create
        ^replacement-behavior $NGS_REPLACE_IF_EXISTS)
   (<dest> -^<attr>)
 -->
-  (<dest> ^<attr> <obj-0> +)" true
+  (<dest> ^<attr> <obj-0> +)"
 
 sp "ngs*core*apply*intelligent-deep-copy*level-0*shallow*exist-so-replace
   (state <s> ^operator <o>)
@@ -215,6 +215,7 @@ sp "ngs*core*apply*intelligent-deep-copy*level-0*deep*not-exist-so-create
        ^replacement-behavior $NGS_REPLACE_IF_EXISTS)
   (<dest> -^<attr>)
   [ngs-is-not-tagged <o> $NGS_TAG_COPIED_LEVEL { >= 0 }]
+  [ngs-is-not-tagged <o> $NGS_TAG_COPY_COMPLETE]
 -->
   (<dest> ^<attr> <new-obj> +)"
 
@@ -227,6 +228,7 @@ sp "ngs*core*apply*intelligent-deep-copy*level-0*deep*exist-so-replace
        ^replacement-behavior $NGS_REPLACE_IF_EXISTS)
   (<dest> ^<attr> <old-obj>)
   [ngs-is-not-tagged <o> $NGS_TAG_COPIED_LEVEL { >= 0 }]
+  [ngs-is-not-tagged <o> $NGS_TAG_COPY_COMPLETE]
 -->
   (<dest> ^<attr> <old-obj> -)
   (<dest> ^<attr> <new-obj> +)"
@@ -239,6 +241,7 @@ sp "ngs*core*apply*intelligent-deep-copy*level-0*deep*add-to-set
        ^dest-attribute <attr>
        ^replacement-behavior $NGS_ADD_TO_SET)
   [ngs-is-not-tagged <o> $NGS_TAG_COPIED_LEVEL { >= 0 }]
+  [ngs-is-not-tagged <o> $NGS_TAG_COPY_COMPLETE]
 -->
   (<dest> ^<attr> <new-obj> +)"
 
@@ -561,7 +564,10 @@ sp "ngs*core*apply*intelligent-deep-copy*copy-substructure-level-5*deep
 
 ###################### Flag copy as done #########################
 
+# I make this permanent so the operator doesn't keep driving more
+#  object construction (repeatedly)
 sp "ngs*core*apply*intelligent-deep-copy*mark-copy-complete
+:o-support
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth <copy-depth>)
@@ -571,7 +577,7 @@ sp "ngs*core*apply*intelligent-deep-copy*mark-copy-complete
 
 ###################### Mark all newly created objects with tag #########################
 
-sp* "ngs*core*apply*intelligent-deep-copy*mark-objects-as-constructed*level-1
+sp "ngs*core*apply*intelligent-deep-copy*mark-objects-as-constructed*level-1
   (state <s> ^operator <o>)
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^copy-depth     { <copy-depth> > 0 }
@@ -581,7 +587,7 @@ sp* "ngs*core*apply*intelligent-deep-copy*mark-objects-as-constructed*level-1
   (<dest>  ^<attr> <new-obj-0>)
   [ngs-is-not-tagged <new-obj-0> $NGS_TAG_CONSTRUCTED]
 -->
-  [ngs-tag <new-obj-0> $NGS_TAG_CONSTRUCTED]" true
+  [ngs-tag <new-obj-0> $NGS_TAG_CONSTRUCTED]" 
 
 sp "ngs*core*apply*intelligent-deep-copy*mark-objects-as-constructed*level-2
   (state <s> ^operator <o>)
@@ -592,7 +598,10 @@ sp "ngs*core*apply*intelligent-deep-copy*mark-objects-as-constructed*level-2
   [ngs-is-tagged <o> $NGS_TAG_COPY_COMPLETE]
   (<dest>  ^<attr> <new-obj-0>)
   (<new-obj-0> ^<attr-1> <new-obj-1>)
-  (<new-obj-1> ^<attr-2>)
+ -{
+     (<s> ^type state)
+     (<new-obj-1> -^<attr-2>)
+  }
   [ngs-is-not-tagged <new-obj-1> $NGS_TAG_CONSTRUCTED]
 -->
   [ngs-tag <new-obj-1> $NGS_TAG_CONSTRUCTED]"
@@ -607,19 +616,60 @@ sp "ngs*core*apply*intelligent-deep-copy*mark-objects-as-constructed*level-3
   (<dest>  ^<attr> <new-obj-0>)
   (<new-obj-0> ^<attr-1> <new-obj-1>)
   (<new-obj-1> ^<attr-2> <new-obj-2>)
-  (<new-obj-2> ^<attr-3>)
+ -{
+     (<s> ^type state)
+     (<new-obj-2> -^<attr-3>)
+  }
   [ngs-is-not-tagged <new-obj-2> $NGS_TAG_CONSTRUCTED]
 -->
   [ngs-tag <new-obj-2> $NGS_TAG_CONSTRUCTED]"
 
 
-## Add levels 4 and 5
+sp "ngs*core*apply*intelligent-deep-copy*mark-objects-as-constructed*level-4
+  (state <s> ^operator <o>)
+  [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
+  (<o> ^copy-depth   { <copy-depth> > 3  }
+       ^dest-object    <dest>
+       ^dest-attribute <attr>)
+  [ngs-is-tagged <o> $NGS_TAG_COPY_COMPLETE]
+  (<dest>  ^<attr> <new-obj-0>)
+  (<new-obj-0> ^<attr-1> <new-obj-1>)
+  (<new-obj-1> ^<attr-2> <new-obj-2>)
+  (<new-obj-2> ^<attr-3> <new-obj-3>)
+ -{
+     (<s> ^type state)
+     (<new-obj-3> -^<attr-4>)
+  }
+  [ngs-is-not-tagged <new-obj-3> $NGS_TAG_CONSTRUCTED]
+-->
+  [ngs-tag <new-obj-3> $NGS_TAG_CONSTRUCTED]"
+
+sp "ngs*core*apply*intelligent-deep-copy*mark-objects-as-constructed*level-5
+  (state <s> ^operator <o>)
+  [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
+  (<o> ^copy-depth   { <copy-depth> > 4  }
+       ^dest-object    <dest>
+       ^dest-attribute <attr>)
+  [ngs-is-tagged <o> $NGS_TAG_COPY_COMPLETE]
+  (<dest>  ^<attr> <new-obj-0>)
+  (<new-obj-0> ^<attr-1> <new-obj-1>)
+  (<new-obj-1> ^<attr-2> <new-obj-2>)
+  (<new-obj-2> ^<attr-3> <new-obj-3>)
+  (<new-obj-3> ^<attr-4> <new-obj-4>)
+ -{
+     (<s> ^type state)
+     (<new-obj-4> -^<attr-5>)
+  }
+  [ngs-is-not-tagged <new-obj-4> $NGS_TAG_CONSTRUCTED]
+-->
+  [ngs-tag <new-obj-4> $NGS_TAG_CONSTRUCTED]"
+
 
 ##########################################################################
 
 # Augment a goal creation operator with the pieces that are missing
 #  from the default operator proposal (see rhs-fragments.tcl)
-sp* "ngs*core*goal*elaborate-operator*$NGS_OP_CREATE_GOAL
+sp "ngs*core*goal*elaborate-operator*$NGS_OP_CREATE_GOAL
   [ngs-match-proposed-operator <s> <o> $NGS_OP_CREATE_GOAL]
   [ngs-match-goalpool <top-state> <goals> <gname>]
   (<o> ^new-obj <g>)
@@ -627,7 +677,7 @@ sp* "ngs*core*goal*elaborate-operator*$NGS_OP_CREATE_GOAL
 -->
   (<o> ^dest-object <goals> +
        ^dest-attribute goal +
-       ^replacement-behavior $NGS_ADD_TO_SET)" true
+       ^replacement-behavior $NGS_ADD_TO_SET)"
 
 # Same type of augmentation, but for return values
 sp "ngs*core*goal*elaboration-operator*$NGS_OP_CREATE_GOAL_RET
