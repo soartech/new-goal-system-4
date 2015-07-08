@@ -106,3 +106,8 @@ sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*insert-into-set
 -->
 	(<dest>        ^<attr>         <ret-val> +)"
 
+# Fires in parallel (this copy process MUST be one elaboration wave)
+sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*mark-copy-complete
+    [ngs-match-selected-operator-in-substate <ss> <o> $NGS_OP_COPY_RETURN_VALUES]
+-->
+    [ngs-tag <ss> $NGS_TAG_SUBSTATE_RESULT_RETURNED]"

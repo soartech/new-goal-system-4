@@ -7,10 +7,16 @@ proc ngs-tag-for-name { tag_name } {
 #
 # add a tag to the given 'tags' structure.
 #
-proc ngs-tag {obj_id tag_name {tag_value ""}} {
-  CORE_RefMacroVars
+proc ngs-tag { obj_id tag_name {tag_value ""}} {
+  variable NGS_YES
   CORE_SetIfEmpty tag_value $NGS_YES
-  return "($obj_id ^[ngs-tag-for-name $tag_name] $tag_value)"
+  return "($obj_id ^[ngs-tag-for-name $tag_name] $tag_value +)"
+}
+
+proc ngs-untag { obj_id tag_name tag_value } {
+  variable NGS_YES
+  CORE_SetIfEmpty tag_value $NGS_YES
+  return "($obj_id ^[ngs-tag-for-name $tag_name] $tag_value -)"
 }
 
 #
@@ -45,12 +51,12 @@ proc ngs-create-typed-object-in-place { parent_obj_id
                                         {support_type ""}} {
 
   CORE_RefMacroVars
-  CORE_SetIfEmpty support_type $NGS_I_SUPPORT
+  CORE_SetIfEmpty support_type $NGS_SHALLOW_COPY
 
   set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]
                ($new_obj_id ^type $type)"
 
-  if { $support_type == $NGS_I_SUPPORT } {
+  if { $support_type == $NGS_SHALLOW_COPY } {
     set rhs_val "$rhs_val
                  [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]"
   }
@@ -74,7 +80,7 @@ proc ngs-create-typed-object-by-operator { state_id
                ^dest-attribute $attribute
                ^replacement-behavior $replacement_behavior)
           [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
-          [ngs-create-typed-object-in-place <o> new-obj $type $new_obj_id $NGS_O_SUPPORT]"
+          [ngs-create-typed-object-in-place <o> new-obj $type $new_obj_id $NGS_DEEP_COPY]"
 }
 
 #
@@ -278,10 +284,10 @@ proc ngs-create-ret-val-by-operator { state_id
 
   set ret_val_id [CORE_GenVarName new-ret-val]
 
-  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_RET_VAL*$ret_val_name <o> $add_prefs]
+  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_RET_VAL <o> $add_prefs]
                (<o> ^dest-attribute value-description
                     ^replacement-behavior $NGS_ADD_TO_SET)
-               [ngs-create-typed-object-in-place <o> new-obj $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $NGS_O_SUPPORT]
+               [ngs-create-typed-object-in-place <o> new-obj $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $NGS_DEEP_COPY]
                ($ret_val_id     ^name $ret_val_name
                                 ^destination-object $dest_obj_id
                                 ^destination-attribute $attribute
@@ -310,7 +316,7 @@ proc ngs-set-ret-val-by-operator { state_id
 
     CORE_RefMacroVars
 
-    set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE*$ret_val_name <o>]
+    set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE <o>]
                   (<o> ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                        ^new-obj              $value
                        ^ret-val-name         $ret_val_name)

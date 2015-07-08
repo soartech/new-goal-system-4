@@ -6,3 +6,10 @@ sp "ngs*core*goal*apply*$NGS_OP_REMOVE_ACHIEVED
 -->
   (<goals> ^goal <g> -)"
 
+
+# Apply operator to mark goal achieved
+sp "ngs*core*goal*apply*$NGS_OP_MARK_ACHIEVED
+  [ngs-match-selected-operator <s> <o> $NGS_OP_MARK_ACHIEVED <goal>]
+  [ngs-is-not-achieved <g>]
+-->
+  [ngs-tag-goal-achieved <goal>]"

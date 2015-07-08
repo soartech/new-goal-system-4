@@ -71,7 +71,7 @@ sp "test*create-new-object-1
     (<new-obj> ^already-exists <sub-structure>
                ^primitive1 foo
                ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_DEEP_COPY]
     (<deep> ^copy-me-1 a
             ^copy-me-2 b
             ^copy-me-set 1
@@ -101,7 +101,7 @@ sp "test*create-new-object-2
     (<new-obj> ^already-exists <sub-structure>
                ^primitive1 bar
                ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_DEEP_COPY]
     (<deep> ^copy-me-1 a
             ^copy-me-2 b
             ^copy-me-set 1
@@ -136,7 +136,7 @@ sp "test*create-new-object-3
     (<new-obj> ^already-exists <sub-structure>
                ^primitive1 foo
                ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_DEEP_COPY]
     (<deep> ^copy-me-1 a
             ^copy-me-2 b
             ^copy-me-set 1
@@ -170,21 +170,60 @@ sp "test*create-new-object-1
     [ngs-is-not-constructed <s> complex]
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep1> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep1> $NGS_DEEP_COPY]
     (<deep1> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep2> $NGS_O_SUPPORT]
-    (<deep2> ^different a)" 
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep2> $NGS_DEEP_COPY]
+    (<deep2> ^different a) 
+    [ngs-create-typed-object-in-place <deep1> deep-structure DeepType <deep21> $NGS_DEEP_COPY]
+    (<deep21> ^copy-me-1 a)
+    [ngs-create-typed-object-in-place <deep1> deep-structure DeepType <deep22> $NGS_DEEP_COPY]
+    (<deep22> ^different a)  
+    [ngs-create-typed-object-in-place <deep21> deep-structure DeepType <deep211> $NGS_DEEP_COPY]
+    (<deep211> ^copy-me-1 a)
+    [ngs-create-typed-object-in-place <deep21> deep-structure DeepType <deep212> $NGS_DEEP_COPY]
+    (<deep212> ^different a)  
+    [ngs-create-typed-object-in-place <deep211> deep-structure DeepType <deep2111> $NGS_DEEP_COPY]
+    (<deep2111> ^copy-me-1 a)
+    [ngs-create-typed-object-in-place <deep211> deep-structure DeepType <deep2112> $NGS_DEEP_COPY]
+    (<deep2112> ^different a)"  
 
 sp "test
     (state <s> ^complex <complex>)
     (<complex> ^deep-structure <d1>
                ^deep-structure { <d2> <> <d1> })
     (<d1> ^copy-me-1 a
+          ^deep-structure <d21>
+          ^deep-structure <d22>
          -^different a)
     (<d2> ^different a
          -^copy-me-1 a)
    -{
         (<complex> ^deep-structure { <d3> <> <d1> <> <d2> })
+    }
+    (<d21> ^copy-me-1 a
+           ^deep-structure <d211>
+           ^deep-structure <d212>
+          -^different a)
+    (<d22> ^different a
+          -^copy-me-1 a)
+   -{
+        (<d1> ^deep-structure { <d23> <> <d21> <> <d22> })
+    }
+    (<d211> ^copy-me-1 a
+            ^deep-structure <d2111>
+            ^deep-structure <d2112>
+           -^different a)
+    (<d212> ^different a
+           -^copy-me-1 a)
+   -{
+        (<d21> ^deep-structure { <d213> <> <d211> <> <d212> })
+    }
+    (<d2111> ^copy-me-1 a
+            -^different a)
+    (<d2112> ^different a
+            -^copy-me-1 a)
+   -{
+        (<d211> ^deep-structure { <d2113> <> <d2111> <> <d2112> })
     }
 -->
     (pass)"
@@ -213,27 +252,27 @@ sp "test*create-new-object-1
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level1> deep-structure DeepType <level2> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <level1> deep-structure DeepType <level2> $NGS_DEEP_COPY]
     (<level2> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level2> deep-structure DeepType <level3> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <level2> deep-structure DeepType <level3> $NGS_DEEP_COPY]
     (<level3> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level3> deep-structure DeepType <level4> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <level3> deep-structure DeepType <level4> $NGS_DEEP_COPY]
     (<level4> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level4> deep-structure DeepType <level5> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <level4> deep-structure DeepType <level5> $NGS_DEEP_COPY]
     (<level5> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level5> deep-structure DeepType <level6> $NGS_O_SUPPORT]
+    [ngs-create-typed-object-in-place <level5> deep-structure DeepType <level6> $NGS_DEEP_COPY]
     (<level6> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
@@ -249,31 +288,36 @@ sp "test
                ^set-val 2
                ^deep-structure <d2>)
     [ngs-is-tagged <d1> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-not-tagged <d1> $NGS_TAG_SOURCE_OBJ <src-1>]
     (<d2>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d3>)
     [ngs-is-tagged <d2> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-not-tagged <d2> $NGS_TAG_SOURCE_OBJ <src-2>]
     (<d3>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d4>)
     [ngs-is-tagged <d3> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-not-tagged <d3> $NGS_TAG_SOURCE_OBJ <src-3>]
     (<d4>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d5>)
     [ngs-is-tagged <d4> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-not-tagged <d4> $NGS_TAG_SOURCE_OBJ <src-4>]
     (<d5>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d6>)
     [ngs-is-tagged <d5> $NGS_TAG_CONSTRUCTED]
-  -(<d6>       ^<attr>)
+    [ngs-is-not-tagged <d5> $NGS_TAG_SOURCE_OBJ <src-5>]
+   -(<d6>       ^<attr>)
 -->
     (pass)"
 

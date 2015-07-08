@@ -37,8 +37,8 @@ CORE_CreateMacroVar NGS_GOAL_ATTRIBUTE "goal"
 CORE_CreateMacroVar NGS_RETURN_VALUES "return-values"
 
 # Support types for object creation
-CORE_CreateMacroVar NGS_I_SUPPORT "i-support"
-CORE_CreateMacroVar NGS_O_SUPPORT "o-support"
+CORE_CreateMacroVar NGS_DEEP_COPY    "o-support"
+CORE_CreateMacroVar NGS_SHALLOW_COPY "i-support"
 
 # The prefix placed on all tags
 CORE_CreateMacroVar NGS_TAG_PREFIX "__tagged*"
@@ -74,6 +74,7 @@ CORE_CreateMacroVar NGS_TAG_CONSTRUCTED 			 "ngs*constructed"
 CORE_CreateMacroVar NGS_TAG_INTELLIGENT_DEEP_COPY    "ngs*intelligent-deep-copy"
 CORE_CreateMacroVar NGS_TAG_COPY_COMPLETE			 "ngs*copy-complete"
 CORE_CreateMacroVar NGS_TAG_COPIED_LEVEL			 "ngs*copied-level"
+CORE_CreateMacroVar NGS_TAG_SOURCE_OBJ               "ngs*source-object"
 
 # Standard operators
 CORE_CreateMacroVar NGS_OP_MARK_ACHIEVED      "ngs-op-mark-goal-achieved"
