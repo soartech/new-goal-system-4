@@ -190,6 +190,8 @@ proc ngs-create-decide-operator { state_id
 #  to create a goal that goes away when achieved and ngs-create-maintenance-goal to 
 #  create a goal that remains after becoming achieved.
 #
+# Don't use this to create o-supported goals (or goals on operators)
+#
 proc ngs-create-goal-in-place { goal_set_id 
                                 goal_name 
                                 type 
@@ -201,7 +203,8 @@ proc ngs-create-goal-in-place { goal_set_id
 
   set lhs_val "[ngs-create-attribute $goal_set_id $NGS_GOAL_ATTRIBUTE $new_obj_id]
                ($new_obj_id ^name $goal_name
-                            ^type $type)"
+                            ^type $type)
+               [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]"
 
   if { $supergoal_id != "" } { set lhs_val "$lhs_val
                                             ($new_obj_id ^supergoal $supergoal_id)" }

@@ -217,7 +217,8 @@ proc ngs-match-goal { state_id
   CORE_GenVarIfEmpty goal_pool_id "goal-pool"
 
   set lhs_ret "[ngs-match-goalpool $state_id $goal_pool_id $goal_name]
-               ($goal_pool_id ^goal $goal_id)"
+               ($goal_pool_id ^goal $goal_id)
+               [ngs-is-tagged $goal_id $NGS_TAG_CONSTRUCTED]"
 
   if { $type != "" } {
     set lhs_ret "$lhs_ret
@@ -336,7 +337,7 @@ proc ngs-match-to-create-new-ret-val { substate_id
 #
 proc ngs-match-top-state-active-goal { state_id
                                        goal_name 
-                             	         goal_id } {
+                             	       goal_id } {
   CORE_RefMacroVars
 
   set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_name $goal_id)
