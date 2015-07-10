@@ -424,31 +424,31 @@ sp "test
     (pass)"
 }
 
-#test subgoal-creation-destruction {
-#    
-#sp "test*create-achievement-goal
-#    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
-#    (<goals> -^goal)
-#-->
-#    [ngs-create-achievement-goal $NGS_PROPOSE_OPERATOR <s> TestAchievementGoal <new-goal>]" 
-#
-## Interesting because we don't have a return value. Creating a goal is not
-##  required to go through the return value process
-#sp* "test*create-decide-operator*first-subgoal
-#    [ngs-match-goal <s> TestAchievementGoal <g> <gtags> $NGS_GB_ACHIEVE]
-#    -{
-#        [ngs-match-goal <s> TestAchievementSubGoal <g2> <g2tags>]
-#     }
-#-->
-#    [ngs-create-decide-operator <s> test-decide-about-subgoal <o> <ret-vals> <g>]"
-#
-#sp "test*decide-create-subgoal-as-return-value
-#    [ngs-match-to-create-new-ret-val <ss> TestAchievementGoal <g> <retvals>]
-#    (<retvals> -^value-description)
-#-->
-#    [ngs-create-goal-as-return-value $NGS_PROPOSE_OPERATOR <ss> <retvals> $NGS_GB_ACHIEVE TestAchievementSubGoal <new-goal> <g>]"
-#
-#
+test subgoal-creation-destruction {
+    
+sp "test*create-achievement-goal
+    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
+	[ngs-is-not-constructed <goals> goal <g>]
+-->
+	[ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]" 
+
+# Interesting because we don't have a return value. Creating a goal is not
+#  required to go through the return value process
+sp* "test*create-decide-operator*first-subgoal
+    [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE]
+    [ngs-is-not-tagged <g> subgoal-created]
+-->
+    [ngs-create-decide-operator <s> test-decide-about-subgoal <o> <ret-vals> <g> subgoal-created]"
+
+sp* "test*decide-create-subgoal-as-return-value
+    [ngs-match-to-create-new-ret-val <ss> TestAchievementGoal <g> <retvals>]
+   -{
+    	[ngs-is-return-val <retvals> $NGS_GOAL_RETURN_VALUE <g2>]
+     	[ngs-is-named <g2> TestAchievementSubGoal]
+    }
+-->
+    [ngs-create-goal-as-return-value <ss> TestAchievementSubGoal $NGS_GB_ACHIEVE <new-goal> <g>]"
+
 #sp "test*create-decide-operator*second-subgoal
 #    [ngs-match-goal <s> TestAchievementGoal <g> <gtags> $NGS_GB_ACHIEVE]
 #    [ngs-match-goal <s> TestAchievementSubGoal <g2>]
@@ -496,4 +496,4 @@ sp "test
 #    (<subgoals> -^goal)
 #-->
 #    (pass)"
-#}
+}

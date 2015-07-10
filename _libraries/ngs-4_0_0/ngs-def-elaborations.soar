@@ -24,7 +24,7 @@ sp "ngs*core*substate*set-name
   (<s> ^name <name> +)"
 
 # Adds the top-state elaboration to the sub-states
-sp "ngs*core*substate*set-name
+sp "ngs*core*substate*set-top-state
   (state <s> ^superstate { <> nil <superstate> })
   (state <top-state> ^superstate nil)
 -->

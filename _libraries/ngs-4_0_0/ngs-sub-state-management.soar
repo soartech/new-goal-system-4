@@ -28,9 +28,11 @@ sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_SET_RETURN_VALUE*fill-in-missin
 # Augments operator to create a goal as a return value
 sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_CREATE_GOAL_RET*fill-in-return-val-set
   [ngs-match-proposed-operator <s> <o> $NGS_OP_CREATE_GOAL_RET]
-  [ngs-match-goalpool <top-state> <goals>] 
+  [ngs-match-goalpool <top-state> <goals> <goal-name>] 
   (<s> ^$NGS_RETURN_VALUES <ret-val-set>)
   (<o> ^new-obj            <new-ret-val>)
+  (<new-ret-val> ^value    <new-goal>)
+  [ngs-is-named <new-goal> <goal-name>]  
 -->
   (<o>           ^dest-object        <ret-val-set> +)
   (<new-ret-val> ^destination-object <goals>)"

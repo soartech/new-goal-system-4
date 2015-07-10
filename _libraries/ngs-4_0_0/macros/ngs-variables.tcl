@@ -75,6 +75,9 @@ CORE_CreateMacroVar NGS_TAG_INTELLIGENT_DEEP_COPY    "ngs*intelligent-deep-copy"
 CORE_CreateMacroVar NGS_TAG_COPY_COMPLETE			 "ngs*copy-complete"
 CORE_CreateMacroVar NGS_TAG_COPIED_LEVEL			 "ngs*copied-level"
 CORE_CreateMacroVar NGS_TAG_SOURCE_OBJ               "ngs*source-object"
+CORE_CreateMacroVar NGS_TAG_DECISION_COMPLETE        "ngs*decision-complete"
+
+CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 
 # Standard operators
 CORE_CreateMacroVar NGS_OP_MARK_ACHIEVED      "ngs-op-mark-goal-achieved"

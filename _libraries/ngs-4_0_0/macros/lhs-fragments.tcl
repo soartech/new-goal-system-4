@@ -114,6 +114,27 @@ proc ngs-is-not-constructed { parent_id attribute {object_id ""} } {
   return "-{ [ngs-is-constructed $parent_id $attribute $object_id] }"
 }
 
+proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value ""} { ret_val_desc_id "" } } {
+  
+    CORE_RefMacroVars
+    CORE_GenVarIfEmpty ret_val_desc_id "val-desc"
+
+    set lhs_val "($ret_val_set_id  ^value-description $ret_val_desc_id)
+                 ($ret_val_desc_id ^name $ret_val_name)
+                 [ngs-is-tagged $ret_val_desc_id $NGS_TAG_CONSTRUCTED]"
+
+    if { $ret_value != "" } {
+        set lhs_val "$lhs_val
+                     ($ret_val_desc_id ^value $ret_value)"
+    }
+
+    return $lhs_val
+}
+
+proc ngs-is-not-return-val { ret_val_set_id ret_val_name {ret_value ""} { ret_val_desc_id "" } } {
+    return "-{ [ngs-is-return-val $ret_val_set_id $ret_val_name $ret_value $ret_val_desc_id] }"
+}
+
 ########################################################
 ##
 ########################################################

@@ -167,14 +167,21 @@ proc ngs-create-decide-operator { state_id
                                   new_obj_id
                                   ret_val_set_id
                                   goal_id
-                                 {add_prefs "="}
-                                 {new_obj_tags_id ""} } {
+ 								 {completion_tag ""}
+                                 {add_prefs "="} } {
 
    CORE_RefMacroVars
     
-   return  "[ngs-create-operator $state_id $op_name $NGS_OP_DECIDE $new_obj_id $add_prefs]
-            ($new_obj_id ^goal          $goal_id
-                         ^return-values $ret_val_set_id)"
+   set rhs_val  "[ngs-create-operator $state_id $op_name $NGS_OP_DECIDE $new_obj_id $add_prefs]
+                 ($new_obj_id ^goal          $goal_id
+                              ^return-values $ret_val_set_id)"
+
+   if { $completion_tag != "" } {
+      set rhs_val "$rhs_val
+           	       [ngs-create-ret-tag-in-place $NGS_TAG_DECISION_COMPLETE $ret_val_set_id $goal_id $completion_tag]"
+   }
+
+   return $rhs_val
 }
 
 # Create a basic goal
@@ -230,8 +237,8 @@ proc ngs-create-goal-by-operator { state_id
 #  being created in the top-state, once the sub-state is completed.
 #
 proc ngs-create-goal-as-return-value { state_id
-                                       goal_type
                                        goal_name
+									   goal_type
                                        new_obj_id
                                        {supergoal_id ""}
                                        {goal_pool_id ""} } {
@@ -242,14 +249,16 @@ proc ngs-create-goal-as-return-value { state_id
   set ret_val_id [CORE_GenVarName new-ret-val]
 
   set rhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL_RET <o>]
-	             (<o> ^dest-attribute        value-description
+	           (<o> ^dest-attribute        value-description
                     ^new-obj               $ret_val_id
                     ^replacement-behavior  $NGS_ADD_TO_SET)
-               (<ret_val_id> ^name                  new-goal-to-return
-                             ^destination-attribute $NGS_GOAL_ATTRIBUTE
-                             ^replacement-behavior  $NGS_ADD_TO_SET)
-	             ($new_obj_id  ^name     $goal_name
-                             ^type     $goal_type)"
+               ($ret_val_id ^name                  $NGS_GOAL_RETURN_VALUE
+                            ^destination-attribute $NGS_GOAL_ATTRIBUTE
+                            ^replacement-behavior  $NGS_ADD_TO_SET
+                            ^value    $new_obj_id)
+	           ($new_obj_id ^name     $goal_name
+                            ^type     $goal_type)              
+               [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]"
                    
   if { $supergoal_id != "" } { set rhs_val "$rhs_val
                                             ($new_obj_id ^supergoal $supergoal_id)" }
