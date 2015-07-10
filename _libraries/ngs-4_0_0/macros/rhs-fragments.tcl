@@ -48,7 +48,7 @@ proc ngs-create-typed-object-in-place { parent_obj_id
 		                                attribute
 		                                type
 		                                new_obj_id 
-                                        {support_type ""}} {
+                                        {support_type ""} } {
 
   CORE_RefMacroVars
   CORE_SetIfEmpty support_type $NGS_SHALLOW_COPY
@@ -65,12 +65,12 @@ proc ngs-create-typed-object-in-place { parent_obj_id
 }
 
 proc ngs-create-typed-object-by-operator { state_id
-	                                         parent_obj_id 
-	                                         attribute
-	                                         type
-	                                         new_obj_id
-	                                         {replacement_behavior ""} 
-                                           {add_prefs "="}} {
+	                                       parent_obj_id 
+	                                       attribute
+	                                       type
+	                                       new_obj_id
+	                                       {replacement_behavior ""} 
+                                           {add_prefs "="} } {
 
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
@@ -104,6 +104,22 @@ proc ngs-create-primitive-by-operator { state_id
 
 }
 
+#
+# Creates a tag using an operator. The tag value will be constructed using
+#  intelligent deep copy.
+#
+proc ngs-create-tag-by-operator { state_id
+								  parent_obj_id
+								  tag_name
+								  {tag_val ""}
+								  {replacement_behavior ""}
+                                  {add_prefs "="} } {
+
+  CORE_RefMacroVars
+  CORE_SetIfEmpty tag_val $NGS_YES
+
+  return "[ngs-create-primitive-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_val] $tag_val $replacement_behavior $add_prefs]"
+}
 
 # Create an operator
 #
@@ -270,6 +286,19 @@ proc ngs-create-ret-val-in-place { ret_val_name
     return $rhs_val
 }
 
+proc ngs-create-ret-tag-in-place { ret_val_name
+                                   ret_val_set_id
+                                   dest_obj_id 
+                                   tag_name 
+                                   {tag_val ""} 
+                                   {replacement_behavior ""} } {
+
+    CORE_RefMacroVars
+    CORE_SetIfEmpty tag_val $NGS_YES
+
+	return "[ngs-create-ret-val-in-place $ret_val_name $ret_val_set_id $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior]"
+}
+
 # Needs to work with an elaboration to set the ret_val_set_id (dest-obj)
 proc ngs-create-ret-val-by-operator { state_id
                                       ret_val_name
@@ -277,7 +306,7 @@ proc ngs-create-ret-val-by-operator { state_id
                                       attribute 
                                       {new_val ""} 
                                       {replacement_behavior ""}
-                                      {add_prefs ""} } {
+                                      {add_prefs "="} } {
 
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
@@ -302,7 +331,21 @@ proc ngs-create-ret-val-by-operator { state_id
   return $rhs_val
 }
 
+#
+# Creates a return value for tags using an operator
+proc ngs-create-ret-tag-by-operator { state_id
+                                      ret_val_name
+                                      dest_obj_id
+                                      tag_name 
+                                      {tag_val ""} 
+                                      {replacement_behavior ""}
+                                      {add_prefs "="} } {
 
+  CORE_RefMacroVars
+  CORE_SetIfEmpty tag_val $NGS_YES
+
+  return "[ngs-create-ret-val-by-operator $state_id $ret_val_name $dest_obj_id [ngs-tag-for-name $tag_name $tag_val $replacement_behavior $add_prefs]"
+}
 
 #
 # Constructs an operator that, when applied, sets the return value in a sub-state

@@ -389,8 +389,6 @@ sp "test
     (<goals> -^goal)
 -->
     (pass)"
-
-
 }
 
 test decide-operator-function-with-goal {
@@ -405,7 +403,7 @@ sp "test*create-decide-operator
     [ngs-is-not-tagged <g> executed]
 -->
     [ngs-create-decide-operator <s> test-decide <o> <ret-vals> <g>]
-    [ngs-create-ret-val-in-place end-tag <ret-vals> <g> [ngs-tag-for-name executed] $NGS_YES]
+    [ngs-create-ret-tag-in-place end-tag <ret-vals> <g> executed]
     [ngs-create-ret-val-in-place planning-result <ret-vals> <s> updated-plan]"
 
 
