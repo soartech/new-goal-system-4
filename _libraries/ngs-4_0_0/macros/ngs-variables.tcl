@@ -76,6 +76,7 @@ CORE_CreateMacroVar NGS_TAG_COPY_COMPLETE			 "ngs*copy-complete"
 CORE_CreateMacroVar NGS_TAG_COPIED_LEVEL			 "ngs*copied-level"
 CORE_CreateMacroVar NGS_TAG_SOURCE_OBJ               "ngs*source-object"
 CORE_CreateMacroVar NGS_TAG_DECISION_COMPLETE        "ngs*decision-complete"
+CORE_CreateMacroVar	NGS_TAG_SELECTED_GOAL			 "ngs*selected-goal"
 
 CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 
