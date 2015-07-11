@@ -406,13 +406,13 @@ sp* "test*create-decide-operator
     [ngs-create-ret-tag-in-place end-tag <ret-vals> <g> executed]
     [ngs-create-ret-val-in-place planning-result <ret-vals> <s> updated-plan]"
 
-
 sp "test*create-fake-plan
-    [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> planning-result <ret-val>]
-    [ngs-is-not-constructed <ret-val> value]
+    [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> planning-result]
 -->
-    [ngs-create-typed-object-by-operator <ss> <ret-val> value MyPlan <new-plan>]
+    [ngs-create-typed-object-as-ret-val <ss> planning-result <new-plan> MyPlan]
     (<new-plan> ^text |I'm here|)"
+
+#     [ngs-create-typed-object-by-operator <ss> <ret-val> value MyPlan <new-plan>]
 
 sp "test
    [ngs-match-goal <s> TestMaintenanceGoal <g>]
@@ -442,11 +442,7 @@ sp* "test*create-decide-operator*first-subgoal
     [ngs-create-decide-operator <s> test-decide-about-subgoal <o> <ret-vals> <g> subgoal-created]"
 
 sp* "test*decide-create-subgoal-as-return-value
-    [ngs-match-to-create-new-ret-val <ss> TestAchievementGoal <g> <retvals>]
-   -{
-    	[ngs-is-return-val <retvals> $NGS_GOAL_RETURN_VALUE <g2>]
-     	[ngs-is-named <g2> TestAchievementSubGoal]
-    }
+    [ngs-match-to-create-return-goal <ss> TestAchievementGoal <g> TestAchievementSubGoal]
 -->
     [ngs-create-goal-as-return-value <ss> TestAchievementSubGoal $NGS_GB_ACHIEVE <new-goal> <g>]"
 
@@ -516,3 +512,4 @@ sp "test
 -->
     (pass)"
 }
+

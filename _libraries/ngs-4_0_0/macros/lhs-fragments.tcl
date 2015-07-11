@@ -295,30 +295,38 @@ proc ngs-match-to-set-return-value { substate_id
                                      goal_name 
                                      goal_id
                                      return_value_name
-                                     return_value_id
+                                     {return_value_desc_id ""} 
                                      {top_state_id ""}
                                      {superstate_id ""} } {
   CORE_RefMacroVars
+  CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $top_state_id $superstate_id]
-               ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_id)
-               ($return_value_id    ^name  $return_value_name)"
+               ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
+               ($return_value_desc_id    ^name  $return_value_name)
+               [ngs-is-not-constructed $return_value_desc_id value]"
 
   return $lhs_ret
 }
 
-# Start a production to bind to an active goal with a given most derived type
+# Use when you need to match a state so you can create a goal as a return value
 #
-proc ngs-match-to-create-new-ret-val { substate_id
+proc ngs-match-to-create-return-goal { substate_id
                                        goal_name 
                                        goal_id
-                                       ret_val_set_id
-                                      {top_state_id ""}
-                                      {superstate_id ""} } {
+                                       new_goal_type
+                                       {top_state_id ""}
+                                       {superstate_id ""} } {
   CORE_RefMacroVars
+  set return_value_set [CORE_GenVarName "ret-vals"]
+  set new_goal_id      [CORE_GenVarName "new-goal"]
 
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $top_state_id $superstate_id]
-               ($substate_id ^$NGS_RETURN_VALUES $ret_val_set_id)"
+               ($substate_id ^$NGS_RETURN_VALUES $return_value_set)
+              -{
+                  [ngs-is-return-val $return_value_set $NGS_GOAL_RETURN_VALUE $new_goal_id]
+                  [ngs-is-named $new_goal_id $new_goal_type]
+               }"
 
   return $lhs_ret
 }

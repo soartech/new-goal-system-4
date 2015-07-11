@@ -5,18 +5,10 @@ sp "ngs*core*substate*elaborate-return-values
 -->
     (<ss> ^return-values <ret-values>)"
 
-#########
-# Augments operator to create a return value with the destination object (the ret-val-set)
-sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_CREATE_RET_VAL*fill-in-return-val-set
-  [ngs-match-proposed-operator <s> <o> $NGS_OP_CREATE_RET_VAL]
-  (<s> ^$NGS_RETURN_VALUES <ret-val-set>) 
--->
-  (<o> ^dest-object <ret-val-set> +)"
-
-#########
-# Augments operator to set a return value with the destination object (the ret-val-set)
+##########
+## Augments operator to set a return value with the destination object (the ret-val-set)
 sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_SET_RETURN_VALUE*fill-in-missing-values
-  [ngs-match-proposed-operator <s> <o> $NGS_OP_CREATE_RET_VAL]
+  [ngs-match-proposed-operator <s> <o> $NGS_OP_SET_RETURN_VALUE]
   (<o>           ^ret-val-name       <ret-val-name>)
   (<s>           ^$NGS_RETURN_VALUES <ret-val-set>)
   (<ret-val-set> ^value-description  <v-desc>)

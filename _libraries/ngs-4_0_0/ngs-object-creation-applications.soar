@@ -708,25 +708,6 @@ sp "ngs*core*goal*elaborate-operator*$NGS_OP_CREATE_GOAL
        ^dest-attribute goal +
        ^replacement-behavior $NGS_ADD_TO_SET)"
 
-# Same type of augmentation, but for return values
-sp "ngs*core*goal*elaboration-operator*$NGS_OP_CREATE_GOAL_RET
-  [ngs-match-proposed-operator <s> <o> $NGS_OP_CREATE_GOAL_RET]
-  (<o> ^return-value-set <ret-vals>
-       ^new-goal-to-return <new-goal>)
-  [ngs-is-named <new-goal> <gname>]
-  [ngs-match-goalpool <top-state> <goals> <gname>]
-  -->
-  (<o> ^dest-object <ret-vals>
-       ^dest-attribute value-description
-       ^new-obj <v-desc>
-       ^replacement-behavior $NGS_ADD_TO_SET)
-  (<v-desc> ^name new-goal
-            ^destination-object    <goals>
-            ^destination-attribute goal
-            ^value                 <new-goal>
-            ^replacement-behavior  $NGS_ADD_TO_SET)
-  "
-
 ###########################################################################
 
 
