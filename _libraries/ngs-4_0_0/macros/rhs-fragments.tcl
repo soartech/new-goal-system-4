@@ -118,7 +118,7 @@ proc ngs-create-tag-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
 
-  return "[ngs-create-primitive-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_val] $tag_val $replacement_behavior $add_prefs]"
+  return "[ngs-create-primitive-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]"
 }
 
 # Create an operator
@@ -356,7 +356,7 @@ proc ngs-create-ret-tag-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
 
-  return "[ngs-create-ret-val-by-operator $state_id $ret_val_name $dest_obj_id [ngs-tag-for-name $tag_name $tag_val $replacement_behavior $add_prefs]"
+  return "[ngs-create-ret-val-by-operator $state_id $ret_val_name $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]"
 }
 
 #

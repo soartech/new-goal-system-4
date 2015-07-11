@@ -429,7 +429,7 @@ test subgoal-creation-destruction {
 sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
 	[ngs-is-not-constructed <goals> goal <g>]
-    (<s> -^counter)
+    [ngs-is-not-tagged <s> started-counting]
 -->
 	[ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]" 
 
@@ -437,7 +437,7 @@ sp "test*create-achievement-goal
 sp* "test*create-decide-operator*first-subgoal
     [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE]
     [ngs-is-not-tagged <g> subgoal-created]
-    (<s> -^counter)
+    [ngs-is-not-tagged <s> started-counting]
 -->
     [ngs-create-decide-operator <s> test-decide-about-subgoal <o> <ret-vals> <g> subgoal-created]"
 
@@ -456,7 +456,7 @@ sp* "test*create-decide-operator*second-subgoal
 		[ngs-match-goal <s> TestAchievementSubGoal <g2>]
  		[ngs-is-tagged <g2> second-goal]
    }
-   (<s> -^counter)
+   [ngs-is-not-tagged <s> started-counting]
 -->
     [ngs-create-decide-operator <s> test-decide-about-subgoal <o> <ret-vals> <g>]"
 
@@ -477,23 +477,32 @@ sp* "test*decide-create-subgoal-in-middle-of-substate*activate-second-subgoal
 -->
 	[ngs-create-decide-operator <s> test-decide-about-subgoal <o> ret-vals <g>]"
 
-sp "test*decide-create-subgoal-in-middle-of-substate*initialize-counter
+sp "test*decide-create-subgoal-in-middle-of-substate*started-counting
     [ngs-match-active-goal <s> TestAchievementSubGoal <g> <top-state>]
     [ngs-is-tagged <g> second-goal]
-    (<top-state> -^counter)
+    [ngs-is-not-tagged <top-state> started-counting]
 -->
-    [ngs-create-primitive-by-operator <s> <top-state> counter 0]"
+    [ngs-create-tag-by-operator <s> <top-state> started-counting]"
+
+sp "test*decide-create-subgoal-in-middle-of-substate*initialize-counter
+    [ngs-match-active-goal <s> TestAchievementSubGoal <g>]
+    [ngs-is-tagged <g> second-goal]
+    [ngs-is-tagged <top-state> started-counting]
+    (<s> -^counter)
+-->
+    [ngs-create-primitive-by-operator <s> <s> counter 0]"
+
 
 sp* "test*decide-create-subgoal-in-middle-of-substate*count
-    [ngs-match-active-goal <s> TestAchievementSubGoal <g> <top-state>]
-    (<top-state> ^counter <cur-val>)
+    [ngs-match-active-goal <s> TestAchievementSubGoal <g>]
+    (<s> ^counter <cur-val>)
 -->
-    [ngs-create-primitive-by-operator <s> <top-state> counter {(+ <cur-val> 1)}]"
+    [ngs-create-primitive-by-operator <s> <s> counter {(+ <cur-val> 1)}]"
 
 sp "test*mark-supergoal-achieved
-    [ngs-match-active-goal <s> TestAchievementSubGoal <g> <top-state>]
+    [ngs-match-active-goal <s> TestAchievementSubGoal <g>]
     [ngs-match-goal <top-state> TestAchievementGoal <gtop>]
-    (<top-state> ^counter  > 4 )
+    (<s> ^counter  > 4 )
 -->
     [ngs-create-atomic-operator <s> $NGS_OP_MARK_ACHIEVED <o> ">"]
     (<o> ^goal <gtop>)"
@@ -501,7 +510,7 @@ sp "test*mark-supergoal-achieved
 sp "test
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
     [ngs-match-goalpool <s> <subgoals> TestAchievementSubGoal]
-    (<s> ^counter 5)
+    [ngs-is-tagged <s> started-counting]
     (<goals> -^goal)
     (<subgoals> -^goal)
 -->
