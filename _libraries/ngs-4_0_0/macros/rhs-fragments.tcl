@@ -51,12 +51,12 @@ proc ngs-create-typed-object-in-place { parent_obj_id
                                         {support_type ""} } {
 
   CORE_RefMacroVars
-  CORE_SetIfEmpty support_type $NGS_SHALLOW_COPY
+  CORE_SetIfEmpty support_type $NGS_FOR_I_SUPPORT
 
   set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]
                ($new_obj_id ^type $type)"
 
-  if { $support_type == $NGS_SHALLOW_COPY } {
+  if { $support_type == $NGS_FOR_I_SUPPORT } {
     set rhs_val "$rhs_val
                  [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]"
   }
@@ -80,7 +80,7 @@ proc ngs-create-typed-object-by-operator { state_id
                ^dest-attribute $attribute
                ^replacement-behavior $replacement_behavior)
           [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
-          [ngs-create-typed-object-in-place <o> new-obj $type $new_obj_id $NGS_DEEP_COPY]"
+          [ngs-create-typed-object-in-place <o> new-obj $type $new_obj_id $NGS_FOR_O_SUPPORT]"
 }
 
 #
@@ -330,7 +330,7 @@ proc ngs-set-ret-val-by-operator { state_id
     return $rhs_val
 }
 
-proc ngs-create-typed-object-as-ret-val { state_id
+proc ngs-create-typed-object-for-ret-val { state_id
                                           ret_val_name
                                           new_obj_id
                                           type_name } {
@@ -340,7 +340,7 @@ proc ngs-create-typed-object-as-ret-val { state_id
     set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE <o>]
                   (<o> ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                        ^ret-val-name         $ret_val_name)
-                  [ngs-create-typed-object-in-place <o> new-obj $type_name $new_obj_id $NGS_DEEP_COPY]
+                  [ngs-create-typed-object-in-place <o> new-obj $type_name $new_obj_id $NGS_FOR_O_SUPPORT]
                   [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]"
 
     return $rhs_val
@@ -368,7 +368,7 @@ proc ngs-create-typed-object-as-ret-val { state_id
 #  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_RET_VAL <o> $add_prefs]
 #               (<o> ^dest-attribute value-description
 #                    ^replacement-behavior $NGS_ADD_TO_SET)
-#               [ngs-create-typed-object-in-place <o> new-obj $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $NGS_DEEP_COPY]
+#               [ngs-create-typed-object-in-place <o> new-obj $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $NGS_FOR_O_SUPPORT]
 #               ($ret_val_id     ^name $ret_val_name
 #                                ^destination-object $dest_obj_id
 #                                ^destination-attribute $attribute

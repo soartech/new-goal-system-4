@@ -2,7 +2,10 @@ sp "ngs*core*elaborate-operator*intelligent-deep-copy*level-0
   [ngs-match-proposed-operator <s> <o>]
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
   (<o> ^new-obj <obj-0>)
-  (<obj-0> -^<attr>)
+ -{
+  	(<obj-0> ^<attr>)
+  	[ngs-is-not-tagged <obj-0> $NGS_TAG_CONSTRUCTED]
+  }
 -->
   (<o> ^copy-depth 0 +)"
 

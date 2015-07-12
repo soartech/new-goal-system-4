@@ -71,7 +71,7 @@ sp "test*create-new-object-1
     (<new-obj> ^already-exists <sub-structure>
                ^primitive1 foo
                ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_FOR_O_SUPPORT]
     (<deep> ^copy-me-1 a
             ^copy-me-2 b
             ^copy-me-set 1
@@ -101,7 +101,7 @@ sp "test*create-new-object-2
     (<new-obj> ^already-exists <sub-structure>
                ^primitive1 bar
                ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_FOR_O_SUPPORT]
     (<deep> ^copy-me-1 a
             ^copy-me-2 b
             ^copy-me-set 1
@@ -136,7 +136,7 @@ sp "test*create-new-object-3
     (<new-obj> ^already-exists <sub-structure>
                ^primitive1 foo
                ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_FOR_O_SUPPORT]
     (<deep> ^copy-me-1 a
             ^copy-me-2 b
             ^copy-me-set 1
@@ -170,21 +170,21 @@ sp "test*create-new-object-1
     [ngs-is-not-constructed <s> complex]
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep1> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep1> $NGS_FOR_O_SUPPORT]
     (<deep1> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep2> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep2> $NGS_FOR_O_SUPPORT]
     (<deep2> ^different a) 
-    [ngs-create-typed-object-in-place <deep1> deep-structure DeepType <deep21> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <deep1> deep-structure DeepType <deep21> $NGS_FOR_O_SUPPORT]
     (<deep21> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <deep1> deep-structure DeepType <deep22> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <deep1> deep-structure DeepType <deep22> $NGS_FOR_O_SUPPORT]
     (<deep22> ^different a)  
-    [ngs-create-typed-object-in-place <deep21> deep-structure DeepType <deep211> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <deep21> deep-structure DeepType <deep211> $NGS_FOR_O_SUPPORT]
     (<deep211> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <deep21> deep-structure DeepType <deep212> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <deep21> deep-structure DeepType <deep212> $NGS_FOR_O_SUPPORT]
     (<deep212> ^different a)  
-    [ngs-create-typed-object-in-place <deep211> deep-structure DeepType <deep2111> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <deep211> deep-structure DeepType <deep2111> $NGS_FOR_O_SUPPORT]
     (<deep2111> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <deep211> deep-structure DeepType <deep2112> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <deep211> deep-structure DeepType <deep2112> $NGS_FOR_O_SUPPORT]
     (<deep2112> ^different a)"  
 
 sp "test
@@ -252,27 +252,27 @@ sp "test*create-new-object-1
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level1> deep-structure DeepType <level2> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <level1> deep-structure DeepType <level2> $NGS_FOR_O_SUPPORT]
     (<level2> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level2> deep-structure DeepType <level3> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <level2> deep-structure DeepType <level3> $NGS_FOR_O_SUPPORT]
     (<level3> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level3> deep-structure DeepType <level4> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <level3> deep-structure DeepType <level4> $NGS_FOR_O_SUPPORT]
     (<level4> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level4> deep-structure DeepType <level5> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <level4> deep-structure DeepType <level5> $NGS_FOR_O_SUPPORT]
     (<level5> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
                ^set-val    2)
-    [ngs-create-typed-object-in-place <level5> deep-structure DeepType <level6> $NGS_DEEP_COPY]
+    [ngs-create-typed-object-in-place <level5> deep-structure DeepType <level6> $NGS_FOR_O_SUPPORT]
     (<level6> ^already-exists <sub-structure>
                ^primitive1 foo
                ^set-val    1
@@ -393,8 +393,20 @@ sp "test
 
 test decide-operator-function-with-goal {
     
+# Let us excercise the "replace
+sp "test*create-value-to-replace*initial
+    (state <s> ^superstate nil)
+    [ngs-is-not-constructed <s> value-to-replace <val>]
+-->
+	[ngs-create-typed-object-by-operator <s> <s> value-to-replace MyFavoriteValue <new-obj>]
+    (<new-obj> ^attribute a
+               ^attribute b)
+    [ngs-create-typed-object-in-place <new-obj> nested-item Foo <new-foo>]
+    (<new-foo> ^x 5 ^y 5 ^z 1)"
+
 sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestMaintenanceGoal]
+    [ngs-is-constructed <s> value-to-replace <v>]
 -->
     [ngs-create-goal-in-place <goals> TestMaintenanceGoal $NGS_GB_MAINT <new-goal>]" 
 
@@ -404,15 +416,31 @@ sp* "test*create-decide-operator
 -->
     [ngs-create-decide-operator <s> test-decide <o> <ret-vals> <g>]
     [ngs-create-ret-tag-in-place end-tag <ret-vals> <g> executed]
+    [ngs-create-ret-val-in-place replacement-value <ret-vals> <s> value-to-replace]
     [ngs-create-ret-val-in-place planning-result <ret-vals> <s> updated-plan]"
 
 sp "test*create-fake-plan
     [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> planning-result]
 -->
-    [ngs-create-typed-object-as-ret-val <ss> planning-result <new-plan> MyPlan]
+    [ngs-create-typed-object-for-ret-val <ss> planning-result <new-plan> MyPlan]
     (<new-plan> ^text |I'm here|)"
 
-#     [ngs-create-typed-object-by-operator <ss> <ret-val> value MyPlan <new-plan>]
+sp "test*construct-replacement-value
+	[ngs-match-active-goal <ss> TestMaintenanceGoal <g>]
+ 	[ngs-is-not-constructed <ss> new-value <val>]
+-->
+	[ngs-create-typed-object-by-operator <ss> <ss> new-value MyFavoriteValue <new-val>]
+    (<new-val> ^attribute 2
+               ^attribute 3
+               ^attribute 4)
+    [ngs-create-typed-object-in-place <new-val> nested-item Foo <new-foo> $NGS_FOR_O_SUPPORT]
+    (<new-foo> ^x 1 ^y 2 ^z 0)"
+  
+sp "test*move-replacement-value-to-return-set
+    [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> replacement-value]
+    [ngs-is-constructed <ss> new-value <new-val>]
+-->
+	[ngs-set-ret-val-by-operator <ss> replacement-value <new-val>]"
 
 sp "test
    [ngs-match-goal <s> TestMaintenanceGoal <g>]
@@ -420,6 +448,14 @@ sp "test
    (<s> ^updated-plan <p>)
    [ngs-is-type <p> MyPlan]
    (<p> ^text |I'm here|)
+   (<s> ^value-to-replace <val>)
+   [ngs-is-type <val> MyFavoriteValue]
+   (<val> ^attribute 2
+          ^attribute 3
+          ^attribute 4
+          ^nested-item <nested>)
+   [ngs-is-type <nested> Foo]
+   (<nested> ^x 1 ^y 2 ^z 0)   
 -->
     (pass)"
 }

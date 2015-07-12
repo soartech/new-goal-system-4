@@ -29,24 +29,6 @@ sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_CREATE_GOAL_RET*fill-in-return-
   (<o>           ^dest-object        <ret-val-set> +)
   (<new-ret-val> ^destination-object <goals>)"
 
-########### FIXED ##################
-# Copy a return value into the set of all return values for a substate
-sp "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*with-name
-  [ngs-match-substate <ss> <top-state> <superstate>]
-  [ngs-match-selected-operator <superstate> <o> <op-name>]
-  (<o> ^type           $NGS_OP_DECIDE
-       ^return-values  <op-ret-val-set>)
-  (<op-ret-val-set>   ^value-description <op-ret-val>)
-  (<op-ret-val>       ^name <ret-val-name>
-                      ^value <ret-val>)
-  (<ss> ^return-values  <ret-val-set>)
-  (<ret-val-set> ^value-description <v-desc>)
-  (<v-desc>      ^name <ret-val-name>
-                -^value)
--->
-  (<v-desc> ^value <ret-val>)"
-
-
 ########## THIS IS GOOD AS IT IS ########
 # In every substate with a ret-values attribute, we propose a least
 #  preference operator to copy the return values to the top-state
