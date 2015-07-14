@@ -536,8 +536,7 @@ sp "test*mark-supergoal-achieved
     [ngs-match-goal <top-state> TestAchievementGoal <gtop>]
     (<s> ^counter  > 4 )
 -->
-    [ngs-create-atomic-operator <s> $NGS_OP_MARK_ACHIEVED <o> ">"]
-    (<o> ^goal <gtop>)"
+    [ngs-tag-goal-achieved-by-operator <s> <gtop>]"
 
 sp "test
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
@@ -549,3 +548,172 @@ sp "test
     (pass)"
 }
 
+test mixed-i-support-o-support-goals {
+
+sp "test*create-achievement-goal
+    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
+    [ngs-is-not-tagged <s> removed-goal <any-goal>]
+   -{
+        [ngs-is-constructed <goals> goal <g>]
+        [ngs-is-tagged <g> first-goal]
+    }
+-->
+    [ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]
+    [ngs-tag <new-goal> first-goal]" 
+
+sp "test*create-first-subgoal
+    [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE <goals>]
+    [ngs-is-tagged <g> first-goal]
+   -{
+        [ngs-match-goal <s> TestAchievementGoal <g2>]
+        [ngs-is-tagged <g2> second-goal]
+    }
+-->
+    [ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal> <g>]
+    [ngs-tag <new-goal> second-goal]" 
+        
+sp "test*create-second-subgoal*i-supported
+    [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE <goals>]
+    [ngs-is-tagged <g> second-goal]
+-->
+    [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal> <g>]
+    [ngs-tag <new-goal> third-goal]"
+
+ 
+### FIX: NEED TO CREATE A MACRO FOR MARKING ACHIEVED BY OPERATOR (already one for marking achieved in place)
+sp "test*mark-top-goal-achieved
+    [ngs-match-goal <s> TestAchievementGoal <g>]
+    [ngs-is-tagged <g> first-goal]
+    [ngs-is-not-achieved <g>] 
+    [ngs-match-goal <s> TestAchievementGoal <g2>]
+    [ngs-is-tagged <g2> third-goal]
+-->
+    [ngs-tag-goal-achieved-by-operator <s> <g>]"
+
+sp "test*log-steps-to-top-state
+:o-support
+	[ngs-match-goal <s> TestAchievementGoal <g>]
+-->
+	[ngs-tag <s> created-goal <g>]"
+
+sp "test*log-removals-to-top-state
+	[ngs-match-selected-operator <s> <o> $NGS_OP_REMOVE_ACHIEVED <g>]
+-->
+	[ngs-tag <s> removed-goal <g>]"
+
+sp "test
+	(state <s> ^superstate nil)
+ 	[ngs-is-tagged <s> created-goal <g1>]
+  	[ngs-is-tagged <g1> first-goal]
+  	[ngs-is-tagged <s> created-goal <g2>]
+    [ngs-is-tagged <g2> second-goal]
+    [ngs-is-tagged <s> created-goal <g3>]
+    [ngs-is-not-constructed <s> created-goal <g3>]
+    [ngs-is-tagged <s> removed-goal <g1>]
+    [ngs-is-tagged <s> removed-goal <g2>]
+    [ngs-is-not-tagged <s> removed-goal <g3>]
+   -{
+		[ngs-match-goal <s> TestAchievementGoal <any-g> $NGS_GB_ACHIEVE]
+    }
+-->
+	(pass)"
+}
+
+test mixed-i-support-o-support-goals*as-parent {
+
+sp "test*time-to-create-goal
+	[ngs-match-top-state <s>]
+    (<s> ^$WM_CYCLE_COUNT 1)
+-->
+	[ngs-create-tag-by-operator <s> <s> time-to-create-goal]"
+
+sp "test*time-to-create-goal-info
+	[ngs-match-top-state <s>]
+	[ngs-is-tagged <s> time-to-create-goal]
+   -(<s> ^goal-information <info>)
+    (<s> ^$WM_CYCLE_COUNT 2)
+-->
+	[ngs-create-typed-object-by-operator <s> <s> goal-information GoalInfo <gi>]
+    (<gi> ^extra-info foo
+          ^another-thing bar)"
+ 	
+sp "test*create-achievement-goal
+    [ngs-match-goalpool <s> <goals> TestAchievementGoal]
+   -{
+    	(<s> ^$WM_CYCLE_COUNT < 3)
+    }
+   -{
+		[ngs-is-not-tagged <s> time-to-create-goal]
+       -(<s> ^goal-information <gi>)
+    }
+-->
+    [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]
+    (<new-goal> ^goal-information <gi>)
+    [ngs-tag <new-goal> first-goal]" 
+
+sp "test*create-first-subgoal
+    [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE <goals>]
+    [ngs-is-tagged <g> first-goal]
+   -{
+        [ngs-match-goal <s> TestAchievementGoal <g2>]
+        [ngs-is-tagged <g2> second-goal]
+    }
+-->
+    [ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal> <g>]
+    [ngs-tag <new-goal> second-goal]" 
+        
+sp "test*create-second-subgoal
+    [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE <goals>]
+    [ngs-is-tagged <g> second-goal]
+   -{
+        [ngs-match-goal <s> TestAchievementGoal <g2>]
+        [ngs-is-tagged <g2> third-goal]
+    }
+-->
+    [ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal> <g>]
+    [ngs-tag <new-goal> third-goal]"
+
+ 
+### FIX: NEED TO CREATE A MACRO FOR MARKING ACHIEVED BY OPERATOR (already one for marking achieved in place)
+sp "test*remove-time-to-create-goal
+    [ngs-match-goal <s> TestAchievementGoal <g>]
+    [ngs-is-tagged <g> third-goal]
+    [ngs-is-tagged <s> time-to-create-goal]
+-->
+    [ngs-remove-tag-by-operator <s> <s> time-to-create-goal]"
+
+sp "test*remove-goal-information
+    [ngs-match-goal <s> TestAchievementGoal <g>]
+    [ngs-is-tagged <g> third-goal]
+    (<s> ^goal-information <gi>)
+-->
+    [ngs-remove-attribute-by-operator <s> <s> goal-information <gi>]"
+
+sp "test*log-steps-to-top-state
+:o-support
+	[ngs-match-goal <s> TestAchievementGoal <g>]
+-->
+	[ngs-tag <s> created-goal <g>]"
+
+sp "test*log-removals-to-top-state
+	[ngs-match-selected-operator <s> <o> $NGS_OP_REMOVE_ACHIEVED <g>]
+-->
+	[ngs-tag <s> removed-goal <g>]"
+
+sp "test
+	(state <s> ^superstate nil)
+ 	[ngs-is-tagged <s> created-goal <g1>]
+    [ngs-is-not-constructed <s> created-goal <g1>]
+  	[ngs-is-tagged <s> created-goal <g2>]
+  	[ngs-is-tagged <g2> second-goal]
+  	[ngs-is-tagged <s> created-goal <g3>]
+    [ngs-is-tagged <g3> third-goal]
+    [ngs-is-tagged <s> removed-goal <g2>]
+    [ngs-is-tagged <s> removed-goal <g3>]
+    [ngs-is-not-tagged <s> removed-goal <g1>]
+   -{
+		[ngs-match-goal <s> TestAchievementGoal <any-g> $NGS_GB_ACHIEVE]
+    }
+-->
+	(pass)"
+}

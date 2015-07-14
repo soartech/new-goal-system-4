@@ -13,3 +13,4 @@ sp "ngs*core*goal*apply*$NGS_OP_MARK_ACHIEVED
   [ngs-is-not-achieved <g>]
 -->
   [ngs-tag-goal-achieved <goal>]"
+

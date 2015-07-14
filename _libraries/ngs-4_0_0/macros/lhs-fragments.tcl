@@ -228,6 +228,10 @@ proc ngs-match-goal { state_id
   return $lhs_ret
 }
 
+proc ngs-match-top-state { state_id } {
+    return "(state <s> ^superstate nil)"
+}
+
 # Create a condition that matches and binds within a substate.
 #
 # Optional paramaters let you bind to the top state and superstate respectively

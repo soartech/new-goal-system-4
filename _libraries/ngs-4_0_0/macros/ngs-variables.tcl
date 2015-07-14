@@ -80,6 +80,7 @@ CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 # Standard operators
 CORE_CreateMacroVar NGS_OP_MARK_ACHIEVED      "ngs-op-mark-goal-achieved"
 CORE_CreateMacroVar NGS_OP_REMOVE_ACHIEVED    "ngs-op-remove-achieved-goal"
+CORE_CreateMacroVar NGS_REMOVE_ATTRIBUTE      "ngs-op-remove-attribute"
 CORE_CreateMacroVar NGS_OP_CREATE_GOAL        "ngs-op-create-goal"
 CORE_CreateMacroVar NGS_OP_CREATE_GOAL_RET    "ngs-op-create-goal-as-return-value"
 CORE_CreateMacroVar NGS_OP_CREATE_RET_VAL     "ngs-op-create-ret-val"

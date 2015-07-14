@@ -28,6 +28,13 @@ proc ngs-tag-goal-achieved { goal_id } {
   return "[ngs-tag $goal_id $NGS_GS_ACHIEVED]"
 }
 
+proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
+	CORE_RefMacroVars
+	CORE_GenVarIfEmpty operator_id "o"
+	return "[ngs-create-atomic-operator <s> $NGS_OP_MARK_ACHIEVED $operator_id]
+    		($operator_id ^goal $goal_id)"
+}
+
 # Create a basic object.
 #
 # Used to remove quote issues in some internal macros
@@ -103,6 +110,29 @@ proc ngs-create-primitive-by-operator { state_id
                ^replacement-behavior $replacement_behavior)
           [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
 
+}
+
+proc ngs-remove-attribute-by-operator { state_id
+									    parent_obj_id
+									    attribute
+										value
+									    {add_prefs "="} } {
+
+	CORE_RefMacroVars
+	return "[ngs-create-atomic-operator $state_id $NGS_REMOVE_ATTRIBUTE <o> $add_prefs]
+			(<o> ^dest-object    $parent_obj_id
+        		 ^dest-attribute $attribute
+           	     ^value-to-remove $value)"
+}
+
+proc ngs-remove-tag-by-operator { state_id
+								  parent_obj_id
+								  tag_name
+								 {value ""}
+								 {add_prefs "="} } {
+	CORE_RefMacroVars
+	CORE_SetIfEmpty value $NGS_YES
+	return "[ngs-remove-attribute-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $value $add_prefs]" 
 }
 
 #
