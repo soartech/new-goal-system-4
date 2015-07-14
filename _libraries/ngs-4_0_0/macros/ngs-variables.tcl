@@ -37,7 +37,7 @@ CORE_CreateMacroVar NGS_GOAL_ATTRIBUTE "goal"
 CORE_CreateMacroVar NGS_RETURN_VALUES "return-values"
 
 # Support types for object creation
-CORE_CreateMacroVar NGS_FOR_O_SUPPORT    "o-support"
+CORE_CreateMacroVar NGS_FOR_O_SUPPORT "o-support"
 CORE_CreateMacroVar NGS_FOR_I_SUPPORT "i-support"
 
 # The prefix placed on all tags
@@ -64,19 +64,16 @@ CORE_CreateMacroVar NGS_GB_MAINT   "maintenance"
 CORE_CreateMacroVar NGS_OP_ATOMIC "atomic"
 CORE_CreateMacroVar NGS_OP_DECIDE "decide"
 
-# Methods of goal and typed object creation
-CORE_CreateMacroVar NGS_PROPOSE_OPERATOR "operator"
-CORE_CreateMacroVar NGS_CONSTRUCT_IN_PLACE "in-place"
-
 # Substate Tags
 CORE_CreateMacroVar NGS_TAG_SUBSTATE_RESULT_RETURNED "ngs*substate-result-returned"
 CORE_CreateMacroVar NGS_TAG_CONSTRUCTED 			 "ngs*constructed"
-CORE_CreateMacroVar NGS_TAG_INTELLIGENT_DEEP_COPY    "ngs*intelligent-deep-copy"
+CORE_CreateMacroVar NGS_TAG_INTELLIGENT_CONSTRUCTION "ngs*intelligent-construction"
 CORE_CreateMacroVar NGS_TAG_COPY_COMPLETE			 "ngs*copy-complete"
 CORE_CreateMacroVar NGS_TAG_COPIED_LEVEL			 "ngs*copied-level"
 CORE_CreateMacroVar NGS_TAG_SOURCE_OBJ               "ngs*source-object"
 CORE_CreateMacroVar NGS_TAG_DECISION_COMPLETE        "ngs*decision-complete"
 CORE_CreateMacroVar	NGS_TAG_SELECTED_GOAL			 "ngs*selected-goal"
+CORE_CreateMacroVar NGS_TAG_I_SUPPORTED              "ngs*i-supported"
 
 CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 

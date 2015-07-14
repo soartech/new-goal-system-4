@@ -66,6 +66,7 @@ proc NGS_DeclareGoal { goal_name } {
   sp "ngs*core*goals*propose-to-remove-achieved-goals*$goal_name
     [ngs-match-goal <s> $goal_name <g> $NGS_GB_ACHIEVE <goals>]
     [ngs-is-tagged <g> $NGS_GS_ACHIEVED]
+    [ngs-is-not-tagged <g> $NGS_TAG_I_SUPPORTED]
   -->
     [ngs-create-atomic-operator <s> $NGS_OP_REMOVE_ACHIEVED <o>]
     (<o> ^goal-set <goals> ^goal <g>)"

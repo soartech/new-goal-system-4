@@ -58,7 +58,8 @@ proc ngs-create-typed-object-in-place { parent_obj_id
 
   if { $support_type == $NGS_FOR_I_SUPPORT } {
     set rhs_val "$rhs_val
-                 [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]"
+                 [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
+                 [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
   }
   
   return $rhs_val
@@ -79,7 +80,7 @@ proc ngs-create-typed-object-by-operator { state_id
           (<o> ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
                ^replacement-behavior $replacement_behavior)
-          [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
+          [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
           [ngs-create-typed-object-in-place <o> new-obj $type $new_obj_id $NGS_FOR_O_SUPPORT]"
 }
 
@@ -100,13 +101,13 @@ proc ngs-create-primitive-by-operator { state_id
                ^dest-attribute $attribute
                ^new-obj        $value
                ^replacement-behavior $replacement_behavior)
-          [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]"
+          [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
 
 }
 
 #
 # Creates a tag using an operator. The tag value will be constructed using
-#  intelligent deep copy.
+#  intelligent construction.
 #
 proc ngs-create-tag-by-operator { state_id
 								  parent_obj_id
@@ -135,7 +136,8 @@ proc ngs-create-operator { state_id
     
   return "[ngs-create-attribute $state_id $NGS_OP_ATTRIBUTE $new_obj_id "+ $add_prefs"]
           ($new_obj_id ^name     $op_name
-                       ^type     $type)"
+                       ^type     $type)
+          [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
     
 }
 
@@ -204,7 +206,8 @@ proc ngs-create-goal-in-place { goal_set_id
   set lhs_val "[ngs-create-attribute $goal_set_id $NGS_GOAL_ATTRIBUTE $new_obj_id]
                ($new_obj_id ^name $goal_name
                             ^type $type)
-               [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]"
+               [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
+               [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
 
   if { $supergoal_id != "" } { set lhs_val "$lhs_val
                                             ($new_obj_id ^supergoal $supergoal_id)" }
@@ -223,7 +226,7 @@ proc ngs-create-goal-by-operator { state_id
 
   set lhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL <o>]
                [ngs-create-attribute <o> new-obj $new_obj_id]
-               [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]
+               [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
                ($new_obj_id ^name $goal_name
                             ^type $type)"
 
@@ -261,7 +264,7 @@ proc ngs-create-goal-as-return-value { state_id
                             ^value    $new_obj_id)
 	           ($new_obj_id ^name     $goal_name
                             ^type     $goal_type)              
-               [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]"
+               [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
                    
   if { $supergoal_id != "" } { set rhs_val "$rhs_val
                                             ($new_obj_id ^supergoal $supergoal_id)" }
@@ -325,7 +328,7 @@ proc ngs-set-ret-val-by-operator { state_id
                   (<o> ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                        ^new-obj              $value
                        ^ret-val-name         $ret_val_name)
-                  [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]"
+                  [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
 
     return $rhs_val
 }
@@ -341,7 +344,7 @@ proc ngs-create-typed-object-for-ret-val { state_id
                   (<o> ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                        ^ret-val-name         $ret_val_name)
                   [ngs-create-typed-object-in-place <o> new-obj $type_name $new_obj_id $NGS_FOR_O_SUPPORT]
-                  [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]"
+                  [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
 
     return $rhs_val
 
@@ -373,7 +376,7 @@ proc ngs-create-typed-object-for-ret-val { state_id
 #                                ^destination-object $dest_obj_id
 #                                ^destination-attribute $attribute
 #                                ^replacement-behavior $replacement_behavior)
-#               [ngs-tag <o> $NGS_TAG_INTELLIGENT_DEEP_COPY]"
+#               [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
 #    
 #  if { $new_val != "" } {
 #    set rhs_val "$rhs_val
