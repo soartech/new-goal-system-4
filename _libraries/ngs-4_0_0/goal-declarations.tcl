@@ -22,6 +22,13 @@ proc NGS_DeclareGoal { goal_name } {
   -->
     (<goals> ^$goal_name <g>)"
   
+  # Adds the sub-goal attribute to a supergoal
+  sp "ngs*core*goals*link-subgoal*$goal_name
+	[ngs-match-goal <s> $goal_name <g>]
+ 	[ngs-is-supergoal <g> <supergoal>]
+  -->
+	(<supergoal> ^subgoal <g>)"
+
   # Remove a goal from the pool, if its supergoal disappears
   # The -^name check is a check for existance
   sp "ngs*core*goals*mark-goal-achieved-if-supergoal-removed-by-i-support*$goal_name
@@ -35,8 +42,7 @@ proc NGS_DeclareGoal { goal_name } {
   # The -^name check is a check for existance
   sp "ngs*core*goals*mark-goal-achieved-if-supergoal-removed-by-o-support*$goal_name
     [ngs-match-goal <s> $goal_name <g> $NGS_GB_ACHIEVE]
-    [ngs-is-supergoal <g> <supergoal>]
-    (<supergoal> ^name <supergoal-name>)
+    [ngs-is-supergoal <g> <supergoal> <supergoal-name>]
    -{
        [ngs-match-goal <s> <supergoal-name> <supergoal>]
     }

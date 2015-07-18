@@ -249,7 +249,29 @@ proc ngs-is-obj-not-constructed { object_id } {
   return "-{ [ngs-is-obj-constructed $object_id] }"
 }
 
-proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value ""} { ret_val_desc_id "" } } {
+# Binds to a specified return value, using the name of the return value as 
+#  the principle match condition.
+#
+# It is not usually necessary to use this macro. It is used internally by ngs-match-to-set-return-value
+#  which is the macro you will typically need to use when dealing with return values.
+#
+# This macro is most useful in a sub-state when you wish to test for the existance of
+#  and/or bind to a return value. Return values are stored in NGS_TYPE_STATE_RETURN_VALUE objects.
+#  This macro abstracts you from the details of this internal structure and allows you to
+#  bind directly to the return value. If you like, you can also bind to the NGS_TYPE_STATE_RETURN_VALUE
+#  wrapper object.
+#
+# [ngs-is-return-val ret_val_set_id ret_val_name *ret_value_id *ret_val_desc_id]
+#
+# ret_val_set_id: The identifier bound to the return value set on the sub-state (or operator). Typically
+#  you would bind this using some other methods (e.g. (<s> ^$NGS_RETURN_VALUES <ret-vals>)). 
+# ret_val_name: The name of the return value (a string)
+# ret_value_id: (Optional) Identifier for the return value. This will bound to the return value object
+#  if this macro matches.  This identifer can be used to modify or even remove the return value.
+# ret_val_desc_id: (Optional) Identifier for the NGS_TYPE_STATE_RETURN_VALUE object that describes
+#  the return value (you will rarely need to bind to this)
+#
+proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value_id ""} { ret_val_desc_id "" } } {
   
     CORE_RefMacroVars
     CORE_GenVarIfEmpty ret_val_desc_id "val-desc"
@@ -258,33 +280,36 @@ proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value ""} { ret_val_de
                  ($ret_val_desc_id ^name $ret_val_name)
                  [ngs-is-tagged $ret_val_desc_id $NGS_TAG_CONSTRUCTED]"
 
-    if { $ret_value != "" } {
+    if { $ret_value_id != "" } {
         set lhs_val "$lhs_val
-                     ($ret_val_desc_id ^value $ret_value)"
+                     ($ret_val_desc_id ^value $ret_value_id)"
     }
 
     return $lhs_val
 }
 
-proc ngs-is-not-return-val { ret_val_set_id ret_val_name {ret_value ""} { ret_val_desc_id "" } } {
-    return "-{ [ngs-is-return-val $ret_val_set_id $ret_val_name $ret_value $ret_val_desc_id] }"
-}
-
 ########################################################
 ##
 ########################################################
-# NOTE: right now it is very hard to test for "not supergoal" and "not subgoal"
 
 # Use to bind to a goal's supergoal
 #
-# e.g. [ngs-is-supergoal <goal> <potential-supergoal>]
+# This macro does not bind the subgoal. Use a different macro
+#  (e.g. ngs-match-active-goal) to bind the subgoal.
+# 
+# [ngs-is-supergoal goal_id supergoal_id *supergoal_name]
 #
-proc ngs-is-supergoal { goal supergoal {supergoal_name ""} } {
+# goal_id: Subgoal (already bound)
+# supergoal_id: Supergoal of "goal_id." Will be bound by this macro
+# supergoal_name: (Optional) If provided, the supergoal will only be bound
+#                   if it has the given name.
+#
+proc ngs-is-supergoal { goal_id supergoal_id {supergoal_name ""} } {
 
-  set main_test_line "($goal ^supergoal $supergoal)"
+  set main_test_line "($goal_id ^supergoal $supergoal_id)"
   if { $supergoal_name != "" } {
 	   return "$main_test_line 
-            [ngs-is-named $supergoal $supergoal_name]"
+            [ngs-is-named $supergoal_id $supergoal_name]"
   } else {
       return $main_test_line
   }
@@ -293,13 +318,21 @@ proc ngs-is-supergoal { goal supergoal {supergoal_name ""} } {
 
 # Use to bind to a goal's subgoal
 #
-# e.g. [ngs-is-subgoal <goal> <potential-subgoal> ]
+# This macro does not bind the supegoal. Use a different macro
+#  (e.g. ngs-match-active-goal) to bind the supergoal.
+# 
+# [ngs-is-subgoal goal_id subgoal_id *subgoal_name]
 #
-proc ngs-is-subgoal { goal subgoal {subgoal_name ""} } {
-  set main_test_line = "($goal ^subgoal $subgoal)"
+# goal_id: Supergoal (already bound)
+# subgoal_id: Subgoal of "goal_id." Will be bound by this macro
+# subgoal_name: (Optional) If provided, the subgoal will only be bound
+#                   if it has the given name.
+#
+proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
+  set main_test_line = "($subgoal_id ^subgoal $subgoal_id)"
   if { $subgoal_name != "" } {
     return "$main_test_line 
-            [ngs-is-named $subgoal $subgoal_name]"
+            [ngs-is-named $subgoal_id $subgoal_name]"
   } else {
     return $main_test_line
   }
