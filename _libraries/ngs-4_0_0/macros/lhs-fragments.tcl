@@ -28,90 +28,225 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-# Use to test an object for a type
+# Binds to an object's type, if it has a type attribute
 #
-# e.g. [ngs-is-type <mission> adjust-fire]
+# [ngs-is-type object_id type_name]
+#
+# If the object has more than one type, this will bind to them all
+#  (though later tests may filter out some of the bindings)
 #
 proc ngs-is-type { object_id type_name } {
   return "($object_id ^type $type_name)"
 }
+
+# Evaluates to true if the given object is not of the given type
+# 
+# [ngs-is-not-type object_id typename]
+#
 proc ngs-is-not-type { object_id type_name } {
-  return "-{
-            ($object_id ^type.type $type_name)
-           }"
+  return "-($object_id ^type $type_name)"
 }
 
-# Use to test an object (usually operators/goals) for a name
+# Binds to an object's name, if it has a name attribute
 #
-# e.g. [ngs-is-named <o> send-message]
+# [ngs-is-named object_id name]
+#
+# Goals and operators are the standard NGS named objects
+# NGS names are not required to be unique, and are typically designed
+#  to be descriptive enough to help identify an object during debugging
 #
 proc ngs-is-named { object_id name } {
   return "($object_id ^name $name)"
 }
+
+# Evaluates to true if the given object does not have the given name
+# 
+# [ngs-is-not-named object_id typename]
+#
 proc ngs-is-not-named { object_id name } {
   return "($object_id -^name $name)"
 }
 
 
-# Use to test an object for the existance of a tag
+# Binds to a given tag, if the tag exists.
 #
-# Tags are attributes with a special prefix that keep them
-#  sorted and separated in the debugger. Conceptually they hold
-#  information about the processing of an object
+# A list of the NGS built-in tags can be found in ngs-variables.tcl
+#
+# [ngs-is-tagged object_id tag_name *tag_val]
+#
+# If tag_val is not provided, it is defaulted to NGS_YES
+#
+# Tags are prefixed by a special string, so you cannot
 proc ngs-is-tagged { object_id tag_name {tag_val "" } } {
   CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
   return "($object_id  ^[ngs-tag-for-name $tag_name] $tag_val)"
 }
+
+# Evaluates to true if the given object does not have the given tag
+#
+# A list of the NGS built-in tags can be found in ngs-variables.tcl
+# 
+# [ngs-is-not-tagged object_id typename]
+#
 proc ngs-is-not-tagged { object_id tag_name {tag_val "" } } {
   CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
-  return "($object_id -^[ngs-tag-for-name $tag_name] $tag_val)"
+  return "-($object_id ^[ngs-tag-for-name $tag_name] $tag_val)"
 }
 
 ########################################################
 ## Goal states (normally don't need to test this way, but sometimes need to)
 ########################################################
 
-# Use to find out if a goal is active or not
+# Evaluates to true if the given goal is active
 #
-# Note that there can only be one active goal at a time. An active
-#  goal is one that is associated with a "decide" operator that is
-#  currently selected and in a sub-state.
+# An Active goal is one that is bound to a selected decide operator
+#  (i.e. that has no-changed to a sub-state) or one of its supergoals.
 #
-# e.g. [ngs-is-not-active <goal>]
+# This macro tests the goal's tags to see if it is active.
+# Use some other macro to bind to the goal itself.
+#
+# Typically you will bind to active goals using ngs-match-active-goal
+#  or ngs-match-top-state-active-goal.
+#
+# [ngs-is-active <goal>]
+#
 proc ngs-is-active { goal_id } {
   CORE_RefMacroVars
   return "[ngs-is-tagged $goal_id $NGS_GS_ACTIVE]"
 }
+
+# Evaluates to true if the given goal is NOT active
+#
+# An Active goal is one that is bound to a selected decide operator
+#  (i.e. that has no-changed to a sub-state) or one of its supergoals.
+#
+# This macro tests the goal's tags to see if it is not active.
+# You cannot use this macro to bind to the goal or to the active tag.
+#
+# [ngs-is-not-active goal_id]
+#
 proc ngs-is-not-active { goal_id } {
   CORE_RefMacroVars
   return "[ngs-is-not-tagged $goal_id $NGS_GS_ACTIVE]"
 }
 
 
-# Use to find out if a goal is achieved or not
+# Evaluates to true if the given goal is tagged NGS_GS_ACHIEVED
 #
-# e.g. [ngs-is-achieved <goal>]
+# O-supported goals are marked achieved using ngs-tag-goal-achieved (typically)
+#  under domain-specific conditions for the given model)
+#
+# This macro tests the goas's tags and cannot be used to bind to the
+#  goal itself. 
+#
+# Note that this macro will only ever evaluate to true for o-supported goals.
+# I-supported goals are retracted when achieved.
+#
+# [ngs-is-achieved goal_id]
 #
 proc ngs-is-achieved { goal_id } {
   CORE_RefMacroVars
   return "[ngs-is-tagged $goal_id $NGS_GS_ACHIEVED]"
 }
+
+# Evaluates to true if the given goal is not tagged NGS_GS_ACHIEVED
+#
+# O-supported goals are marked achieved using ngs-tag-goal-achieved (typically)
+#  under domain-specific conditions for the given model)
+#
+# This macro tests the goas's tags and cannot be used to bind to the
+#  goal itself. 
+#
+# [ngs-is-achieved goal_id]
+#
 proc ngs-is-not-achieved { goal_id } {
   CORE_RefMacroVars
   return "[ngs-is-not-tagged $goal_id $NGS_GS_ACHIEVED]"
 }
 
-proc ngs-is-constructed { parent_id attribute object_id } {
+# Evaluates to true if the object linked to the given attribute
+#  has been completely constructed (i.e. is tagged with NGS_TAG_CONSTRUCTED)
+#
+# IMPORTANT: You should ALWAYS use this macro instead of just testing for the
+#  existance of the given attribute wme whenever you working with objects that
+#  have structure (i.e. non-primitives). Otherwise your production is likely
+#  to fire prematurely while the object is still being constructed.
+#
+# See also - ngs-is-obj-constructed for version where attribute already exists
+#
+# Upon matching, the "object_id" will be bound to the constructed object and can
+#  be used elsewhere within the production.
+#
+# [ngs-is-attr-constructed parent_id attribute object_id]
+#
+proc ngs-is-attr-constructed { parent_id attribute object_id } {
   CORE_RefMacroVars
   return "($parent_id ^$attribute $object_id)
           [ngs-is-tagged $object_id $NGS_TAG_CONSTRUCTED]"
 }
-proc ngs-is-not-constructed { parent_id attribute {object_id ""} } {
+
+# Evaluates to true if the object linked to the given attribute
+#  has NOT yet been completely constructed (i.e. is tagged with NGS_TAG_CONSTRUCTED)
+#
+# IMPORTANT: You should ALWAYS use this macro instead of just testing for the
+#  existance of the given attribute wme whenever you working with objects that
+#  have structure (i.e. non-primitives). Otherwise your production is likely
+#  to fire prematurely while the object is still being constructed.
+#
+# See also - ngs-is-obj-not-constructed for version where attribute already exists
+#
+# The object_id parameter may be bound to the object even before the entire condition
+#  is matched, thus it could be used for other tests in the production.
+#
+# [ngs-is-attr-not-constructed parent_id attribute object_id]
+#
+proc ngs-is-attr-not-constructed { parent_id attribute {object_id ""} } {
   CORE_RefMacroVars
   CORE_GenVarIfEmpty object_id "__new-obj"
-  return "-{ [ngs-is-constructed $parent_id $attribute $object_id] }"
+  return "-{ [ngs-is-attr-constructed $parent_id $attribute $object_id] }"
+}
+
+# Evaluates to true if the object has been completely constructed 
+#  (i.e. is tagged with NGS_TAG_CONSTRUCTED)
+#
+# IMPORTANT: You should ALWAYS use this macro instead of just testing for the
+#  existance of the given attribute wme whenever you working with objects that
+#  have structure (i.e. non-primitives). Otherwise your production is likely
+#  to fire prematurely while the object is still being constructed.
+#
+# See also - ngs-is-attr-constructed for version when the attribute linking
+#   the object to its parent may not exist.
+#
+# This version does not bind the object being tested. Use some other method
+#  or macro to bind the object before testing it.
+#
+# [ngs-is-obj-constructed object_id]
+#
+proc ngs-is-obj-constructed { object_id } {
+  CORE_RefMacroVars
+  return "[ngs-is-tagged $object_id $NGS_TAG_CONSTRUCTED]"
+}
+
+# Evaluates to true if the object l has NOT yet been completely constructed 
+#  (i.e. is tagged with NGS_TAG_CONSTRUCTED)
+#
+# IMPORTANT: You should ALWAYS use this macro instead of just testing for the
+#  existance of the given attribute wme whenever you working with objects that
+#  have structure (i.e. non-primitives). Otherwise your production is likely
+#  to fire prematurely while the object is still being constructed.
+#
+# See also - ngs-is-attr-constructed for version when the attribute linking
+#   the object to its parent may not exist.
+#
+# This version does not bind the object being tested. Use some other method
+#  or macro to bind the object before testing it.
+#
+# [ngs-is-obj-not-constructed object_id]
+#
+proc ngs-is-obj-not-constructed { object_id } {
+  return "-{ [ngs-is-obj-constructed $object_id] }"
 }
 
 proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value ""} { ret_val_desc_id "" } } {
@@ -308,7 +443,7 @@ proc ngs-match-to-set-return-value { substate_id
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
                ($return_value_desc_id    ^name  $return_value_name)
-               [ngs-is-not-constructed $return_value_desc_id value]"
+               [ngs-is-attr-not-constructed $return_value_desc_id value]"
 
   return $lhs_ret
 }

@@ -65,7 +65,7 @@ sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
               -^step)
-    [ngs-is-not-constructed <s> complex]
+    [ngs-is-attr-not-constructed <s> complex]
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
     (<new-obj> ^already-exists <sub-structure>
@@ -82,7 +82,7 @@ sp "test*step1*done
      (state <s> ^superstate nil
                 ^sub-structure <sub-structure>
                -^step)
-     [ngs-is-constructed <s> complex <complex>]
+     [ngs-is-attr-constructed <s> complex <complex>]
      (<complex> -^primitive1 bar)
 -->
      [ngs-create-primitive-by-operator <s> <s> step 2]"
@@ -93,7 +93,7 @@ sp "test*create-new-object-2
                ^sub-structure <sub-structure>
                ^step 2)
     -{
-        [ngs-is-constructed <s> complex <complex>]
+        [ngs-is-attr-constructed <s> complex <complex>]
         (<complex> ^primitive1 bar)
      }
 -->
@@ -112,10 +112,10 @@ sp "test*step2*done
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
                ^step 2)
-    [ngs-is-constructed <s> complex <complex>]
+    [ngs-is-attr-constructed <s> complex <complex>]
     (<complex> ^primitive1 bar)
     -{
-        [ngs-is-constructed <s> complex <complex2>]
+        [ngs-is-attr-constructed <s> complex <complex2>]
         (<complex2> -^primitive1 bar)
      }
 -->
@@ -125,10 +125,10 @@ sp "test*create-new-object-3
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
                ^step 3)
-    [ngs-is-constructed <s> complex <complex>]
+    [ngs-is-attr-constructed <s> complex <complex>]
     (<complex> ^primitive1 bar)
     -{
-        [ngs-is-constructed <s> complex <complex2>]
+        [ngs-is-attr-constructed <s> complex <complex2>]
         (<complex2> -^primitive1 bar)
      }
 -->
@@ -167,7 +167,7 @@ test deep-copy-with-set-values {
 
 sp "test*create-new-object-1
     (state <s> ^superstate nil)
-    [ngs-is-not-constructed <s> complex]
+    [ngs-is-attr-not-constructed <s> complex]
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
     [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep1> $NGS_FOR_O_SUPPORT]
@@ -245,7 +245,7 @@ sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
               -^step)
-    [ngs-is-not-constructed <s> complex]
+    [ngs-is-attr-not-constructed <s> complex]
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <level1>]
     (<level1>  ^already-exists <sub-structure>
@@ -287,35 +287,35 @@ sp "test
                ^set-val 1
                ^set-val 2
                ^deep-structure <d2>)
-    [ngs-is-tagged <d1> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-obj-constructed <d1>]
     [ngs-is-not-tagged <d1> $NGS_TAG_SOURCE_OBJ <src-1>]
     (<d2>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d3>)
-    [ngs-is-tagged <d2> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-obj-constructed <d2>]
     [ngs-is-not-tagged <d2> $NGS_TAG_SOURCE_OBJ <src-2>]
     (<d3>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d4>)
-    [ngs-is-tagged <d3> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-obj-constructed <d3>]
     [ngs-is-not-tagged <d3> $NGS_TAG_SOURCE_OBJ <src-3>]
     (<d4>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d5>)
-    [ngs-is-tagged <d4> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-obj-constructed <d4>]
     [ngs-is-not-tagged <d4> $NGS_TAG_SOURCE_OBJ <src-4>]
     (<d5>      ^already-exists <existing>
                ^primitive1 foo
                ^set-val 1
                ^set-val 2
                ^deep-structure <d6>)
-    [ngs-is-tagged <d5> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-obj-constructed <d5>]
     [ngs-is-not-tagged <d5> $NGS_TAG_SOURCE_OBJ <src-5>]
    -(<d6>       ^<attr>)
 -->
@@ -344,7 +344,7 @@ sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^set-item-1 <set-item-1>
                ^set-item-2 <set-item-2>)
-    [ngs-is-not-constructed <s> complex]
+    [ngs-is-attr-not-constructed <s> complex]
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
     (<new-obj> ^set-item <set-item-1>
@@ -378,7 +378,7 @@ sp "test*create-achievement-goal
 sp "test*mark-goal-achieved
 :o-support
     [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE]
-    [ngs-is-tagged <g> $NGS_TAG_CONSTRUCTED]
+    [ngs-is-obj-constructed <g>]
 -->
     [ngs-tag-goal-achieved <g>]
     (<s> ^goal-created $NGS_YES)"
@@ -396,7 +396,7 @@ test decide-operator-function-with-goal {
 # Let us excercise the "replace
 sp "test*create-value-to-replace*initial
     (state <s> ^superstate nil)
-    [ngs-is-not-constructed <s> value-to-replace <val>]
+    [ngs-is-attr-not-constructed <s> value-to-replace <val>]
 -->
 	[ngs-create-typed-object-by-operator <s> <s> value-to-replace MyFavoriteValue <new-obj>]
     (<new-obj> ^attribute a
@@ -406,7 +406,7 @@ sp "test*create-value-to-replace*initial
 
 sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestMaintenanceGoal]
-    [ngs-is-constructed <s> value-to-replace <v>]
+    [ngs-is-attr-constructed <s> value-to-replace <v>]
 -->
     [ngs-create-goal-in-place <goals> TestMaintenanceGoal $NGS_GB_MAINT <new-goal>]" 
 
@@ -427,7 +427,7 @@ sp "test*create-fake-plan
 
 sp "test*construct-replacement-value
 	[ngs-match-active-goal <ss> TestMaintenanceGoal <g>]
- 	[ngs-is-not-constructed <ss> new-value <val>]
+ 	[ngs-is-attr-not-constructed <ss> new-value <val>]
 -->
 	[ngs-create-typed-object-by-operator <ss> <ss> new-value MyFavoriteValue <new-val>]
     (<new-val> ^attribute 2
@@ -438,7 +438,7 @@ sp "test*construct-replacement-value
   
 sp "test*move-replacement-value-to-return-set
     [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> replacement-value]
-    [ngs-is-constructed <ss> new-value <new-val>]
+    [ngs-is-attr-constructed <ss> new-value <new-val>]
 -->
 	[ngs-set-ret-val-by-operator <ss> replacement-value <new-val>]"
 
@@ -464,7 +464,7 @@ test subgoal-creation-destruction {
     
 sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
-	[ngs-is-not-constructed <goals> goal <g>]
+	[ngs-is-attr-not-constructed <goals> goal <g>]
     [ngs-is-not-tagged <s> started-counting]
 -->
 	[ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]" 
@@ -554,7 +554,7 @@ sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
     [ngs-is-not-tagged <s> removed-goal <any-goal>]
    -{
-        [ngs-is-constructed <goals> goal <g>]
+        [ngs-is-attr-constructed <goals> goal <g>]
         [ngs-is-tagged <g> first-goal]
     }
 -->
@@ -608,7 +608,7 @@ sp "test
   	[ngs-is-tagged <s> created-goal <g2>]
     [ngs-is-tagged <g2> second-goal]
     [ngs-is-tagged <s> created-goal <g3>]
-    [ngs-is-not-constructed <s> created-goal <g3>]
+    [ngs-is-attr-not-constructed <s> created-goal <g3>]
     [ngs-is-tagged <s> removed-goal <g1>]
     [ngs-is-tagged <s> removed-goal <g2>]
     [ngs-is-not-tagged <s> removed-goal <g3>]
@@ -703,7 +703,7 @@ sp "test*log-removals-to-top-state
 sp "test
 	(state <s> ^superstate nil)
  	[ngs-is-tagged <s> created-goal <g1>]
-    [ngs-is-not-constructed <s> created-goal <g1>]
+    [ngs-is-attr-not-constructed <s> created-goal <g1>]
   	[ngs-is-tagged <s> created-goal <g2>]
   	[ngs-is-tagged <g2> second-goal]
   	[ngs-is-tagged <s> created-goal <g3>]
