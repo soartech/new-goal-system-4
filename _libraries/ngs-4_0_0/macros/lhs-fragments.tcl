@@ -397,7 +397,7 @@ proc ngs-match-goal { state_id
 }
 
 proc ngs-match-top-state { state_id } {
-    return "(state <s> ^superstate nil)"
+    return "(state $state_id ^superstate nil)"
 }
 
 # Create a condition that matches and binds within a substate.
