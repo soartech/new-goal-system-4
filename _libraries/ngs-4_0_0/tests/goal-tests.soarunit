@@ -419,10 +419,10 @@ sp* "test*create-decide-operator
     [ngs-create-ret-val-in-place replacement-value <ret-vals> <s> value-to-replace]
     [ngs-create-ret-val-in-place planning-result <ret-vals> <s> updated-plan]"
 
-sp "test*create-fake-plan
+sp* "test*create-fake-plan
     [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> planning-result]
 -->
-    [ngs-create-typed-object-for-ret-val <ss> planning-result <new-plan> MyPlan]
+    [ngs-create-typed-object-for-ret-val <ss> planning-result MyPlan <new-plan>]
     (<new-plan> ^text |I'm here|)"
 
 sp "test*construct-replacement-value
@@ -494,9 +494,9 @@ sp* "test*create-decide-operator*second-subgoal
 
 # This will short circuite the sub-state
 sp* "test*decide-create-subgoal-in-middle-of-substate
-    [ngs-match-active-goal <s> TestAchievementSubGoal <ag> <top-state>]
+    [ngs-match-active-goal <s> TestAchievementSubGoal <ag> <params> <top-state>]
     -{
-		[ngs-match-goal <top-state> TestAchievementSubGoal <subg>]
+		  [ngs-match-goal <top-state> TestAchievementSubGoal <subg>]
    		[ngs-is-tagged <subg> second-goal]
      }
 -->
@@ -510,7 +510,7 @@ sp* "test*decide-create-subgoal-in-middle-of-substate*activate-second-subgoal
 	[ngs-create-decide-operator <s> test-decide-about-subgoal <o> ret-vals <g>]"
 
 sp "test*decide-create-subgoal-in-middle-of-substate*started-counting
-    [ngs-match-active-goal <s> TestAchievementSubGoal <g> <top-state>]
+    [ngs-match-active-goal <s> TestAchievementSubGoal <g> <params> <top-state>]
     [ngs-is-tagged <g> second-goal]
     [ngs-is-not-tagged <top-state> started-counting]
 -->

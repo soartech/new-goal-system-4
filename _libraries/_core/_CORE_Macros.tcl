@@ -111,6 +111,8 @@ proc CORE_IfLT { var_name check_val code } {
 ##!
 # @brief Pull in all of the globally available variables 
 #
+# Note: this macro should be removed at some point. It, and the
+#  CORE_macro_var_list are not required
 # @devnote The variables come from CORE_CreateMacroVar
 proc CORE_RefMacroVars { } {
    variable CORE_macro_var_list
@@ -139,7 +141,9 @@ proc CORE_CreateMacroVar { variable_name variable_value } {
    set "$variable_name" $variable_value
    
    # ... now reference the variable in our caller's context, too.
-   uplevel 1 variable $variable_name
+   # JC: This doesn't make a difference if I comment it out. I have
+   #  to check on how variable scoping works
+   #uplevel 1 variable $variable_name
 }
 
 # Generates a unique symbol that is typically used

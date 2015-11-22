@@ -52,9 +52,9 @@ proc ngs-create-attribute { parent_obj_id
 # Create an object that has a name
 #
 proc ngs-create-typed-object-in-place { parent_obj_id 
-		                                attribute
-		                                type
-		                                new_obj_id 
+		                                    attribute
+		                                    type
+		                                    new_obj_id 
                                         {support_type ""} } {
 
   CORE_RefMacroVars
@@ -73,11 +73,11 @@ proc ngs-create-typed-object-in-place { parent_obj_id
 }
 
 proc ngs-create-typed-object-by-operator { state_id
-	                                       parent_obj_id 
-	                                       attribute
-	                                       type
-	                                       new_obj_id
-	                                       {replacement_behavior ""} 
+	                                         parent_obj_id 
+	                                         attribute
+	                                         type
+	                                         new_obj_id
+	                                         {replacement_behavior ""} 
                                            {add_prefs "="} } {
 
   CORE_RefMacroVars
@@ -364,9 +364,9 @@ proc ngs-set-ret-val-by-operator { state_id
 }
 
 proc ngs-create-typed-object-for-ret-val { state_id
-                                          ret_val_name
-                                          new_obj_id
-                                          type_name } {
+                                           ret_val_name
+                                           type_name
+                                           new_obj_id } {
 
     CORE_RefMacroVars
 
@@ -379,61 +379,4 @@ proc ngs-create-typed-object-for-ret-val { state_id
     return $rhs_val
 
 }
-
-##
-# THIS DOESN'T MAKE SENSE. WE WOULDN'T WANT TO CREATE RETURN VALUE STRUCTURES IN SUB-STATES, 
-#  SO WE PROBABLY DON'T NEED THIS
-#
-# Needs to work with an elaboration to set the ret_val_set_id (dest-obj)
-#proc ngs-create-ret-val-by-operator { state_id
-#                                      ret_val_name
-#                                      dest_obj_id
-#                                      attribute 
-#                                      {new_val ""} 
-#                                      {replacement_behavior ""}
-#                                      {add_prefs "="} } {
-#
-#  CORE_RefMacroVars
-#  CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
-#
-#  set ret_val_id [CORE_GenVarName new-ret-val]
-#
-#  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_RET_VAL <o> $add_prefs]
-#               (<o> ^dest-attribute value-description
-#                    ^replacement-behavior $NGS_ADD_TO_SET)
-#               [ngs-create-typed-object-in-place <o> new-obj $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $NGS_FOR_O_SUPPORT]
-#               ($ret_val_id     ^name $ret_val_name
-#                                ^destination-object $dest_obj_id
-#                                ^destination-attribute $attribute
-#                                ^replacement-behavior $replacement_behavior)
-#               [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
-#    
-#  if { $new_val != "" } {
-#    set rhs_val "$rhs_val
-#                 ($ret_val_id ^value $new_val)"
-#  }
-#
-#  return $rhs_val
-#}
-
-#
-# THIS DOESN'T MAKE SENSE. WE WOULDN'T WANT TO CREATE RETURN VALUE STRUCTURES IN SUB-STATES, 
-#  SO WE PROBABLY DON'T NEED THIS
-# Creates a return value for tags using an operator
-#proc ngs-create-ret-tag-by-operator { state_id
-#                                      ret_val_name
-#                                      dest_obj_id
-#                                      tag_name 
-#                                      {tag_val ""} 
-#                                      {replacement_behavior ""}
-#                                      {add_prefs "="} } {
-#
-#  CORE_RefMacroVars
-#  CORE_SetIfEmpty tag_val $NGS_YES
-#
-#  return "[ngs-create-ret-val-by-operator $state_id $ret_val_name $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]"
-#}
-
-
-
 

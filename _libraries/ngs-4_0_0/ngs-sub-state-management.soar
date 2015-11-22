@@ -1,6 +1,6 @@
 # Elaborate the operator's return values to the substate
 sp "ngs*core*substate*elaborate-return-values
-    [ngs-match-substate <ss> <top-state> <superstate>]
+    [ngs-match-substate <ss> <params> <top-state> <superstate>]
     (<superstate> ^operator.return-values <ret-values>)
 -->
     (<ss> ^return-values <ret-values>)"
@@ -34,7 +34,7 @@ sp "ngs*core*ret-vals*elaborate-operator*$NGS_OP_CREATE_GOAL_RET*fill-in-return-
 #  preference operator to copy the return values to the top-state
 #
 sp "ngs*core*substate*propose*$NGS_OP_COPY_RETURN_VALUES
-	[ngs-match-substate <ss> <top-state> <superstate>]
+	[ngs-match-substate <ss> <params> <top-state> <superstate>]
 	(<ss> ^return-values <ret-val-set>)
 	[ngs-is-not-tagged <ss> $NGS_TAG_SUBSTATE_RESULT_RETURNED]
 -->

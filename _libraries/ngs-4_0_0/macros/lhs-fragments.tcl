@@ -345,7 +345,7 @@ proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
 #  with goals of that name. otherwise it binds one level higher at the master pool
 #
 # e.g. sp "my-production
-#         [ngs-match-goalpool <goal-list> <s>]
+#         [ngs-match-goalpool <s> <goals> MyFavorouriteGoalType]
 #         -->
 #         [ngs-create-achievement-goal <goal-list> ... ]
 #
@@ -407,12 +407,13 @@ proc ngs-match-top-state { state_id } {
 # e.g. sp "my-production
 #          [ngs-match-substate <ss> <top-state> <super-state>]
 #
-proc ngs-match-substate { substate_id {top_state_id ""} {superstate_id ""}} {
+proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {superstate_id ""}} {
 
   CORE_RefMacroVars
 
   variable superstate_test
   variable top_state_test
+  variable params_test
 
   CORE_GenVarIfEmpty superstate_id "superstate"
   
@@ -424,7 +425,13 @@ proc ngs-match-substate { substate_id {top_state_id ""} {superstate_id ""}} {
      set top_state_test ""
   }
 
-  return "(state $substate_id $superstate_test $top_state_test)"
+  if {$params_id != ""} {
+     set params_test "\n^$NGS_SUBSTATE_PARAMS $params_id"
+  } else {
+     set params_test ""
+  }
+
+  return "(state $substate_id $superstate_test $top_state_test $params_test)"
 }
 
 # Start a production to bind to an active goal with a given most derived type
@@ -441,11 +448,12 @@ proc ngs-match-substate { substate_id {top_state_id ""} {superstate_id ""}} {
 proc ngs-match-active-goal { substate_id
                              goal_name 
                              goal_id
+                             {params_id ""}
                              {top_state_id ""}
                              {superstate_id ""} } {
   CORE_RefMacroVars
 
-  set lhs_ret "[ngs-match-substate $substate_id $top_state_id $superstate_id]
+  set lhs_ret "[ngs-match-substate $substate_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$WM_ACTIVE_GOAL $goal_id)
                [ngs-is-named $goal_id $goal_name]"
 
@@ -468,12 +476,13 @@ proc ngs-match-to-set-return-value { substate_id
                                      goal_id
                                      return_value_name
                                      {return_value_desc_id ""} 
+                                     {params_id ""}
                                      {top_state_id ""}
                                      {superstate_id ""} } {
   CORE_RefMacroVars
   CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
-  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $top_state_id $superstate_id]
+  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
                ($return_value_desc_id    ^name  $return_value_name)
                [ngs-is-attr-not-constructed $return_value_desc_id value]"
@@ -487,13 +496,14 @@ proc ngs-match-to-create-return-goal { substate_id
                                        goal_name 
                                        goal_id
                                        new_goal_type
+                                       {params_id ""}
                                        {top_state_id ""}
                                        {superstate_id ""} } {
   CORE_RefMacroVars
   set return_value_set [CORE_GenVarName "ret-vals"]
   set new_goal_id      [CORE_GenVarName "new-goal"]
 
-  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $top_state_id $superstate_id]
+  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES $return_value_set)
               -{
                   [ngs-is-return-val $return_value_set $NGS_GOAL_RETURN_VALUE $new_goal_id]
