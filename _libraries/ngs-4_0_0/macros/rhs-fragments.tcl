@@ -51,6 +51,7 @@ proc ngs-create-attribute { parent_obj_id
 
 # Create an object that has a name
 #
+# DEPRECATED
 proc ngs-create-typed-object-in-place { parent_obj_id 
 		                                    attribute
 		                                    type
@@ -72,6 +73,77 @@ proc ngs-create-typed-object-in-place { parent_obj_id
   return $rhs_val
 }
 
+# Creates an object in a form appropriate for i-support
+#
+# Use this on the righ-hand side of a production to create a typed object
+#  using i-support. If you need to construct an object in-place on an operator, 
+#  then use ngs-ocreate-typed-object-in-place.
+#
+# NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
+#
+# E.g. [ngs-icreate-typed-object-in-place <parrent> attribute-name MyType <new-obj> { attr1 val1 attr2 val2 attr3-set {set1 set2 set3} }]
+#
+# parent_obj_id - Variable bound to the object that will link to the newly constructed object
+# attribute - Name of the attribute that should hold the new object
+# new_obj_id - Variable that will beind to the new object's identifier
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
+proc ngs-icreate-typed-object-in-place { parent_obj_id
+									     attribute
+										 type
+										 new_obj_id
+										 {attribute_list ""} } {
+	
+  CORE_RefMacroVars
+
+  set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]"
+
+  set rhs_val "$rhs_val
+               [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
+               [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
+
+  # Set all of the non-tag attributes
+  set rhs_val "$rhs_val
+              [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
+
+  return $rhs_val
+
+}
+
+# Creates an object in a form appropriate for o-support
+#
+# Use this on the righ-hand side of a production to create a typed object
+#  that you want to elaborate onto an operator. If you need to construct an  
+#  i-supported object, then use ngs-icreate-typed-object-in-place.
+#
+# NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
+#
+# E.g. [ngs-icreate-typed-object-in-place <parrent> attribute-name MyType <new-obj> { attr1 val1 attr2 val2 attr3-set {set1 set2 set3} }]
+#
+# parent_obj_id - Variable bound to the object that will link to the newly constructed object
+# attribute - Name of the attribute that should hold the new object
+# new_obj_id - Variable that will beind to the new object's identifier
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
+proc ngs-ocreate-typed-object-in-place { parent_obj_id
+									     attribute
+										 type
+										 new_obj_id
+										 {attribute_list ""} } {
+	
+  CORE_RefMacroVars
+
+  set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]"
+
+  # Set all of the non-tag attributes
+  set rhs_val "$rhs_val
+              [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
+
+  return $rhs_val
+
+}
+
+# DEPRACATED
 proc ngs-create-typed-object-by-operator { state_id
 	                                         parent_obj_id 
 	                                         attribute
@@ -89,6 +161,44 @@ proc ngs-create-typed-object-by-operator { state_id
                ^replacement-behavior $replacement_behavior)
           [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
           [ngs-create-typed-object-in-place <o> new-obj $type $new_obj_id $NGS_FOR_O_SUPPORT]"
+}
+
+# Create a typed object using an operator
+#
+# Use this procedure when you want to link a newly constructed
+#  object to your state (or some substructure on the state). This
+#  macro is for creating the initial object and link. Use
+#  ngs-ocreate-typed-object-in-place to create a composed (nested)
+#  object that is linked to the newly created object.
+#
+# state_id
+# parent_obj_id
+# attribute
+# type
+# new_obj_id
+# attribute_list
+# replacement_behavior - 
+# add_prefs - any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#                                                        
+proc ngs-ocreate-typed-object-by-operator { state_id
+	                                        parent_obj_id 
+	                                        attribute
+	                                        type
+	                                        new_obj_id
+											{attribute_list ""}
+	                                        {replacement_behavior ""} 
+                                            {add_prefs "="} } {
+
+  CORE_RefMacroVars
+  CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT <o> $add_prefs]
+          (<o> ^dest-object    $parent_obj_id
+               ^dest-attribute $attribute
+               ^replacement-behavior $replacement_behavior)
+          [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
+          [ngs-ocreate-typed-object-in-place <o> new-obj $type $new_obj_id $attribute_list]"
 }
 
 #

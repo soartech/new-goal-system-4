@@ -143,15 +143,14 @@ proc ngs-construct { object_id typename { attribute_list "" } } {
 	set new_vals [expand_variables $attribute_list]
 
 	set ret_val "($object_id"
-
+    
 	# Create each of the default attribute/value pairs
 	# Defaults are created via NGS_DeclareType
 	dict for {key val} $defaults {
-
 		if { $val != "" } {
-			if {[dict exists $new_vals key] == 0} {
+			if {[dict exists $new_vals $key] == 0} {
 				set ret_val "$ret_val ^$key $val"
-			}
+			} 
 		}
 	}
 

@@ -6,7 +6,35 @@ setup {
   NGS_DeclareGoal TestAchievementSubGoal
   NGS_DeclareGoal TestMaintenanceGoal
 
+  NGS_DeclareType Foo { 
+    existing-attribute-1 foo 
+    existing-attribute-2 bar 
+    existing-attribute-set ""
+  }
 
+  NGS_DeclareType DeepType { 
+    copy-me-1 a
+    copy-me-2 b
+    copy-me-set { 4 5 }
+  }
+
+  NGS_DeclareType ComplexObject {
+    already-exists ""
+    primitive1 foo
+    primitive2 10
+  }
+
+  NGS_DeclareType DeepTypeA { 
+    copy-me-1 a
+  }
+
+  NGS_DeclareType DeepTypeB { 
+    different a
+  }
+
+  NGS_DeclareType ComplexObject2 {
+    deep-structure ""
+  }
 }
 
 test goal-i-support-goal-creation { 
@@ -52,32 +80,20 @@ sp "test
 
 test create-layered-value {
 
-sp "test*setup-shallow-copy-object
+sp* "test*setup-shallow-copy-object
   (state <s> ^superstate nil)
 -->
-  [ngs-create-typed-object-in-place <s> sub-structure Foo <new-obj>]
-  (<new-obj> ^existing-attribute-1 foo
-             ^existing-attribute-2 bar
-             ^existing-attribute-set 1
-             ^existing-attribute-set 2)"
+  [ngs-icreate-typed-object-in-place <s> sub-structure Foo <new-obj> { existing-attribute-set {1 2} } ]"
 
-sp "test*create-new-object-1
+sp* "test*create-new-object-1
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
               -^step)
     [ngs-is-attr-not-constructed <s> complex]
 -->
-    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
-    (<new-obj> ^already-exists <sub-structure>
-               ^primitive1 foo
-               ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_FOR_O_SUPPORT]
-    (<deep> ^copy-me-1 a
-            ^copy-me-2 b
-            ^copy-me-set 1
-            ^copy-me-set 2
-            ^copy-me-set 3)"
-
+    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } ]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
+     
 sp "test*step1*done
      (state <s> ^superstate nil
                 ^sub-structure <sub-structure>
@@ -88,7 +104,7 @@ sp "test*step1*done
      [ngs-create-primitive-by-operator <s> <s> step 2]"
     
 
-sp "test*create-new-object-2
+sp* "test*create-new-object-2
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
                ^step 2)
@@ -97,16 +113,8 @@ sp "test*create-new-object-2
         (<complex> ^primitive1 bar)
      }
 -->
-    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
-    (<new-obj> ^already-exists <sub-structure>
-               ^primitive1 bar
-               ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_FOR_O_SUPPORT]
-    (<deep> ^copy-me-1 a
-            ^copy-me-2 b
-            ^copy-me-set 1
-            ^copy-me-set 2
-            ^copy-me-set 3)"
+    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { primitive1 bar already-exists <sub-structure> } ]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
 
 sp "test*step2*done
     (state <s> ^superstate nil
@@ -132,16 +140,8 @@ sp "test*create-new-object-3
         (<complex2> -^primitive1 bar)
      }
 -->
-    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> $NGS_ADD_TO_SET]
-    (<new-obj> ^already-exists <sub-structure>
-               ^primitive1 foo
-               ^primitive2 10)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep> $NGS_FOR_O_SUPPORT]
-    (<deep> ^copy-me-1 a
-            ^copy-me-2 b
-            ^copy-me-set 1
-            ^copy-me-set 2
-            ^copy-me-set 3)" 
+    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } $NGS_ADD_TO_SET]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
 
 sp "test
     (state <s> ^superstate nil
@@ -169,23 +169,15 @@ sp "test*create-new-object-1
     (state <s> ^superstate nil)
     [ngs-is-attr-not-constructed <s> complex]
 -->
-    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep1> $NGS_FOR_O_SUPPORT]
-    (<deep1> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <new-obj> deep-structure DeepType <deep2> $NGS_FOR_O_SUPPORT]
-    (<deep2> ^different a) 
-    [ngs-create-typed-object-in-place <deep1> deep-structure DeepType <deep21> $NGS_FOR_O_SUPPORT]
-    (<deep21> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <deep1> deep-structure DeepType <deep22> $NGS_FOR_O_SUPPORT]
-    (<deep22> ^different a)  
-    [ngs-create-typed-object-in-place <deep21> deep-structure DeepType <deep211> $NGS_FOR_O_SUPPORT]
-    (<deep211> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <deep21> deep-structure DeepType <deep212> $NGS_FOR_O_SUPPORT]
-    (<deep212> ^different a)  
-    [ngs-create-typed-object-in-place <deep211> deep-structure DeepType <deep2111> $NGS_FOR_O_SUPPORT]
-    (<deep2111> ^copy-me-1 a)
-    [ngs-create-typed-object-in-place <deep211> deep-structure DeepType <deep2112> $NGS_FOR_O_SUPPORT]
-    (<deep2112> ^different a)"  
+    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject2 <new-obj>]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeB <deep2>]
+    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeA <deep21>]
+    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeB <deep22>]
+    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeA <deep211>]
+    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeB <deep212>]
+    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeA <deep2111>]
+    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeB <deep2112>]"
 
 sp "test
     (state <s> ^complex <complex>)
