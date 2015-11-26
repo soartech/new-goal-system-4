@@ -91,4 +91,4 @@ CORE_CreateMacroVar NGS_OP_SET_RETURN_VALUE   "ngs-op-set-return-value"
 CORE_CreateMacroVar NGS_OP_COPY_RETURN_VALUES "ngs-op-copy-return-values-to-destination"
 
 # Built-in Types
-CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "ngs-type-state-return-value"
+CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "NGS_TYPE_StateReturnValue"

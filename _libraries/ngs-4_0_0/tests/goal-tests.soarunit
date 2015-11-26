@@ -96,7 +96,7 @@ sp* "test*create-new-object-1
               -^step)
     [ngs-is-attr-not-constructed <s> complex]
 -->
-    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } ]
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } ]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
      
 sp "test*step1*done
@@ -118,7 +118,7 @@ sp* "test*create-new-object-2
         (<complex> ^primitive1 bar)
      }
 -->
-    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { primitive1 bar already-exists <sub-structure> } ]
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { primitive1 bar already-exists <sub-structure> } ]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
 
 sp "test*step2*done
@@ -145,7 +145,7 @@ sp "test*create-new-object-3
         (<complex2> -^primitive1 bar)
      }
 -->
-    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } $NGS_ADD_TO_SET]
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } $NGS_ADD_TO_SET]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
 
 sp "test
@@ -174,7 +174,7 @@ sp "test*create-new-object-1
     (state <s> ^superstate nil)
     [ngs-is-attr-not-constructed <s> complex]
 -->
-    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject2 <new-obj>]
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject2 <new-obj>]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeB <deep2>]
     [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeA <deep21>]
@@ -241,7 +241,7 @@ sp "test*create-new-object-1
               -^step)
     [ngs-is-attr-not-constructed <s> complex]
 -->
-	[ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject <level1> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+	[ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <level1> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
     [ngs-ocreate-typed-object-in-place <level1> deep-structure ComplexObject <level2> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
     [ngs-ocreate-typed-object-in-place <level2> deep-structure ComplexObject <level3> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
     [ngs-ocreate-typed-object-in-place <level3> deep-structure ComplexObject <level4> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
@@ -322,7 +322,7 @@ sp "test*create-new-object-1
                ^set-item-2 <set-item-2>)
     [ngs-is-attr-not-constructed <s> complex]
 -->
-    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject3 <new-obj> { set-item { <set-item-1> <set-item-2> } }]"
+    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject3 <new-obj> { set-item { <set-item-1> <set-item-2> } }]"
 
 sp "test
     (state <s> ^complex <complex>)
@@ -367,16 +367,27 @@ sp "test
 
 test decide-operator-function-with-goal {
     
+NGS_DeclareType MyFavoriteValue {
+	attribute ""
+}
+
+NGS_DeclareType Location {
+	x 5
+    y 5
+    z 1
+}
+
+NGS_DeclareType MyPlan { 
+  text ""
+}
+
 # Let us excercise the "replace
 sp "test*create-value-to-replace*initial
     (state <s> ^superstate nil)
     [ngs-is-attr-not-constructed <s> value-to-replace <val>]
 -->
-	[ngs-create-typed-object-by-operator <s> <s> value-to-replace MyFavoriteValue <new-obj>]
-    (<new-obj> ^attribute a
-               ^attribute b)
-    [ngs-create-typed-object-in-place <new-obj> nested-item Foo <new-foo>]
-    (<new-foo> ^x 5 ^y 5 ^z 1)"
+	[ngs-create-typed-object-by-operator <s> <s> value-to-replace MyFavoriteValue <new-obj> { attribute {a b} } ]
+    [ngs-ocreate-typed-object-in-place <new-obj> nested-item Location <new-loc>]"
 
 sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestMaintenanceGoal]
@@ -396,19 +407,14 @@ sp* "test*create-decide-operator
 sp* "test*create-fake-plan
     [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> planning-result]
 -->
-    [ngs-create-typed-object-for-ret-val <ss> planning-result MyPlan <new-plan>]
-    (<new-plan> ^text |I'm here|)"
+    [ngs-create-typed-object-for-ret-val <ss> planning-result MyPlan <new-plan> { text {|I'm here|} } ]"
 
-sp "test*construct-replacement-value
+sp* "test*construct-replacement-value
 	[ngs-match-active-goal <ss> TestMaintenanceGoal <g>]
  	[ngs-is-attr-not-constructed <ss> new-value <val>]
 -->
-	[ngs-create-typed-object-by-operator <ss> <ss> new-value MyFavoriteValue <new-val>]
-    (<new-val> ^attribute 2
-               ^attribute 3
-               ^attribute 4)
-    [ngs-create-typed-object-in-place <new-val> nested-item Foo <new-foo> $NGS_FOR_O_SUPPORT]
-    (<new-foo> ^x 1 ^y 2 ^z 0)"
+	[ngs-create-typed-object-by-operator <ss> <ss> new-value MyFavoriteValue <new-val> { attribute { 2 3 4 } }]
+    [ngs-ocreate-typed-object-in-place <new-val> nested-item Location <new-loc> { x 1 y 2 z 0 }]"
   
 sp "test*move-replacement-value-to-return-set
     [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> replacement-value]
@@ -428,7 +434,7 @@ sp "test
           ^attribute 3
           ^attribute 4
           ^nested-item <nested>)
-   [ngs-is-type <nested> Foo]
+   [ngs-is-type <nested> Location]
    (<nested> ^x 1 ^y 2 ^z 0)   
 -->
     (pass)"
@@ -595,21 +601,25 @@ sp "test
 
 test mixed-i-support-o-support-goals*as-parent {
 
+NGS_DeclareType GoalInfo {
+  extra-info foo
+  another-thing bar
+  my_bool $NGS_YES
+}
+
 sp "test*time-to-create-goal
 	[ngs-match-top-state <s>]
     (<s> ^$WM_CYCLE_COUNT 1)
 -->
 	[ngs-create-tag-by-operator <s> <s> time-to-create-goal]"
 
-sp "test*time-to-create-goal-info
+sp* "test*time-to-create-goal-info
 	[ngs-match-top-state <s>]
 	[ngs-is-tagged <s> time-to-create-goal]
    -(<s> ^goal-information <info>)
     (<s> ^$WM_CYCLE_COUNT 2)
 -->
-	[ngs-create-typed-object-by-operator <s> <s> goal-information GoalInfo <gi>]
-    (<gi> ^extra-info foo
-          ^another-thing bar)"
+	[ngs-create-typed-object-by-operator <s> <s> goal-information GoalInfo <gi> { my_bool $NGS_NO }]"
  	
 sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
@@ -623,7 +633,8 @@ sp "test*create-achievement-goal
 -->
     [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]
     (<new-goal> ^goal-information <gi>)
-    [ngs-tag <new-goal> first-goal]" 
+    [ngs-tag <new-goal> first-goal]
+    (write (crlf) |First Goal|)" 
 
 sp "test*create-first-subgoal
     [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE <goals>]
@@ -634,7 +645,8 @@ sp "test*create-first-subgoal
     }
 -->
     [ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal> <g>]
-    [ngs-tag <new-goal> second-goal]" 
+    [ngs-tag <new-goal> second-goal]
+    (write (crlf) |Second Goal|)" 
         
 sp "test*create-second-subgoal
     [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE <goals>]
@@ -643,12 +655,16 @@ sp "test*create-second-subgoal
         [ngs-match-goal <s> TestAchievementGoal <g2>]
         [ngs-is-tagged <g2> third-goal]
     }
+   -{
+	  	[ngs-is-tagged <s> created-goal <g3>]
+    	[ngs-is-tagged <g3> third-goal]
+    }
 -->
     [ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal> <g>]
-    [ngs-tag <new-goal> third-goal]"
+    [ngs-tag <new-goal> third-goal]
+    (write (crlf) |Third Goal|)"
 
  
-### FIX: NEED TO CREATE A MACRO FOR MARKING ACHIEVED BY OPERATOR (already one for marking achieved in place)
 sp "test*remove-time-to-create-goal
     [ngs-match-goal <s> TestAchievementGoal <g>]
     [ngs-is-tagged <g> third-goal]

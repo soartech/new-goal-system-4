@@ -143,26 +143,6 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
 
 }
 
-# DEPRACATED
-proc ngs-create-typed-object-by-operator { state_id
-	                                         parent_obj_id 
-	                                         attribute
-	                                         type
-	                                         new_obj_id
-	                                         {replacement_behavior ""} 
-                                           {add_prefs "="} } {
-
-  CORE_RefMacroVars
-  CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
-
-  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT <o> $add_prefs]
-          (<o> ^dest-object    $parent_obj_id
-               ^dest-attribute $attribute
-               ^replacement-behavior $replacement_behavior)
-          [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
-          [ngs-create-typed-object-in-place <o> new-obj $type $new_obj_id $NGS_FOR_O_SUPPORT]"
-}
-
 # Create a typed object using an operator
 #
 # Use this procedure when you want to link a newly constructed
@@ -171,17 +151,20 @@ proc ngs-create-typed-object-by-operator { state_id
 #  ngs-ocreate-typed-object-in-place to create a composed (nested)
 #  object that is linked to the newly created object.
 #
-# state_id
-# parent_obj_id
-# attribute
-# type
-# new_obj_id
-# attribute_list
-# replacement_behavior - 
+# state_id - variable bound the state in which to propose the operator
+# parent_obj_id - variable bound to the id of the parent of the object being created
+# attribute - attribute to which to bind the newly constructed object
+# type - type of the object (declare first with NGS_DeclareType)
+# new_obj_id - variable bound to the id of the newly constructed object
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                  (i.e. a multi-valued attribute), put the set values in a list (see example above).
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
 # add_prefs - any additional operator preferences over acceptable (+). By default 
 #  the indifferent preference is given but you can override using this argument.
 #                                                        
-proc ngs-ocreate-typed-object-by-operator { state_id
+proc ngs-create-typed-object-by-operator { state_id
 	                                        parent_obj_id 
 	                                        attribute
 	                                        type
@@ -413,7 +396,31 @@ proc ngs-create-goal-as-return-value { state_id
    
 }                  
 
-# This is needed for creating return values on operator structures
+
+
+# Creates a structure that defines a return value
+#
+# Typically you create return value structures when constructing a decide operator.
+# These are created with i-support right on the operator. The sub-state code uses
+#  the information from this return value structure to determine where to place its
+#  return values
+#
+# [ngs-create-ret-val-in-place ret_val_name ret_val_set_id dest_obj_id attribute (new_val) (replacement_bheavior)]
+#
+# ret_val_name - Name of the return value. The decide operator should document the return values it constructs such
+#  that when you create this operator you know which return values to create. Note that you can create additional 
+#  return values (e.g. flags to set) that aren't required by the sub-state. If you do this, you'll need to specify
+#  the value for the return value.
+# ret_val_set_id - Variable bound to the return value set on the operator. You bind this variable using the
+#                    ngs-create-decide-operator macro.
+# dest_obj_id - Variable bound to the id of the object that should recieve the return value
+# attribute - Name of the attribute to which the return value should be bound
+# new_val - (Optional) The value of the return value. You only set this if you are creating hour own return
+#             value. Leave this empty if you are specifying where to put a return value that will be created
+#             in the sub-state
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
 #
 proc ngs-create-ret-val-in-place { ret_val_name
                                    ret_val_set_id
@@ -426,19 +433,14 @@ proc ngs-create-ret-val-in-place { ret_val_name
     CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
     set ret_val_id [CORE_GenVarName new-ret-val]
+    set attr_list "name $ret_val_name destination-object $dest_obj_id destination-attribute $attribute 
+				   replacement-behavior $replacement_behavior" 
 
-    set rhs_val  "[ngs-create-typed-object-in-place $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id]
-                  ($ret_val_id     ^name $ret_val_name
-                                   ^destination-object $dest_obj_id
-                                   ^destination-attribute $attribute
-                                   ^replacement-behavior $replacement_behavior)"
-    
     if { $new_val != "" } {
-      set rhs_val "$rhs_val
-                   ($ret_val_id ^value $new_val)"
+     	set attr_list "$attr_list value $new_val"
     }
 
-    return $rhs_val
+    return  [ngs-icreate-typed-object-in-place $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $attr_list]
 }
 
 proc ngs-create-ret-tag-in-place { ret_val_name
@@ -473,17 +475,31 @@ proc ngs-set-ret-val-by-operator { state_id
     return $rhs_val
 }
 
+# Create a typed object to use as a return value
+#
+# Typically this macro is used in sub-states to create complex return types. Alternatively,
+#  you can create return types on the sub-state using multiple staeps and then just copy
+#  the root of the return value to the return value structure using ngs-set-ret-val-by-operator.
+#
+# state_id - Variable bound to the sub-state identifier
+# ret_val_name - Name of the return value to set
+# type_name - Name of the type of object to create (declare first with NGS_DeclareType)
+# new_obj_id - Variable to bind to the newly created return value                                               
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                  (i.e. a multi-valued attribute), put the set values in a list (see example above).
+#
 proc ngs-create-typed-object-for-ret-val { state_id
                                            ret_val_name
                                            type_name
-                                           new_obj_id } {
+                                           new_obj_id 
+ 										   { attribute_list "" } } {
 
     CORE_RefMacroVars
 
     set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE <o>]
                   (<o> ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                        ^ret-val-name         $ret_val_name)
-                  [ngs-create-typed-object-in-place <o> new-obj $type_name $new_obj_id $NGS_FOR_O_SUPPORT]
+                  [ngs-ocreate-typed-object-in-place <o> new-obj $type_name $new_obj_id $attribute_list]
                   [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
 
     return $rhs_val
