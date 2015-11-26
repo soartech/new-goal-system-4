@@ -49,30 +49,6 @@ proc ngs-create-attribute { parent_obj_id
  	        
 }
 
-# Create an object that has a name
-#
-# DEPRECATED
-proc ngs-create-typed-object-in-place { parent_obj_id 
-		                                    attribute
-		                                    type
-		                                    new_obj_id 
-                                        {support_type ""} } {
-
-  CORE_RefMacroVars
-  CORE_SetIfEmpty support_type $NGS_FOR_I_SUPPORT
-
-  set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]
-               ($new_obj_id ^type $type)"
-
-  if { $support_type == $NGS_FOR_I_SUPPORT } {
-    set rhs_val "$rhs_val
-                 [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
-                 [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
-  }
-  
-  return $rhs_val
-}
-
 # Creates an object in a form appropriate for i-support
 #
 # Use this on the righ-hand side of a production to create a typed object
