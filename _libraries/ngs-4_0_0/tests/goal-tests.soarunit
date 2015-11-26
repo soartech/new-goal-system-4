@@ -35,6 +35,11 @@ setup {
   NGS_DeclareType ComplexObject2 {
     deep-structure ""
   }
+
+  NGS_DeclareType ComplexObject3 {
+	set-item "" 
+  }
+
 }
 
 test goal-i-support-goal-creation { 
@@ -227,11 +232,8 @@ test stress-copy-levels {
 sp "test*setup-shallow-copy-object
   (state <s> ^superstate nil)
 -->
-  [ngs-create-typed-object-in-place <s> sub-structure Foo <new-obj>]
-  (<new-obj> ^existing-attribute-1 foo
-             ^existing-attribute-2 bar
-             ^existing-attribute-set 1
-             ^existing-attribute-set 2)"
+  [ngs-icreate-typed-object-in-place <s> sub-structure Foo <new-obj> { existing-attribute-set {1 2} }]"
+
 
 sp "test*create-new-object-1
     (state <s> ^superstate nil
@@ -239,36 +241,12 @@ sp "test*create-new-object-1
               -^step)
     [ngs-is-attr-not-constructed <s> complex]
 -->
-    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <level1>]
-    (<level1>  ^already-exists <sub-structure>
-               ^primitive1 foo
-               ^set-val    1
-               ^set-val    2)
-    [ngs-create-typed-object-in-place <level1> deep-structure DeepType <level2> $NGS_FOR_O_SUPPORT]
-    (<level2> ^already-exists <sub-structure>
-               ^primitive1 foo
-               ^set-val    1
-               ^set-val    2)
-    [ngs-create-typed-object-in-place <level2> deep-structure DeepType <level3> $NGS_FOR_O_SUPPORT]
-    (<level3> ^already-exists <sub-structure>
-               ^primitive1 foo
-               ^set-val    1
-               ^set-val    2)
-    [ngs-create-typed-object-in-place <level3> deep-structure DeepType <level4> $NGS_FOR_O_SUPPORT]
-    (<level4> ^already-exists <sub-structure>
-               ^primitive1 foo
-               ^set-val    1
-               ^set-val    2)
-    [ngs-create-typed-object-in-place <level4> deep-structure DeepType <level5> $NGS_FOR_O_SUPPORT]
-    (<level5> ^already-exists <sub-structure>
-               ^primitive1 foo
-               ^set-val    1
-               ^set-val    2)
-    [ngs-create-typed-object-in-place <level5> deep-structure DeepType <level6> $NGS_FOR_O_SUPPORT]
-    (<level6> ^already-exists <sub-structure>
-               ^primitive1 foo
-               ^set-val    1
-               ^set-val    2)"
+	[ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject <level1> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-ocreate-typed-object-in-place <level1> deep-structure ComplexObject <level2> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-ocreate-typed-object-in-place <level2> deep-structure ComplexObject <level3> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-ocreate-typed-object-in-place <level3> deep-structure ComplexObject <level4> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-ocreate-typed-object-in-place <level4> deep-structure ComplexObject <level5> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-ocreate-typed-object-in-place <level5> deep-structure ComplexObject <level6> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]"
 
 sp "test
     (state <s> ^superstate nil
@@ -320,17 +298,23 @@ sp "test
 #  process works properly.
 test shallow-copy-with-set-values {
 
-sp "test*setup-shallow-copy-object*1
+#  NGS_DeclareType DeepTypeA { 
+#    copy-me-1 a
+#  }
+#
+#  NGS_DeclareType DeepTypeB { 
+#    different a
+#  }
+
+sp* "test*setup-shallow-copy-object*1
   (state <s> ^superstate nil)
 -->
-  [ngs-create-typed-object-in-place <s> set-item-1 Foo <new-obj>]
-  (<new-obj> ^copy-me-1 a)"
+  [ngs-icreate-typed-object-in-place <s> set-item-1 DeepTypeA <new-obj>]"
 
 sp "test*setup-shallow-copy-object*2
   (state <s> ^superstate nil)
 -->
-  [ngs-create-typed-object-in-place <s> set-item-2 Foo <new-obj>]
-  (<new-obj> ^different a)"
+  [ngs-icreate-typed-object-in-place <s> set-item-2 DeepTypeB <new-obj>]"
 
 sp "test*create-new-object-1
     (state <s> ^superstate nil
@@ -338,9 +322,7 @@ sp "test*create-new-object-1
                ^set-item-2 <set-item-2>)
     [ngs-is-attr-not-constructed <s> complex]
 -->
-    [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj>]
-    (<new-obj> ^set-item <set-item-1>
-               ^set-item <set-item-2>)"
+    [ngs-ocreate-typed-object-by-operator <s> <s> complex ComplexObject3 <new-obj> { set-item { <set-item-1> <set-item-2> } }]"
 
 sp "test
     (state <s> ^complex <complex>)

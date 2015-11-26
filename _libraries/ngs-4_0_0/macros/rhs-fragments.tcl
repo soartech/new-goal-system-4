@@ -98,13 +98,13 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 
   set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]"
 
-  set rhs_val "$rhs_val
-               [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
-               [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
-
   # Set all of the non-tag attributes
   set rhs_val "$rhs_val
               [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
+
+  set rhs_val "$rhs_val
+               [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
+               [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
 
   return $rhs_val
 

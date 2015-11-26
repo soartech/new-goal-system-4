@@ -135,7 +135,7 @@ proc ngs-construct { object_id typename { attribute_list "" } } {
 
 	variable NGS_TYPEINFO_$typename
 	if {[info exists NGS_TYPEINFO_$typename] == 0} {
-		puts stderr "Can't construct type $typename because it doesn't exist."		
+		echo "Can't construct type $typename because it doesn't exist."		
 		return
 	}
 
@@ -156,7 +156,9 @@ proc ngs-construct { object_id typename { attribute_list "" } } {
 
 	# Create all of the values being set in the construction process
 	dict for {key val} $new_vals {
-		set ret_val "$ret_val ^$key $val"
+		if { $val != "" } {
+			set ret_val "$ret_val ^$key $val"
+		}
 	}
 
 	return "$ret_val)"
