@@ -5,16 +5,21 @@
 #
 # Usage: at file scope
 #  NGS_DeclareGoal MyGoalName1
-#  NGS_DeclareGoal MygoalName2
+#  NGS_DeclareGoal MygoalName2 { attr1 foo attr2 $NGS_YES attr3 { 1 2 3} }
 # ...
 
 # Declares a goal with a given name, setting up productions to
 #  create a goal pool for that goal name and creates other maintenance
 #  productions which manage the O-supported goal lifetimes
 #
-proc NGS_DeclareGoal { goal_name } {
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                  (i.e. a multi-valued attribute), put the set values in a list.
+#
+proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
 
   CORE_RefMacroVars
+
+  NGS_DeclareType $goal_name $attribute_list
 
   # Creates a bin to store goals of the given type
   sp "ngs*core*goals*elaborate-goal-set-category*$goal_name

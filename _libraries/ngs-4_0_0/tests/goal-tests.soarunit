@@ -498,7 +498,7 @@ sp "test*decide-create-subgoal-in-middle-of-substate*started-counting
     [ngs-create-tag-by-operator <s> <top-state> started-counting]"
 
 sp "test*decide-create-subgoal-in-middle-of-substate*initialize-counter
-    [ngs-match-active-goal <s> TestAchievementSubGoal <g>]
+    [ngs-match-active-goal <s> TestAchievementSubGoal <g> {} <top-state>]
     [ngs-is-tagged <g> second-goal]
     [ngs-is-tagged <top-state> started-counting]
     (<s> -^counter)
@@ -617,8 +617,8 @@ sp "test*time-to-create-goal
 sp* "test*time-to-create-goal-info
 	[ngs-match-top-state <s>]
 	[ngs-is-tagged <s> time-to-create-goal]
-   -(<s> ^goal-information <info>)
-    (<s> ^$WM_CYCLE_COUNT 2)
+    [ngs-is-attr-not-constructed <s> goal-information]
+    (<s> ^$WM_CYCLE_COUNT > 1)
 -->
 	[ngs-create-typed-object-by-operator <s> <s> goal-information GoalInfo <gi> { my_bool $NGS_NO }]"
  	
@@ -632,8 +632,7 @@ sp "test*create-achievement-goal
        -(<s> ^goal-information <gi>)
     }
 -->
-    [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]
-    (<new-goal> ^goal-information <gi>)
+    [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal> {} {goal-information <gi>}]
     [ngs-tag <new-goal> first-goal]
     (write (crlf) |First Goal|)" 
 

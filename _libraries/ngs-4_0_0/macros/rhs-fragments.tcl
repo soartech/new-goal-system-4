@@ -489,24 +489,28 @@ proc ngs-create-decide-operator { state_id
 # new_obj_id - variable that will be bound to the id of the newly constructed goal
 # supergoal_id - (Optional) if provided, this is a varaible bound to the goal that will
 #                  serve as the supergoal for this goal. 
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                  (i.e. a multi-valued attribute), put the set values in a list (see example above).
 #
 proc ngs-create-goal-in-place { goal_set_id 
                                 goal_name 
                                 type 
                                 new_obj_id 
-                                {supergoal_id ""} } {
+                                {supergoal_id ""} 
+                                {attribute_list ""} } {
 
   CORE_RefMacroVars
   variable lhs_val
 
+  lappend attribute_list name $goal_name type $type
+  if { $supergoal_id != "" } {
+    lappend attribute_list supergoal $supergoal_id
+  }
+
   set lhs_val "[ngs-create-attribute $goal_set_id $NGS_GOAL_ATTRIBUTE $new_obj_id]
-               ($new_obj_id ^name $goal_name
-                            ^type $type)
+               [ngs-construct $new_obj_id $goal_name $attribute_list]
                [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
                [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
-
-  if { $supergoal_id != "" } { set lhs_val "$lhs_val
-                                            ($new_obj_id ^supergoal $supergoal_id)" }
 
   return $lhs_val   
 }
@@ -526,6 +530,8 @@ proc ngs-create-goal-in-place { goal_set_id
 # new_obj_id - variable that will be bound to the id of the newly constructed goal
 # supergoal_id - (Optional) if provided, this is a varaible bound to the goal that will
 #                  serve as the supergoal for this goal. 
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                  (i.e. a multi-valued attribute), put the set values in a list (see example above).
 # add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
 #  the indifferent preference is given but you can override using this argument.
 #
@@ -534,19 +540,21 @@ proc ngs-create-goal-by-operator { state_id
                                    type
                                    new_obj_id
                                    {supergoal_id ""}
+                                   {attribute_list ""} 
                                    {add_prefs "="} } {
 
   CORE_RefMacroVars
   variable lhs_val
 
+  lappend attribute_list name $goal_name type $type
+  if { $supergoal_id != "" } {
+    lappend attribute_list supergoal $supergoal_id
+  }
+
   set lhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL <o> $add_prefs]
                [ngs-create-attribute <o> new-obj $new_obj_id]
                [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
-               ($new_obj_id ^name $goal_name
-                            ^type $type)"
-
-  if { $supergoal_id != "" } { set lhs_val "$lhs_val
-                                            ($new_obj_id ^supergoal $supergoal_id)" }
+               [ngs-construct $new_obj_id $goal_name $attribute_list]"
 
   return $lhs_val   
 }        
@@ -576,6 +584,8 @@ proc ngs-create-goal-by-operator { state_id
 # new_obj_id - variable that will be bound to the id of the newly constructed goal
 # supergoal_id - (Optional) if provided, this is a varaible bound to the goal that will
 #                  serve as the supergoal for this goal.
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                  (i.e. a multi-valued attribute), put the set values in a list (see example above).
 # add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
 #  the indifferent preference is given but you can override using this argument.
 #
@@ -584,10 +594,16 @@ proc ngs-create-goal-as-return-value { state_id
 									   goal_type
                                        new_obj_id
                                        {supergoal_id ""}
+                                       {attribute_list ""} 
                                        {add_prefs "="} } {
     
   CORE_RefMacroVars
   variable rhs_val
+
+  lappend attribute_list name $goal_name type $goal_type
+  if { $supergoal_id != "" } {
+    lappend attribute_list supergoal $supergoal_id
+  }
 
   set ret_val_id [CORE_GenVarName new-ret-val]
 
@@ -599,13 +615,9 @@ proc ngs-create-goal-as-return-value { state_id
                             ^destination-attribute $NGS_GOAL_ATTRIBUTE
                             ^replacement-behavior  $NGS_ADD_TO_SET
                             ^value    $new_obj_id)
-	           ($new_obj_id ^name     $goal_name
-                            ^type     $goal_type)              
+               [ngs-construct $new_obj_id $goal_name $attribute_list]
                [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
                    
-  if { $supergoal_id != "" } { set rhs_val "$rhs_val
-                                            ($new_obj_id ^supergoal $supergoal_id)" }
-
   return $rhs_val
    
 }                  
