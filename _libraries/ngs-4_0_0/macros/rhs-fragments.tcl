@@ -1,11 +1,32 @@
-
+# Creates a tag from a string of text
+#
+# Tags have a prefix on them given by $NGS_TAG_PREFIX
+# As a general rule, the other macros hide this fact
+#  so you don't need to use this macro in all but 
+#  very unusual circumstances.
+#
+# tag_name - User name for a tag
+# returns - NGS fully qualified tag name
+#
 proc ngs-tag-for-name { tag_name } {
   variable NGS_TAG_PREFIX
   return $NGS_TAG_PREFIX$tag_name
 }
 
+# Add a tag to an object.
 #
-# add a tag to the given 'tags' structure.
+# Use this method to add a "tag" to an object. Don't try
+#  to add the tag manually, use NGS macros to manipulate tags
+#  and they will handle the naming conventions and tag structure
+#  for you
+# 
+# [ngs-tag obj_id tag_name (tag_value)]
+#
+# obj_id - variable bound to an object identifier for the object to tag
+# tag_name - your name for the tag
+# tag_value - (Optional) the tag's value. Many tags are boolean and take
+#              only the values $NGS_YES and $NGS_NO. If you don't specify
+#              a value, the value $NGS_YES is assumed and set.
 #
 proc ngs-tag { obj_id tag_name {tag_value ""}} {
   variable NGS_YES
@@ -13,21 +34,56 @@ proc ngs-tag { obj_id tag_name {tag_value ""}} {
   return "($obj_id ^[ngs-tag-for-name $tag_name] $tag_value +)"
 }
 
-proc ngs-untag { obj_id tag_name tag_value } {
+# Clears a tag from an object
+#
+# Use this method to remove a tag from an object. Don't try to
+#  remove the tag manually, use NGS macros to manipulate tags
+#  and they will handle the naming conventions and tag structure
+#  for you
+#
+# [ngs-untag obj_id tag_name tag_value]
+#
+# obj_id - variable bound to an object identfier for the object to untag
+# tag_name - your name for the tag to remove
+# tag_value - (Optional) The tag's value. If you don't provide the tag's
+#               value, NGS_YES is assumed. If the value of the tag is not
+#               NGS_YES in this case, the tag will not get removed. 
+#
+proc ngs-untag { obj_id tag_name {tag_value ""} } {
   variable NGS_YES
   CORE_SetIfEmpty tag_value $NGS_YES
   return "($obj_id ^[ngs-tag-for-name $tag_name] $tag_value -)"
 }
 
-#
 # Marks a goal as achieved (sets the NGS_GS_ACHIEVED attribute
-#  to NGS_YES
+#  to NGS_YES)
+#
+# Use this method to manually mark a goal as achieved. This version would normally
+#  be used to create the tag via i-support. The goal itself could be constructed
+#  using i- or o-support. Use ngs-tag-goal-achieved-by-operator to construct
+#  the tag using o-support
+#
+# [ngs-tag-goal-achieved goal_id]
+#
+# goal_id - variable bound to the identifier of the goal to mark as achieved.                           
 #
 proc ngs-tag-goal-achieved { goal_id } {
   CORE_RefMacroVars
   return "[ngs-tag $goal_id $NGS_GS_ACHIEVED]"
 }
 
+# Marks a goal as achieved using an atomic operator (sets NGS_GS_AHCIEVED attribute
+#  to NGS_YES)
+#
+# Use this method to manually mark a goal as achieved using o-support.
+#
+# [ngs-tag-goal-achieved-by-operator state_id goal_id (operator_id)]
+#
+# state_id - Variable bound to the identifier of the state in which you want the operator proposed
+# goal_id - Variable bound to the id of the goal to mark as achieved
+# operator_id - (Optional) If provided, will bind the newly constructed operator to
+#  the variable passed in to this argument.
+#                                                                                            
 proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 	CORE_RefMacroVars
 	CORE_GenVarIfEmpty operator_id "o"
@@ -35,9 +91,32 @@ proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
     		($operator_id ^goal $goal_id)"
 }
 
-# Create a basic object.
+# Create working memory element, i.e. an object "attribute"
 #
-# Used to remove quote issues in some internal macros
+# This will create the code to generate a simple soar WME 
+#  preference(s) (default +, but other's are allowed). Normally
+#  you don't need to use this method, but this method is used
+#  throughout the NGS to construct goals, operators, and typed
+#  objects.
+#
+# You can simply create object substructure using standard Soar
+#  syntax (which is a bit more compact), but in the future, this
+#  type of method might be used to do type checking or other 
+#  processing, so it's advisable to use it if the standard
+#  creation processes won't work for you.
+#
+# [ngs-create-attribute parent_obj_id attribute value (prefs)]
+#
+# parent_obj_id - A variable bound to the parent object of the WME (left hand side)
+# attribute - A symbol bound to the attribute of the WME (middle value)
+# value - A symbol bound to the value of the WME (right hand side)
+# prefs - (Optional) The preferences to specify for the WME. The default is +,
+#          which is correct for non-operator WME construction. For operators
+#          other preferences may be specified. Note that it is possible to use
+#          this argument to make the method remove a WME (via the - preference).
+#          However, this is not recommended as it would be confusing. Use
+#          remove-attribute-by-operator instead.
+#
 proc ngs-create-attribute { parent_obj_id 
                             attribute
                             value
@@ -137,7 +216,7 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
 # replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
 #                        will remove any existing values for the given attribute while creating the new one. 
 #                        The latter will leave any existing values for the same attribute in place.
-# add_prefs - any additional operator preferences over acceptable (+). By default 
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
 #  the indifferent preference is given but you can override using this argument.
 #                                                        
 proc ngs-create-typed-object-by-operator { state_id
@@ -160,8 +239,25 @@ proc ngs-create-typed-object-by-operator { state_id
           [ngs-ocreate-typed-object-in-place <o> new-obj $type $new_obj_id $attribute_list]"
 }
 
+# Creates a primitive working memory element using an atomic operator.
 #
-# Always creates using an operator, because it's not necessary to use macros if not using operator
+# Use this method to create o-supported working memory elements. Primitives
+#  can include any of the symbol types exclusing ids (i.e. strings, integers, floating point values).
+#  To create identifiers, use other macros such as ngs-create-typed-object-by-operator or any of the
+#  various methods to create goals.
+# 
+# [ngs-create-primitive-by-operator state_id parent_obj_id attribute value (replacement_behavior) (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# parent_obj_id - variable bound to the id of the parent of the primitive being created
+# attribute - attribute to which to bind the newly constructed primitive
+# value - value of the primitive (either a constant string, int, or float or a variable bound to one
+#          of those types of values)
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
 proc ngs-create-primitive-by-operator { state_id
                                         parent_obj_id 
                                         attribute
@@ -181,6 +277,22 @@ proc ngs-create-primitive-by-operator { state_id
 
 }
 
+# Remove an o-supported working memory element
+#
+# Use this method to remove a working memory element (any type) and, via Soar's garbage collection, any
+#  sub-structure that becomes orphaned by this removal.
+#
+# NOTE: Do not use this method to remove tags. Use ngs-remove-tag-by-operator instead.
+# 
+# [ngs-remove-attribute-by-operator state_id parent_obj_id attribute value (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# parent_obj_id - variable bound to the id of the parent of the WME being removed
+# attribute - attribute that should be removed
+# value - value of the WME to be removed (can be any type of value - primitive or ID)
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
 proc ngs-remove-attribute-by-operator { state_id
 									    parent_obj_id
 									    attribute
@@ -194,6 +306,21 @@ proc ngs-remove-attribute-by-operator { state_id
            	     ^value-to-remove $value)"
 }
 
+# Remove an o-supported tag from an object
+#
+# Use this method to remove a tag from an object. This method properly handles
+#  the tag naming convention and structure.
+# 
+# [ngs-remove-tag-by-operator state_id parent_obj_id attribute (value) (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# parent_obj_id - variable bound to the id of the object from which to remove the tag
+# tag_name - name of the tag to remove
+# value - (Optional) Value of the tag to be removed. Defaults to NGS_YES. If NGS_YES is NOT
+#          the value of the tag, you will need to specify the value (or this macro won't work).
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
 proc ngs-remove-tag-by-operator { state_id
 								  parent_obj_id
 								  tag_name
@@ -204,9 +331,24 @@ proc ngs-remove-tag-by-operator { state_id
 	return "[ngs-remove-attribute-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $value $add_prefs]" 
 }
 
-#
 # Creates a tag using an operator. The tag value will be constructed using
 #  intelligent construction.
+#
+# Use this method to add an o-supported tag to an object as a separate step
+#  from creation. If you just need to add a tag at the same time you are 
+#  constructing an object then use ngs-tag instead.
+#
+# [ngs-create-tag-by-operator state_id parent_obj_id tag_name (tag_val) (replacement_behavior) (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# parent_obj_id - variable bound to the id of the object to which to add the tag
+# tag_name - name of the tag to add
+# value - (Optional) value of the tag. Default is NGS_YES.
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-create-tag-by-operator { state_id
 								  parent_obj_id
@@ -221,16 +363,29 @@ proc ngs-create-tag-by-operator { state_id
   return "[ngs-create-primitive-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]"
 }
 
-# Create an operator
+# Create a plain operator
+#
+# This macro is primiarly for use by other NGS macros. It's best to use
+#  ngs-create-atomic-operator or ngs-create-decide-operator depending
+#  on the type of operator you need.
+#
+# [ngs-create-operator state_id op_name type (new_obj_id) (add_prefs)]
+#
+# state_id - variable bound to the state in which the operator should be proposed
+# op_name  - name of the operator (this prints out on the state stack in Soar)
+# type     - type of operator, one of NGS_OP_ATOMIC or NGS_OP_DECIDE
+# new_obj_id - a variable that will be bound to the
+#               newly constructed operator.
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-create-operator { state_id
                            op_name
                            type
-                           {new_obj_id ""}
+                           new_obj_id
                            {add_prefs "="} } {
 
   CORE_RefMacroVars
-  CORE_GenVarIfEmpty new_obj_id "o"
   CORE_GenVarIfEmpty state_id "s"
     
   return "[ngs-create-attribute $state_id $NGS_OP_ATTRIBUTE $new_obj_id "+ $add_prefs"]
@@ -243,8 +398,20 @@ proc ngs-create-operator { state_id
 # Create an atomic operator
 #
 # An atomic operator has the type set to NGS_OP_ATOMIC. Atomic
-#  operators should be applied immediately after selection and should not generate
-#  substates.
+#  operators are applied immediately after selection and do not generate
+#  substates. You rarely need to construct atomic operators directly. Instead
+#  most of the macros that create objects (goals, primitives, tags, and typed objects)
+#  all have special macros for creation by operator.  Those other macros call this
+#  macro internally and do some additional things that make construction easier.
+#
+# [ngs-create-atomic-operator state_id op_name new_obj_id (add_prefs)]                                         
+#
+# state_id - variable bound to the state in which the operator should be proposed
+# op_name  - name of the operator (this prints out on the state stack in Soar)
+# new_obj_id - the variable that will be bound to the
+#               newly constructed operator.
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-create-atomic-operator { state_id
                                   op_name
@@ -256,12 +423,29 @@ proc ngs-create-atomic-operator { state_id
             
 # Create a decision operator
 #
-# Decision operators have their behavior attribute set to NGS_OP_DECIDE. Decision operators
-#  should not have apply productions and should instead trigger an operator no change.
-#  In the sub-state the operator's actions can be determined and sequenced. Return
+# Decision operators are of type NGS_OP_DECIDE. Decision operators do not have apply 
+#  productions, instead they trigger an operator no change.
+# In the resulting sub-state the operator's actions can be determined and sequenced. Return
 #  values are set via the ngs-add-ret-val macro. If an operator needs to set static
 #  flags or return values in order to properly return, these can be passed into the 
 #  substate via the ret_val_list parameter.
+#
+# [ngs-create-decide-operator state_id op_name new_obj_id ret_val_set_id goal_id (completion_tag) (add_prefs)]
+#
+# state_id - variable bound to the state in which the operator should be proposed
+# op_name  - name of the operator (this prints out on the state stack in Soar)
+# new_obj_id - the variable that will be bound to the newly constructed operator.
+# ret_val_set_id - variable to be bound to the operator's return value set. You can use this
+#                   to specify where to place sub-state return values. See the macro
+#                   ngs-create-ret-val-in-place for info on how to create these return values.
+# goal_id - a variable bound to the goal associated with this decide operator. All decide operators
+#            should be created to achieve some goal. This goal becomes the active goal upon selection
+#            of the decide operator.
+# completion_tag - (Optional) the name of a boolean tag that should be placed on the goal given by
+#                     goal_id after completion of the decision operator's sub-state. This can be
+#                     used to do simple process tagging (i.e. finished step 1).                   
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-create-decide-operator { state_id
                                   op_name
@@ -285,13 +469,26 @@ proc ngs-create-decide-operator { state_id
    return $rhs_val
 }
 
-# Create a basic goal
+# Create an i-supported goal
 #
-# Typically you should not call this method. Instead call ngs-create-achievement-goal
-#  to create a goal that goes away when achieved and ngs-create-maintenance-goal to 
-#  create a goal that remains after becoming achieved.
+# Use this macro to create i-supported goals. I-supported goals should be configured
+#  such that they go away when they achieved (unless they are maintenance goals).
+#  For o-support goals use ngs-create-goal-by-operator or (in sub-states) 
+#  ngs-create-goal-as-return-value. I-Supported maintenance goals should be combined
+#  with a production or process that marks them as achieved when conditions are met.
+#  See ngs-tag-goal-achieved.
 #
-# Don't use this to create o-supported goals (or goals on operators)
+# [ngs-create-goal-in-place goal_set_id goal_name type new_obj_id (supergoal_id)]
+#
+# goal_set_id - variable bound to the goal set in which to place this goal. Bind this
+#                variable on the left side using macro ngs-match-goalpool or ngs-match-goal.
+# goal_name - user-defined name of the goal to construct
+# type - type of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
+#          maintenance goals respectively. Achievement goals are removed upon achievement
+#          while maintenance goals are not removed.
+# new_obj_id - variable that will be bound to the id of the newly constructed goal
+# supergoal_id - (Optional) if provided, this is a varaible bound to the goal that will
+#                  serve as the supergoal for this goal. 
 #
 proc ngs-create-goal-in-place { goal_set_id 
                                 goal_name 
@@ -314,16 +511,35 @@ proc ngs-create-goal-in-place { goal_set_id
   return $lhs_val   
 }
 
+# Create an o-supported goal
+#
+# Use this macro to create o-supported goals. To create i-supported goals use 
+#  ngs-create-goal-in-place. 
+#
+# [ngs-create-goal-by-operator state_id goal_name type new_obj_id (supergoal_id)]
+#
+# state_id - variable bound to the state in which the operator should be proposed
+# goal_name - user-defined name of the goal to construct
+# type - type of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
+#          maintenance goals respectively. Achievement goals are removed upon achievement
+#          while maintenance goals are not removed.
+# new_obj_id - variable that will be bound to the id of the newly constructed goal
+# supergoal_id - (Optional) if provided, this is a varaible bound to the goal that will
+#                  serve as the supergoal for this goal. 
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
 proc ngs-create-goal-by-operator { state_id
                                    goal_name
                                    type
                                    new_obj_id
-                                   {supergoal_id ""} } {
+                                   {supergoal_id ""}
+                                   {add_prefs "="} } {
 
   CORE_RefMacroVars
   variable lhs_val
 
-  set lhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL <o>]
+  set lhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL <o> $add_prefs]
                [ngs-create-attribute <o> new-obj $new_obj_id]
                [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
                ($new_obj_id ^name $goal_name
@@ -341,19 +557,41 @@ proc ngs-create-goal-by-operator { state_id
 # Creates a special return value in a sub-state that will result in a new goal
 #  being created in the top-state, once the sub-state is completed.
 #
+# Typically it's not a good idea to make changes to the top-state until you are done with
+#  sub-state processing (though NGS doesn't prevent this). This includes goal creation
+#  which can be done using the standard macro (ngs-create-goal-by-operator) even in a sub-state.
+#  However, if you do this the goal will get created in the middle of the sub-state. 
+# If you want the goal to get created at the end of the sub-state (upon return), then
+#  use this macro. The goal structure will be created temporarily in the sub-state and
+#  stored in the return value set. Then, upon completion of the sub-state it will be moved
+#  to the top-state goal pool.
+#
+# [ngs-create-goal-as-return-value state_id goal_name goal_type new_obj_id (supergoal_id) (goal_pool_id) (add_prefs)]
+#
+# state_id - variable bound to the _sub-state_ in which the operator to create the goal should be proposed.
+# goal_name - user-defined name of the goal to construct
+# goal_type - type of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
+#              maintenance goals respectively. Achievement goals are removed upon achievement
+#              while maintenance goals are not removed.
+# new_obj_id - variable that will be bound to the id of the newly constructed goal
+# supergoal_id - (Optional) if provided, this is a varaible bound to the goal that will
+#                  serve as the supergoal for this goal.
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
 proc ngs-create-goal-as-return-value { state_id
                                        goal_name
 									   goal_type
                                        new_obj_id
                                        {supergoal_id ""}
-                                       {goal_pool_id ""} } {
+                                       {add_prefs "="} } {
     
   CORE_RefMacroVars
   variable rhs_val
 
   set ret_val_id [CORE_GenVarName new-ret-val]
 
-  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL_RET <o>]
+  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL_RET <o> $add_prefs]
 	           (<o> ^dest-attribute        value-description
                     ^new-obj               $ret_val_id
                     ^replacement-behavior  $NGS_ADD_TO_SET)
@@ -371,8 +609,6 @@ proc ngs-create-goal-as-return-value { state_id
   return $rhs_val
    
 }                  
-
-
 
 # Creates a structure that defines a return value
 #
@@ -419,6 +655,28 @@ proc ngs-create-ret-val-in-place { ret_val_name
     return  [ngs-icreate-typed-object-in-place $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $attr_list]
 }
 
+# Creates a return tag on an operator
+#
+# This macro does the same thing as ngs-create-ret-val-in-place except that it creates a tag. Because you
+#  can create return tags as part of decide operator construction (see ngs-create-decide-operator) it is
+#  not likely that you will need to use this macro often. However, if sub-state code creates tags as part
+#  if its return value set, you will need to macro to tell the sub-state where to put the tag.
+#
+# [ngs-create-ret-tag-in-place ret_val_name ret_val_set_id dest_obj_id tag_name tag_val replacement_behavior]
+#
+# ret_val_name - Name of the return value. The decide operator should document the return values it constructs such
+#  that when you create this operator you know which return values to create. Note that you can create additional 
+#  return values (e.g. flags to set) that aren't required by the sub-state. If you do this, you'll need to specify
+#  the value for the return value.
+# ret_val_set_id - Variable bound to the return value set on the operator. You bind this variable using the
+#                    ngs-create-decide-operator macro.
+# dest_obj_id - Variable bound to the id of the object that should recieve the return value
+# tag_name - Name of the tag to construct in the return set
+# tag_val - (Optional) The value of the tag. By default this will be NGS_YES
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+#
 proc ngs-create-ret-tag-in-place { ret_val_name
                                    ret_val_set_id
                                    dest_obj_id 
@@ -432,17 +690,38 @@ proc ngs-create-ret-tag-in-place { ret_val_name
 	return "[ngs-create-ret-val-in-place $ret_val_name $ret_val_set_id $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior]"
 }
 
-
 #
-# Constructs an operator that, when applied, sets the return value in a sub-state
+# NOTE: We are missing a good way to create tag values in return sets within a substate.
+#        Should be a ngs-set-ret-tag-by-operator.
+#
+
+# Sets the value of a return value.
+#
+# Use this macro when writing modular sub-state to set a return value. You don't
+#  use this macro in the super-state. 
+#
+# NOTE: This may need a "replacement_behavior" parameter to say whether to replace the value.
+#        Right now it is NGS_REPLACE_IF_EXISTS meaning that you can't create
+#        multi-valued return values direction (you could via indirections - e.g.
+#        by creating a set object and putting the set values within it ... the set
+#        object could be the return value).
+#
+# [ngs-set-ret-val-by-operator state_id ret_val_name value (add_prefs)]
+#
+# state_id - variable bound to the _sub-state_ in which the operator to set the return value should be created.
+# ret_val_name - name of the return value to set
+# value - value of the return value to set
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-set-ret-val-by-operator { state_id
                                    ret_val_name 
-                                   value } {
+                                   value 
+                                   {add_prefs "="} } {
 
     CORE_RefMacroVars
 
-    set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE <o>]
+    set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE <o> $add_prefs]
                   (<o> ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                        ^new-obj              $value
                        ^ret-val-name         $ret_val_name)
@@ -456,6 +735,8 @@ proc ngs-set-ret-val-by-operator { state_id
 # Typically this macro is used in sub-states to create complex return types. Alternatively,
 #  you can create return types on the sub-state using multiple staeps and then just copy
 #  the root of the return value to the return value structure using ngs-set-ret-val-by-operator.
+#
+# [ngs-create-typed-object-for-ret-val state_id ret_val_name type_name new_obj_id (attribute_list)]
 #
 # state_id - Variable bound to the sub-state identifier
 # ret_val_name - Name of the return value to set

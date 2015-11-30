@@ -43,7 +43,7 @@
 # NGS_DeclareType Position {lat 0 lon 0 alt 0}
 #
 # Now the type can be used in a production using either
-#  - ngs-create-typed-object-in-place OR
+#  - ngs-i/ocreate-typed-object-in-place OR
 #  - ngs-create-typed-object-by-operator
 #
 # In this example, we construct the internals of the Position object
@@ -53,8 +53,7 @@
 # sp "ProductionName
 #   ...
 # -->
-#   [ngs-create-typed-object-in-place ... <new-obj-id> ...]
-#   [ngs-construct <new-obj-id> Position {lat 49.123456 lon 48.55555}]"
+#   [ngs-icreate-typed-object-in-place ... <new-obj-id>  {lat 49.123456 lon 48.55555}]"
 #
 ########################################################################
 
@@ -133,26 +132,32 @@ proc NGS_DeclareType { typename attribute_list } {
 #
 proc ngs-construct { object_id typename { attribute_list "" } } {
 
-	variable NGS_TYPEINFO_$typename
-	if {[info exists NGS_TYPEINFO_$typename] == 0} {
-		echo "Can't construct type $typename because it doesn't exist."		
-		return
-	}
+	set ret_val "($object_id"
 
-	set defaults [subst \$NGS_TYPEINFO_$typename]
+	# These are the values that were passed in (if any)
 	set new_vals [expand_variables $attribute_list]
 
-	set ret_val "($object_id"
-    
-	# Create each of the default attribute/value pairs
-	# Defaults are created via NGS_DeclareType
-	dict for {key val} $defaults {
-		if { $val != "" } {
-			if {[dict exists $new_vals $key] == 0} {
-				set ret_val "$ret_val ^$key $val"
-			} 
+	variable NGS_TYPEINFO_$typename
+	if {[info exists NGS_TYPEINFO_$typename] != 0} {
+	
+		# If a type was declared we want to grab any
+		#  default attribute values from its type definition
+		set defaults [subst \$NGS_TYPEINFO_$typename]
+
+		# Create each of the default attribute/value pairs
+		# Defaults are created via NGS_DeclareType
+		dict for {key val} $defaults {
+			if { $val != "" } {
+				if {[dict exists $new_vals $key] == 0} {
+					set ret_val "$ret_val ^$key $val"
+				} 
+			}
 		}
-	}
+
+	} else {
+		echo "WARNING: Type $typename was not declared. Did you type the right name?"		
+	}	
+
 
 	# Create all of the values being set in the construction process
 	dict for {key val} $new_vals {
@@ -161,7 +166,13 @@ proc ngs-construct { object_id typename { attribute_list "" } } {
 		}
 	}
 
-	return "$ret_val)"
+	# If we've actually constructed an object, then return
+	#  the relevant Soar code. Otherwise, return nothing.
+	if {$ret_val != "($object_id"} {
+		return "$ret_val)"
+	} else {
+		return ""
+	}
 
 }
 

@@ -36,9 +36,9 @@ setup {
     deep-structure ""
   }
 
-  NGS_DeclareType ComplexObject3 {
-	set-item "" 
-  }
+#  NGS_DeclareType ComplexObject3 {
+#	set-item "" 
+#  }
 
 }
 
@@ -316,6 +316,7 @@ sp "test*setup-shallow-copy-object*2
 -->
   [ngs-icreate-typed-object-in-place <s> set-item-2 DeepTypeB <new-obj>]"
 
+# I purposely don't declare ComplexObject3 to see that it prints out a warning
 sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^set-item-1 <set-item-1>
