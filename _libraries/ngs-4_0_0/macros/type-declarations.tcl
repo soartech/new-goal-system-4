@@ -51,3 +51,28 @@ NGS_DeclareType $NGS_TYPE_STATE_RETURN_VALUE {
   value ""
 
 }
+
+# Type used to define a decision as part of a goal
+#
+# This type is only needed internally by other NGS code and doesn't need
+#  to be created by user code
+#
+# Decision objects also get tagged by the NGS infrastructure with two main tags:
+#  1. decision-required (a boolean) if there are open options for this decision
+#  2. no-options (a boolean) if there are no current goals to make the decision
+#
+# See ngs-assign-decision
+#
+# name - name of the decision (just a user defined string)
+# destination-object - identifier for the object that should recieve recieve the decided attribute
+# destination-attribute - name of the attribute that represents the result of the decision
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+#
+NGS_DeclareType $NGS_TYPE_DECISION_STRUCTURE {
+  name ""
+  destination-object ""
+  destination-attribute ""
+  replacement-behavior $NGS_REPLACE_IF_EXISTS
+}

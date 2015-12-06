@@ -37,9 +37,14 @@ CORE_CreateMacroVar NGS_GOAL_ATTRIBUTE "goal"
 CORE_CreateMacroVar NGS_RETURN_VALUES "return-values"
 CORE_CreateMacroVar NGS_SUBSTATE_PARAMS "params"
 
-# Support types for object creation
-CORE_CreateMacroVar NGS_FOR_O_SUPPORT "o-support"
-CORE_CreateMacroVar NGS_FOR_I_SUPPORT "i-support"
+# Elements related to goal decisions
+CORE_CreateMacroVar NGS_DECISION_ATTR "requested-decision"
+CORE_CreateMacroVar NGS_DECIDES_ATTR "decides"
+CORE_CreateMacroVar NGS_DECIDED_TAG  "decided"
+CORE_CreateMacroVar NGS_TAG_REQUIRES_DECISION "ngs*requires-decision"
+CORE_CreateMacroVar NGS_TAG_NO_OPTIONS "ngs*no-decision-options"
+CORE_CreateMacroVar NGS_TAG_ONE_OPTION "ngs*one-decision-option"
+CORE_CreateMacroVar NGS_DECISION_RET_VAL_NAME "ngs*decision"
 
 # The prefix placed on all tags
 CORE_CreateMacroVar NGS_TAG_PREFIX "__tagged*"
@@ -89,6 +94,8 @@ CORE_CreateMacroVar NGS_OP_CREATE_OBJECT      "ngs-op-create-object"
 CORE_CreateMacroVar NGS_OP_CREATE_PRIMITIVE   "ngs-op-create-primitive-object"
 CORE_CreateMacroVar NGS_OP_SET_RETURN_VALUE   "ngs-op-set-return-value"
 CORE_CreateMacroVar NGS_OP_COPY_RETURN_VALUES "ngs-op-copy-return-values-to-destination"
+CORE_CreateMacroVar NGS_OP_DECIDE_GOAL        "ngs-op-decide-goal"
 
 # Built-in Types
 CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "NGS_TYPE_StateReturnValue"
+CORE_CreateMacroVar NGS_TYPE_DECISION_STRUCTURE "NGS_TYPE_DecisionStructure"

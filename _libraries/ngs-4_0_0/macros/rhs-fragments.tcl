@@ -1,3 +1,5 @@
+
+
 # Creates a tag from a string of text
 #
 # Tags have a prefix on them given by $NGS_TAG_PREFIX
@@ -5,7 +7,8 @@
 #  so you don't need to use this macro in all but 
 #  very unusual circumstances.
 #
-# tag_name - User name for a tag
+# tag_name - User name for a tag. Note that this tag name
+#              MUST be a constant (not a Soar variable)
 # returns - NGS fully qualified tag name
 #
 proc ngs-tag-for-name { tag_name } {
@@ -89,6 +92,26 @@ proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 	CORE_GenVarIfEmpty operator_id "o"
 	return "[ngs-create-atomic-operator <s> $NGS_OP_MARK_ACHIEVED $operator_id]
     		($operator_id ^goal $goal_id)"
+}
+
+# Tags a goal as having been decided
+# 
+# A goal that was assigned a decision is decided when
+#  code executes that selects that goal. 
+#
+# Note: User code does not typically need to call this direction.
+#  Marking the the goal as decided is done by NGS library code.
+#
+# [ngs-tag-goal-as-decided goal_id (decided_value)]
+#
+# goal_id - variable bound to the goal to mark as decided
+# decided_value - (Optional) A boolean flag indicating whether
+#   the goal was decided for (NGS_YES) or against (NGS_NO)
+#
+proc ngs-tag-goal-as-decided { goal_id { decided_value ""} } {
+  CORE_RefMacroVars
+  CORE_SetIfEmpty decided_value $NGS_YES
+  return [ngs-tag $goal_id "$NGS_DECIDED_TAG" $decided_value]
 }
 
 # Create working memory element, i.e. an object "attribute"
@@ -591,7 +614,7 @@ proc ngs-create-goal-by-operator { state_id
 #
 proc ngs-create-goal-as-return-value { state_id
                                        goal_name
-									   goal_type
+									                     goal_type
                                        new_obj_id
                                        {supergoal_id ""}
                                        {attribute_list ""} 
@@ -621,6 +644,123 @@ proc ngs-create-goal-as-return-value { state_id
   return $rhs_val
    
 }                  
+
+# Request a decision for an _i-supported_ goal object
+#
+# Decisions are named representations of a choice. Decisions
+#  are augmentations of goals (achievement or maintenance).
+#  A decision is represented by an object attribute (WME)
+#  that should be constructed as a result of a decision. For
+#  example, your agent might decide on a movement type. This
+#  decision would be represented by creating a WME that 
+#  links to an object describing the selected movement.
+#
+# # It is ok to request multiple decisions for a goal. For example,
+#  you might request a decision to select a maneuver method and
+#  you might request a decision to select a maneuver speed
+#
+# This version is specifically designed for i-supported goals.
+#   USe ngs-orequest-decision for o-supported goals.
+#
+# [ngs-irequest-decision goal_id decision_name dec_obj dec_attr replacement_behavior]
+#
+# goal_id - variable bound to the goal identifier to which to assign the decision
+# decision_name - your name for the decision (e.g. movement-method)
+# dec_obj - variable bound to the object to recieve the decision attribute
+# dec_attr - the attribute that links the dec_obj to the decision information (e.g
+#              links the object to the movement method information). Subgoals set
+#              the object linked to this attribute after making the decision.
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+# 
+proc ngs-irequest-decision { goal_id 
+                            decision_name 
+                            dec_obj 
+                            dec_attr 
+                            { replacement_behavior ""} } {
+
+   CORE_RefMacroVars
+   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+   set decision_id [CORE_GenVarName "_decision"]
+
+   return "[ngs-icreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR 
+                    $NGS_TYPE_DECISION_STRUCTURE $decision_id 
+                    { name $decision_name 
+                      destination-object $dec_obj 
+                      destination-attribute $dec_attr 
+                      replacement-behavior $replacement_behavior } ]"
+}
+
+# Request a decision for an _o-supported_ goal object
+#
+# Decisions are named representations of a choice. Decisions
+#  are augmentations of goals (achievement or maintenance).
+#  A decision is represented by an object attribute (WME)
+#  that should be constructed as a result of a decision. For
+#  example, your agent might decide on a movement type. This
+#  decision would be represented by creating a WME that 
+#  links to an object describing the selected movement.
+#
+# It is ok to request multiple decisions for a goal. For example,
+#  you might request a decision to select a maneuver method and
+#  you might request a decision to select a maneuver speed
+#
+# This version is specifically designed for o-supported goals.
+#   USe ngs-irequest-decision for i-supported goals.
+#
+# [ngs-orequest-decision goal_id decision_name dec_obj dec_attr replacement_behavior]
+#
+# goal_id - variable bound to the goal identifier to which to assign the decision
+# decision_name - your name for the decision (e.g. movement-method)
+# dec_obj - variable bound to the object to recieve the decision attribute
+# dec_attr - the attribute that links the dec_obj to the decision information (e.g
+#              links the object to the movement method information). Subgoals set
+#              the object linked to this attribute after making the decision.
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+# 
+proc ngs-orequest-decision { goal_id 
+                            decision_name 
+                            dec_obj 
+                            dec_attr 
+                            { replacement_behavior ""} } {
+
+   CORE_RefMacroVars
+   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+   set decision_id [CORE_GenVarName "_decision"]
+
+   return "[ngs-ocreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR 
+                    $NGS_TYPE_DECISION_STRUCTURE $decision_id 
+                    { name $decision_name 
+                      destination-object $dec_obj 
+                      destination-attribute $dec_attr 
+                      replacement-behavior $replacement_behavior } ]"
+}
+
+# Assigns a decision to a goal
+#
+# Assigning a decision to a goal implies that this goal will make the given
+#  decision. By definition decisions imply that there are likely to be more
+#  than one way to make a decision and thus more than one goal might
+#  be assigned the same decision.
+# 
+# Typically a goal is used to make only one decision (though it may
+#  request multiple decisions). The NGS does nothing to enforce this
+#  constraint though.
+# 
+# This method works for both i-supported and o-supported goals. The support given
+#  to the assignment is defined by the support of the production that uses the macro
+#
+# goals_id - variable bound to the goal identifer to which to assign the decision
+# decision_name - the name of the decision to assign to the goal
+#
+proc ngs-assign-decision { goal_id decision_name } {
+  return "($goal_id ^NGS_DECIDES_ATTR $decision_name)"
+}
 
 # Creates a structure that defines a return value
 #
@@ -702,10 +842,31 @@ proc ngs-create-ret-tag-in-place { ret_val_name
 	return "[ngs-create-ret-val-in-place $ret_val_name $ret_val_set_id $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior]"
 }
 
+# Creates a return value that will mark a goal as decided in the super-state
 #
-# NOTE: We are missing a good way to create tag values in return sets within a substate.
-#        Should be a ngs-set-ret-tag-by-operator.
+# In a decision sub-state, multiple domain code chooses between two or more
+#  goals as the way to solve a problem. This macro is used by the production
+#  that selects one goal over the others. It will set the return value for
+#  the sub-state.
 #
+# [ngs-make-choice-by-operator state_id choice_id]
+#
+# state_id  - state in which to propose the operator to make the choice
+# choice_id - variable bound to the identifier of the goal that was chosen
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
+proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
+  CORE_RefMacroVars
+  set op_id CORE_GenVarName "o"
+  
+  return "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id $add_prefs]
+                  ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
+                          ^new-obj              $NGS_YES
+                          ^ret-val-name         $NGS_DECISION_RET_VAL_NAME
+                          ^choice               $choice_id)
+                  [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
+}
 
 # Sets the value of a return value.
 #
@@ -732,14 +893,14 @@ proc ngs-set-ret-val-by-operator { state_id
                                    {add_prefs "="} } {
 
     CORE_RefMacroVars
+    set op_id CORE_GenVarName "o"
 
-    set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE <o> $add_prefs]
-                  (<o> ^replacement-behavior $NGS_REPLACE_IF_EXISTS
-                       ^new-obj              $value
-                       ^ret-val-name         $ret_val_name)
-                  [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
+    return "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id $add_prefs]
+                  ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
+                          ^new-obj              $value
+                          ^ret-val-name         $ret_val_name)
+                  [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
 
-    return $rhs_val
 }
 
 # Create a typed object to use as a return value
@@ -761,17 +922,16 @@ proc ngs-create-typed-object-for-ret-val { state_id
                                            ret_val_name
                                            type_name
                                            new_obj_id 
- 										   { attribute_list "" } } {
+ 										                       { attribute_list "" } } {
 
     CORE_RefMacroVars
+   set op_id CORE_GenVarName "o"
 
-    set rhs_val  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE <o>]
-                  (<o> ^replacement-behavior $NGS_REPLACE_IF_EXISTS
-                       ^ret-val-name         $ret_val_name)
-                  [ngs-ocreate-typed-object-in-place <o> new-obj $type_name $new_obj_id $attribute_list]
-                  [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
-
-    return $rhs_val
+   return  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id]
+                  ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
+                          ^ret-val-name         $ret_val_name)
+                  [ngs-ocreate-typed-object-in-place $op_id new-obj $type_name $new_obj_id $attribute_list]
+                  [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]"
 
 }
 

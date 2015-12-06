@@ -166,6 +166,137 @@ proc ngs-is-not-achieved { goal_id } {
   return "[ngs-is-not-tagged $goal_id $NGS_GS_ACHIEVED]"
 }
 
+# Evaluates to true if a decision has been made on this goal
+#
+# [ngs-has-decided goal_id (decision_value)]
+#
+# goal_id - variable bound to the goal identifer to check for a decision
+# decision_value - (Optional) can be a variable or constant (NGS_YES/NGS_NO)
+#      that binds to the value of the decision. NGS_YES means that this
+#      goal _was_ selected to make the decision while NGS_NO means that the
+#      goal was not selected to make the decision. Note that if this is not
+#      provided, this macro will match either a YES or NO decision.
+# 
+proc ngs-has-decided { goal_id { decision_value "" } } {
+  CORE_RefMacroVars
+  CORE_GenVarIfEmpty decision_value "__decision-value"
+  return "[ngs-is-tagged $goal_id $NGS_DECIDED_TAG $decision_value]"
+}
+
+# Evaluates to true if a decision has NOT been made on this goal
+#
+# [ngs-has-not-decided goal_id (decision_value)]
+#
+# goal_id - variable bound to the goal identifer to check for a decision
+# decision_value - (Optional) can be a variable or constant (NGS_YES/NGS_NO)
+#      that binds to the value of the decision. NGS_YES means that this
+#      goal _was_ selected to make the decision while NGS_NO means that the
+#      goal was not selected to make the decision. Note that if this is not
+#      provided, this macro will match either a YES or NO decision.
+# 
+proc ngs-has-not-decided { goal_id { decision_value "" } } {
+  CORE_RefMacroVars
+  CORE_GenVarIfEmpty decision_value "__decision-value"
+  return "[ngs-is-not-tagged $goal_id $NGS_DECIDED_TAG $decision_value]"
+}
+
+# Evaluates to true if the given goal has been assigned a given decision
+#
+# [ngs-is-assigned-decision goal_id decision_name]
+#
+# goal_id - goal to test for whether it has been assigned a decision
+# decision_name - name of the decision to test foreach 
+#
+proc ngs-is-assigned-decision { goal_id decision_name } {
+  return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)"
+
+}
+
+# Evaluates to true and binds to the decision information if the given
+#  goal has requested a decision of the gien name
+#
+# The typical use for this macro is to create and act for goals that
+#  make decisions. You would use this macro to determine whether a goal's
+#  supergoal has requested a decision to be made. If necessary, you can
+#  bind to the information about the decision to be made and get the
+#  decision's object and attribute.
+#
+# [ngs-requested-decision goal_id decision_name (decision_obj) (decision_attr) (decision_info_id)]
+#
+# goal_id - variable bound to the goal for which to check for a requested decision
+# decision_name - name of the decision to check for being requested
+# decision_obj - (Optional) a variable to bind to the decision object (object that
+#                  recieves the result of the decision)
+# decision_attr - (Optional) a variable to bind to the decision attribute (attribute
+#                  that recieves the result of the decision)
+# decision_info_id - (Optional) a variable that is bound to the decision information object.
+#                   Typically only ngs code needs to do this.
+# 
+proc ngs-requested-decision { goal_id 
+                              decision_name 
+                              { decision_obj ""  }
+                              { decision_attr "" }
+                              { decision_info_id ""} } {
+  CORE_RefMacroVars
+  CORE_SetIfEmpty decision_info_id "__decision-info"
+
+  set lhs_ret "($goal_id ^decision $decision_info_id)
+               ($decision_info_id ^name $decision_name)"
+
+  if { $decision_obj != "" } {
+    set lhs_ret "$lhs_ret
+                 ($decision_info_id ^destination-object $decision_obj)"
+  }
+
+  if { $decision_attr != "" } {
+    set lhs_ret "$lhs_ret
+                 ($decision_info_id ^destination-attribute $decision_attr)"
+  }
+
+  return $lhs_ret
+}
+
+# Evaluates to true if the given choice is valid for the given sub-state
+#
+# Use this macro to bind to the choices in a decision substate for making
+#  goal-based choices.
+#
+# state_id - variable bound to a substate within which to check for a choice
+# choice_id - variable bound (or to be bound) to the choice. Choices are
+#              goal objects, each of which represents a choice.
+# choice_name - (Optional) name of the choice to which to bind. This is
+#                the goal name. If not provided, this will match any
+#                choice.
+#
+proc ngs-is-decision-choice { state_id choice_id { choice_name ""} } {
+  if { $choice_name == ""} {
+    return "($state_id ^decision-choice $choice_id)"
+  } else {
+    return "($state_id ^decision-choice $choice_id)
+            [ngs-is-named $choice_id $choice_name]"
+  }
+}
+
+# Evaluates to true if the given choice is NOT valid for the given sub-state
+#
+# state_id - variable bound to a substate within which to check for a choice
+# choice_id - variable bound to the choice. Choices are
+#              goal objects, each of which represents a choice.
+# choice_name - (Optional) name of the choice to check for. This is
+#                the goal name. If not provided, this will match any
+#                choice.
+#
+proc ngs-is-not-decision-choice { state_id choice_id { choice_name ""} } {
+  if { $choice_name == ""} {
+    return "($state_id -^decision-choice $choice_id)"
+  } else {
+    return "-{
+              ($state_id ^decision-choice $choice_id)
+              [ngs-is-named $choice_id $choice_name]
+             }"
+  }
+}
+
 # Evaluates to true if the object linked to the given attribute
 #  has been completely constructed (i.e. is tagged with NGS_TAG_CONSTRUCTED)
 #
@@ -458,6 +589,38 @@ proc ngs-match-active-goal { substate_id
                [ngs-is-named $goal_id $goal_name]"
 
   return $lhs_ret
+}
+
+# Start a production that will propose an operator to make a decision
+#  in a decision sub-state
+#
+# Typically you pair this match macro with the ngs-make-choice-by-operator RHS macro
+#
+# [ngs-match-to-make-choice substate_id decision_name decision_goal_id decision_goal_name (params_id) (top_state_id) (superstate_id)]
+#
+# substate_id - variable bound to the substate in which to make the choice
+# decision_name - name of the decision being made
+# decision_goal_id - variable to be bound to the id of the goal for which the decision is being made
+# decision_goal_name - name of the goal for which the decision is being made
+# params_id - (Optional) If provided, a variable that will be bound to the params structure in the substate
+# top_state_id - (Optional) If provided, a variable that will be bound to the top state identifier
+# superstate_id - (Optional) If provided, a variable that will be bound to the superstate identifier
+#
+proc ngs-match-to-make-choice { substate_id 
+                                decision_name 
+                                decision_goal_id
+                                decision_goal_name
+                                {params_id ""} 
+                                {top_state_id ""} 
+                                {superstate_id ""} } {
+
+  CORE_RefMacroVars
+  CORE_GenVarIfEmpty params_id "__params"
+
+  return "[ngs-match-active-goal $substate_id $decision_goal_name $decision_goal_id $params_id $top_state_id $superstate_id]
+          [ngs-is-named $substate_id $NGS_OP_DECIDE_GOAL]
+          ($params_id ^decision-name $decision_name)"
+
 }
 
 # Start a production to bind to an active goal with a given most derived type

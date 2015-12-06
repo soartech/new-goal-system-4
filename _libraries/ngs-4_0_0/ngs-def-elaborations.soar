@@ -13,6 +13,8 @@ sp "ngs*core*goals*tag-goal-as-active
 --> 
   [ngs-tag <g> $NGS_GS_ACTIVE]"
 
+# Annotates a state with the goal that is currently selected
+#  for action
 sp "ngs*core*goals*annotate-state-with-selected-goal
 :i-support
    [ngs-match-selected-operator <s> <o> <o-name>]
@@ -22,32 +24,8 @@ sp "ngs*core*goals*annotate-state-with-selected-goal
 
     
 
-# This is the traditional way names are given to substates
-sp "ngs*core*substate*set-name
-  (state <s> ^superstate { <> nil <superstate> })
-  (<superstate> ^operator.name <name>)
--->
-  (<s> ^name <name> +)"
-
-# Adds the top-state elaboration to the sub-states
-sp "ngs*core*substate*set-top-state
-  (state <s> ^superstate { <> nil <superstate> })
-  (state <top-state> ^superstate nil)
--->
-  (<s> ^top-state <top-state> +)"
 
 
-sp "ngs*core*goals*set-active-goal
-  [ngs-match-substate <ss> <params> <top-state>]
-  (<top-state> ^operator.goal <g>)
--->
-  (<ss> ^$WM_ACTIVE_GOAL <g> +)" 
 
-# Provides local access to the operator's attributes in the
-#  substate.
-sp "ngs*core*substate*set-params
-  (state <s> ^superstate { <> nil <superstate> })
-  (<superstate> ^operator <o>)
--->
-  (<s> ^params <o>)"
+
 
