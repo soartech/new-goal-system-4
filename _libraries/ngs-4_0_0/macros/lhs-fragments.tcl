@@ -238,9 +238,9 @@ proc ngs-requested-decision { goal_id
                               { decision_attr "" }
                               { decision_info_id ""} } {
   CORE_RefMacroVars
-  CORE_SetIfEmpty decision_info_id "__decision-info"
+  CORE_GenVarIfEmpty decision_info_id "__decision-info"
 
-  set lhs_ret "($goal_id ^decision $decision_info_id)
+  set lhs_ret "($goal_id ^$NGS_DECISION_ATTR $decision_info_id)
                ($decision_info_id ^name $decision_name)"
 
   if { $decision_obj != "" } {
@@ -469,6 +469,15 @@ proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
   }
 }
 
+#######################################################################################
+
+#
+# Basic match of the top state
+#
+proc ngs-match-top-state { state_id } {
+    return "(state $state_id ^superstate nil)"
+}
+
 # Use to start a production to create a new goal
 # (binds to the NGS desired goals section
 #
@@ -482,7 +491,6 @@ proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
 #
 proc ngs-match-goalpool { state_id goal_pool {goal_name ""} } {
   CORE_RefMacroVars
-
   if {$goal_name != ""} {
     return "(state $state_id ^superstate nil 
                              ^$WM_GOAL_SET.$goal_name $goal_pool)"
@@ -496,15 +504,12 @@ proc ngs-match-goalpool { state_id goal_pool {goal_name ""} } {
 #
 # Desired goals
 #
-# e.g. sp "my-production
-#          [ngs-match-goal myGoalType <my-goal>]
-#          -->
-#          ...do something...
+# [ngs-match-goal state_id goal_name goal_id (type) (goal_pool_id)]
 #
 # @devnote There's a slight danger of conflict here in using the hardcoded "<s>" as the state's ID - 
 #          but <s> is such a convention in the soar community that it's unlikely to be 
 #          anything else.
-
+#
 proc ngs-match-goal { state_id
                       goal_name 
                       goal_id 
@@ -521,15 +526,72 @@ proc ngs-match-goal { state_id
 
   if { $type != "" } {
     set lhs_ret "$lhs_ret
-                 ($goal_id ^type $type)"
+                 [ngs-is-type $goal_id $type]"
   }
 
   return $lhs_ret
 }
 
-proc ngs-match-top-state { state_id } {
-    return "(state $state_id ^superstate nil)"
+# Start a production that acts after a goal is selected in a decision
+#
+# This will always match on the top state. In sub-state you can use
+#
+# [ngs-match-decided-goal state_id goal_name goal_id  decision_obj decision_attr (decision_name) (type) (goal_pool_id)]
+#
+proc ngs-match-decided-goal { state_id
+                              goal_name
+                              goal_id
+                              decision_obj
+                              decision_attr
+                              {decision_name ""}
+                              {type ""} 
+                              {goal_pool_id ""}} {
+  
+  set supergoal_id [CORE_GenVarName "supergoal"]
+  CORE_GenVarIfEmpty decision_name "decision-name"
+
+  return "[ngs-match-goal $state_id $goal_name $goal_id $type $goal_pool_id]
+          [ngs-has-decided $goal_id]
+          [ngs-is-assigned-decision $goal_id $decision_name]
+          [ngs-is-supergoal $goal_id $supergoal_id]
+          [ngs-requested-decision $supergoal_id $decision_name $decision_obj $decision_attr]"
 }
+
+# Start a production to create a subgoal of another goal
+# 
+# [ngs-match-goal-to-create-subgoal state_id supergoal_name supergoal_id subgoal_name subgoal_pool_id (supergoal_type)]
+#
+proc ngs-match-goal-to-create-subgoal { state_id 
+                                        supergoal_name 
+                                        supergoal_id 
+                                        subgoal_name
+                                        subgoal_pool_id 
+                                        { supergoal_type "" } } {
+
+  CORE_RefMacroVars
+
+  set goal_pool_id      [CORE_GenVarName "goals"]
+  set supergoal_pool_id [CORE_GenVarName "supergoals"]
+
+  set lhs_ret "(state $state_id ^superstate nil
+                                ^$WM_GOAL_SET    $goal_pool_id)
+               ($goal_pool_id   ^$supergoal_name $supergoal_pool_id
+                                ^$subgoal_name   $subgoal_pool_id)
+               ($supergoal_pool_id ^goal         $supergoal_id)
+               [ngs-is-tagged $supergoal_id      $NGS_TAG_CONSTRUCTED]"
+
+  if { $supergoal_type != "" } {
+    set lhs_ret "$lhs_ret
+                 [ngs-is-type $supergoal_id $supergoal_type]"
+  }
+
+  echo $lhs_ret
+
+  return $lhs_ret
+
+}
+
+
 
 # Create a condition that matches and binds within a substate.
 #

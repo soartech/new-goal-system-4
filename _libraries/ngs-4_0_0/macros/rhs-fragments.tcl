@@ -747,11 +747,25 @@ proc ngs-orequest-decision { goal_id
 # This method works for both i-supported and o-supported goals. The support given
 #  to the assignment is defined by the support of the production that uses the macro
 #
+# [ngs-assign-decision goal_id decision_name activate_on_decision]
+#
 # goals_id - variable bound to the goal identifer to which to assign the decision
 # decision_name - the name of the decision to assign to the goal
 #
-proc ngs-assign-decision { goal_id decision_name } {
-  return "($goal_id ^NGS_DECIDES_ATTR $decision_name)"
+# activate_on_decision - (Optional) If provided, marks the goal to be activated 
+#    after it is selected in a decision. Activated goals generate sub-states
+#    NOTE: this isn't configured to work yet because there doesn't appear
+#     to be a general way to retract the activation operator.
+#
+proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
+  CORE_RefMacroVars
+
+  if { $activate_on_decision == "" } {
+      return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)"
+  } else {
+      return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)
+              [ngs-tag $goal_id $NGS_ACTIVATE_ON_DECISION]"
+  }
 }
 
 # Creates a structure that defines a return value
