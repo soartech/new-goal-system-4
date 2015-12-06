@@ -684,13 +684,9 @@ proc ngs-irequest-decision { goal_id
    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
    set decision_id [CORE_GenVarName "_decision"]
+   set attr_list "name $decision_name destination-object $dec_obj destination-attribute $dec_attr replacement-behavior $replacement_behavior" 
 
-   return "[ngs-icreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR 
-                    $NGS_TYPE_DECISION_STRUCTURE $decision_id 
-                    { name $decision_name 
-                      destination-object $dec_obj 
-                      destination-attribute $dec_attr 
-                      replacement-behavior $replacement_behavior } ]"
+   return "[ngs-icreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR $NGS_TYPE_DECISION_STRUCTURE $decision_id $attr_list]"
 }
 
 # Request a decision for an _o-supported_ goal object
@@ -732,13 +728,9 @@ proc ngs-orequest-decision { goal_id
    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
    set decision_id [CORE_GenVarName "_decision"]
+   set attr_list "name $decision_name destination-object $dec_obj destination-attribute $dec_attr replacement-behavior $replacement_behavior" 
 
-   return "[ngs-ocreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR 
-                    $NGS_TYPE_DECISION_STRUCTURE $decision_id 
-                    { name $decision_name 
-                      destination-object $dec_obj 
-                      destination-attribute $dec_attr 
-                      replacement-behavior $replacement_behavior } ]"
+   return "[ngs-ocreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR $NGS_TYPE_DECISION_STRUCTURE $decision_id $attr_list]"
 }
 
 # Assigns a decision to a goal

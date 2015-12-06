@@ -140,7 +140,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-create-tag-by-operator <s> <<g> $NGS_DECIDED_TAG]"
 
   # Operator proposal to make a decision if there are multiple options
-  sp* "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_name
+  sp* "ngs*core*goal*propose-to-create-substate-if-more-than-one-choice*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]

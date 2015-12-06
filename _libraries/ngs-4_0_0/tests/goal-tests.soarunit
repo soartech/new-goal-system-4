@@ -445,7 +445,7 @@ test subgoal-creation-destruction {
     
 sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
-	[ngs-is-attr-not-constructed <goals> goal <g>]
+	  [ngs-is-attr-not-constructed <goals> goal <g>]
     [ngs-is-not-tagged <s> started-counting]
 -->
 	[ngs-create-goal-by-operator <s> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]" 
@@ -706,4 +706,24 @@ sp "test
     }
 -->
 	(pass)"
+}
+
+test hierarchical-choice-goals {
+
+NGS_DeclareGoal TopLevelGoal1 { test-decision "" }
+NGS_DeclareGoal TopLevelGoal2 { test-decision "IChoseFoo" }
+  
+sp "test*create-top-level-goal*1
+    [ngs-match-goalpool <s> <goals> TopLevelGoal1]
+-->
+    [ngs-create-goal-in-place <goals> TopLevelGoal1 $NGS_GB_ACHIEVE <new-goal>]
+    [ngs-irequest-decision <new-goal> "i-decision" <new-goal> test-decision]"
+
+sp "test*create-top-level-goal*2
+    [ngs-match-goalpool <s> <goals> TopLevelGoal2]
+    [ngs-is-attr-not-constructed <goals> goal <g>]
+-->
+    [ngs-create-goal-by-operator <s> TopLevelGoal2 $NGS_GB_ACHIEVE <new-goal>]
+    [ngs-orequest-decision <new-goal> "o-decision" <new-goal> test-decision]"
+
 }
