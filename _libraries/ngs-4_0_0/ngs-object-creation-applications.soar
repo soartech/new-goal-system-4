@@ -26,6 +26,7 @@ sp "ngs*core*elaborate-operator*intelligent-construction*level-2
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
   (<o> -^copy-depth > 2)
   (<o> ^new-obj <obj-0>)
+  [ngs-is-obj-not-constructed <obj-0>]
   (<obj-0> ^<attr-1> <obj-1>)
   (<obj-1> ^<attr-2>)
   [ngs-is-obj-not-constructed <obj-1>]
@@ -37,7 +38,9 @@ sp "ngs*core*elaborate-operator*intelligent-construction*level-3
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
   (<o> -^copy-depth > 3)
   (<o> ^new-obj <obj-0>)
+  [ngs-is-obj-not-constructed <obj-0>]
   (<obj-0> ^<attr-1> <obj-1>)
+  [ngs-is-obj-not-constructed <obj-1>]
   (<obj-1> ^<attr-2> <obj-2>)
   (<obj-2> ^<attr-3>)
   [ngs-is-obj-not-constructed <obj-2>]
@@ -49,8 +52,11 @@ sp "ngs*core*elaborate-operator*intelligent-construction*level-4
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
   (<o> -^copy-depth > 4)
   (<o> ^new-obj <obj-0>)
+  [ngs-is-obj-not-constructed <obj-0>]
   (<obj-0> ^<attr-1> <obj-1>)
+  [ngs-is-obj-not-constructed <obj-1>]
   (<obj-1> ^<attr-2> <obj-2>)
+  [ngs-is-obj-not-constructed <obj-2>]
   (<obj-2> ^<attr-3> <obj-3>)
   (<obj-3> ^<attr-4>)
   [ngs-is-obj-not-constructed <obj-3>]
@@ -62,9 +68,13 @@ sp "ngs*core*elaborate-operator*intelligent-construction*level-5
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
   (<o> -^copy-depth > 5)
   (<o> ^new-obj <obj-0>)
+  [ngs-is-obj-not-constructed <obj-0>]
   (<obj-0> ^<attr-1> <obj-1>)
+  [ngs-is-obj-not-constructed <obj-1>]
   (<obj-1> ^<attr-2> <obj-2>)
+  [ngs-is-obj-not-constructed <obj-2>]
   (<obj-2> ^<attr-3> <obj-3>)
+  [ngs-is-obj-not-constructed <obj-3>]
   (<obj-3> ^<attr-4> <obj-4>)
   (<obj-4> ^<attr-5>)
   [ngs-is-obj-not-constructed <obj-4>]

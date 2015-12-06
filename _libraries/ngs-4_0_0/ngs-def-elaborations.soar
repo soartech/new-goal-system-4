@@ -23,6 +23,12 @@ sp "ngs*core*goals*annotate-state-with-selected-goal
    [ngs-tag <s> $NGS_TAG_SELECTED_GOAL <g>]"
 
     
+# Marks any state as constructed so we don't get problems
+#  with deep copying
+sp "ngs*core*state*mark-as-constructed
+  (state <s> ^superstate <anything>)
+-->
+  [ngs-tag <s> $NGS_TAG_CONSTRUCTED]"
 
 
 

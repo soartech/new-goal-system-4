@@ -783,8 +783,10 @@ proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
 #  the value for the return value.
 # ret_val_set_id - Variable bound to the return value set on the operator. You bind this variable using the
 #                    ngs-create-decide-operator macro.
-# dest_obj_id - Variable bound to the id of the object that should recieve the return value
-# attribute - Name of the attribute to which the return value should be bound
+# dest_obj_id - Variable bound to the id of the object that should recieve the return value. If not passed,
+#                  the destination object is not set (used internally by NGS)
+# attribute - (Optional) Name of the attribute to which the return value should be bound. If not passed, the
+#                  destination attribute remains unset (can be used internally by NGS)
 # new_val - (Optional) The value of the return value. You only set this if you are creating hour own return
 #             value. Leave this empty if you are specifying where to put a return value that will be created
 #             in the sub-state
@@ -794,8 +796,8 @@ proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
 #
 proc ngs-create-ret-val-in-place { ret_val_name
                                    ret_val_set_id
-                                   dest_obj_id 
-                                   attribute 
+                                   {dest_obj_id ""}
+                                   {attribute ""}
                                    {new_val ""} 
                                    {replacement_behavior ""} } {
 
@@ -803,9 +805,14 @@ proc ngs-create-ret-val-in-place { ret_val_name
     CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
     set ret_val_id [CORE_GenVarName new-ret-val]
-    set attr_list "name $ret_val_name destination-object $dest_obj_id destination-attribute $attribute 
-				   replacement-behavior $replacement_behavior" 
+    set attr_list "name $ret_val_name replacement-behavior $replacement_behavior" 
 
+    if { $dest_obj_id != "" } {
+      set attr_list "$attr_list destination-object $dest_obj_id"
+    }
+    if { $attribute != "" } {
+      set attr_list "$attr_list destination-attribute $attribute"
+    }
     if { $new_val != "" } {
      	set attr_list "$attr_list value $new_val"
     }
@@ -828,8 +835,9 @@ proc ngs-create-ret-val-in-place { ret_val_name
 #  the value for the return value.
 # ret_val_set_id - Variable bound to the return value set on the operator. You bind this variable using the
 #                    ngs-create-decide-operator macro.
-# dest_obj_id - Variable bound to the id of the object that should recieve the return value
-# tag_name - Name of the tag to construct in the return set
+# dest_obj_id - Variable bound to the id of the object that should recieve the return value. If you pass in
+#                    an empty string (or leave out), the destination object remains unset (used internally by NGS)
+# tag_name - Name of the tag to construct in the return set.                  
 # tag_val - (Optional) The value of the tag. By default this will be NGS_YES
 # replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
 #                        will remove any existing values for the given attribute while creating the new one. 

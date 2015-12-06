@@ -236,9 +236,10 @@ proc ngs-requested-decision { goal_id
                               decision_name 
                               { decision_obj ""  }
                               { decision_attr "" }
+                              { replacement_behavior "" }
                               { decision_info_id ""} } {
   CORE_RefMacroVars
-  CORE_GenVarIfEmpty decision_info_id "__decision-info"
+  CORE_GenVarIfEmpty decision_info_id "decision-info"
 
   set lhs_ret "($goal_id ^$NGS_DECISION_ATTR $decision_info_id)
                ($decision_info_id ^name $decision_name)"
@@ -253,6 +254,11 @@ proc ngs-requested-decision { goal_id
                  ($decision_info_id ^destination-attribute $decision_attr)"
   }
 
+  if { $replacement_behavior != "" } {
+    set lhs_ret "$lhs_ret
+                 ($decision_info_id ^replacement-behavior $replacement_behavior)"
+  }
+
   return $lhs_ret
 }
 
@@ -260,6 +266,8 @@ proc ngs-requested-decision { goal_id
 #
 # Use this macro to bind to the choices in a decision substate for making
 #  goal-based choices.
+#
+# [ngs-is-decision-chioce state_id choice_id (choice_name)]
 #
 # state_id - variable bound to a substate within which to check for a choice
 # choice_id - variable bound (or to be bound) to the choice. Choices are
@@ -536,16 +544,17 @@ proc ngs-match-goal { state_id
 #
 # This will always match on the top state. In sub-state you can use
 #
-# [ngs-match-decided-goal state_id goal_name goal_id  decision_obj decision_attr (decision_name) (type) (goal_pool_id)]
+# [ngs-match-decided-goal state_id goal_name goal_id  decision_obj decision_attr (replacement_behavior) (decision_name) (type) (goal_pool_id)]
 #
 proc ngs-match-decided-goal { state_id
                               goal_name
                               goal_id
                               decision_obj
                               decision_attr
-                              {decision_name ""}
-                              {type ""} 
-                              {goal_pool_id ""}} {
+                              { replacement_behavior "" }
+                              { decision_name "" }
+                              { type "" } 
+                              { goal_pool_id "" }} {
   
   set supergoal_id [CORE_GenVarName "supergoal"]
   CORE_GenVarIfEmpty decision_name "decision-name"
@@ -554,7 +563,7 @@ proc ngs-match-decided-goal { state_id
           [ngs-has-decided $goal_id]
           [ngs-is-assigned-decision $goal_id $decision_name]
           [ngs-is-supergoal $goal_id $supergoal_id]
-          [ngs-requested-decision $supergoal_id $decision_name $decision_obj $decision_attr]"
+          [ngs-requested-decision $supergoal_id $decision_name $decision_obj $decision_attr $replacement_behavior]"
 }
 
 # Start a production to create a subgoal of another goal
@@ -677,11 +686,16 @@ proc ngs-match-to-make-choice { substate_id
                                 {superstate_id ""} } {
 
   CORE_RefMacroVars
-  CORE_GenVarIfEmpty params_id "__params"
+  CORE_GenVarIfEmpty params_id "params"
+
+  set return_value_desc_id [CORE_GenVarName "ret-vals"]
 
   return "[ngs-match-active-goal $substate_id $decision_goal_name $decision_goal_id $params_id $top_state_id $superstate_id]
           [ngs-is-named $substate_id $NGS_OP_DECIDE_GOAL]
-          ($params_id ^decision-name $decision_name)"
+          ($params_id ^decision-name $decision_name)
+          ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
+          ($return_value_desc_id    ^name  $NGS_DECISION_RET_VAL_NAME
+                                   -^destination-object)"
 
 }
 
@@ -714,6 +728,8 @@ proc ngs-match-to-set-return-value { substate_id
 
   return $lhs_ret
 }
+
+# May need a match-to-set-return-tag
 
 # Use when you need to match a state so you can create a goal as a return value
 #

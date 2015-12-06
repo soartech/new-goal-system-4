@@ -50,7 +50,7 @@ sp* "ngs*core*substate*create-decision-return-structure
 	[ngs-is-named <s> $NGS_OP_DECIDE_GOAL]
 	(<s> ^$NGS_RETURN_VALUES <ret-vals>)
 -->
-	[ngs-create-ret-tag-in-place $NGS_DECISION_RET_VAL_NAME <ret-vals> *tbd* $NGS_DECIDED_TAG]"
+	[ngs-create-ret-tag-in-place $NGS_DECISION_RET_VAL_NAME <ret-vals> {} $NGS_DECIDED_TAG]"
 
 ##########
 # Copies the destination-object to the return value when returning a choice
@@ -62,7 +62,6 @@ sp* "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*fill-in-dest-object-for-ch
   (<ret-val-set> ^value-description  <v-desc>)
   (<v-desc>      ^name               $NGS_DECISION_RET_VAL_NAME) 
 -->
-  (<v-desc> ^destination-object *tbd* -)
   (<v-desc> ^destination-object <choice> +)"
 
 
@@ -75,7 +74,8 @@ sp* "ngs*core*substate*apply*$NGS_OP_DECIDE_GOAL*clear-all-decide-flags
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
     [ngs-is-tagged <sub-goal> $NGS_DECIDED_TAG <tag-val>]
  -->
- 	[ngs-untag <sub-goal> $NGS_DECIDED_TAG <tag-val>]"
+ 	[ngs-untag <sub-goal> $NGS_DECIDED_TAG <tag-val>]
+ 	[ngs-untag <sub-goal> $NGS_ALREADY_ACTIVATED]"
 
 # Marks non-selected choices as NO after a choice is made
 sp* "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*mark-no-choice
