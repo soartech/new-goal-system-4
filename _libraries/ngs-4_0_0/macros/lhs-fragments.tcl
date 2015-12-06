@@ -208,8 +208,8 @@ proc ngs-has-not-decided { goal_id { decision_value "" } } {
 # decision_name - name of the decision to test foreach 
 #
 proc ngs-is-assigned-decision { goal_id decision_name } {
+  CORE_RefMacroVars
   return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)"
-
 }
 
 # Evaluates to true and binds to the decision information if the given
@@ -460,7 +460,7 @@ proc ngs-is-supergoal { goal_id supergoal_id {supergoal_name ""} } {
 #                   if it has the given name.
 #
 proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
-  set main_test_line = "($subgoal_id ^subgoal $subgoal_id)"
+  set main_test_line "($goal_id ^subgoal $subgoal_id)"
   if { $subgoal_name != "" } {
     return "$main_test_line 
             [ngs-is-named $subgoal_id $subgoal_name]"

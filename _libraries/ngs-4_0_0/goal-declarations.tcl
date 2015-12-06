@@ -86,7 +86,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
   ## Productions that support goal-based decision making
 
   # i-supported production to mark a decision on this goal as being required
-  sp "ngs*core*goal*elaborate-decision-is-required*$goal_name
+  sp* "ngs*core*goal*elaborate-decision-is-required*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} <decision-info>]
     [ngs-is-subgoal <g> <sub-goal>]
@@ -97,7 +97,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
 
   # i-supported production to mark a decision as not having any current options
   #  if there is no sub-goal that can make the decision
-  sp "ngs*core*goal*elaborate-decision-no-decision-options*$goal_name
+  sp* "ngs*core*goal*elaborate-decision-no-decision-options*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} <decision-info>]
    -{
@@ -109,7 +109,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
 
   # i-supported production to mark a decision as having exactly one current
   #  option. These decision are made by default.
-  sp "ngs*core*goal*elaborate-decision-one-decision-option*$goal_name
+  sp* "ngs*core*goal*elaborate-decision-one-decision-option*$goal_name
     
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} <decision-info>]
@@ -127,7 +127,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-tag <decision-info> $NGS_TAG_ONE_OPTION]"
 
   # Operator proposal to make a decision if there is only one option
-  sp "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_name
+  sp* "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_name
     
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} <decision-info>]
@@ -140,11 +140,12 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-create-tag-by-operator <s> <<g> $NGS_DECIDED_TAG]"
 
   # Operator proposal to make a decision if there are multiple options
-  sp "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_name
+  sp* "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
     [ngs-is-tagged <decision-info> $NGS_TAG_ONE_OPTION]
-  -->
-    [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]"
+  --> 
+    [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]
+    (<o> ^decision-name <decision-name>)"
 }

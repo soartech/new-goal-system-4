@@ -836,8 +836,8 @@ proc ngs-create-ret-tag-in-place { ret_val_name
                                    {tag_val ""} 
                                    {replacement_behavior ""} } {
 
-    CORE_RefMacroVars
-    CORE_SetIfEmpty tag_val $NGS_YES
+  CORE_RefMacroVars
+  CORE_SetIfEmpty tag_val $NGS_YES
 
 	return "[ngs-create-ret-val-in-place $ret_val_name $ret_val_set_id $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior]"
 }
@@ -858,7 +858,7 @@ proc ngs-create-ret-tag-in-place { ret_val_name
 #
 proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
   CORE_RefMacroVars
-  set op_id CORE_GenVarName "o"
+  set op_id [CORE_GenVarName "o"]
   
   return "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id $add_prefs]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
@@ -893,7 +893,7 @@ proc ngs-set-ret-val-by-operator { state_id
                                    {add_prefs "="} } {
 
     CORE_RefMacroVars
-    set op_id CORE_GenVarName "o"
+    set op_id [CORE_GenVarName "o"]
 
     return "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id $add_prefs]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
@@ -924,8 +924,8 @@ proc ngs-create-typed-object-for-ret-val { state_id
                                            new_obj_id 
  										                       { attribute_list "" } } {
 
-    CORE_RefMacroVars
-   set op_id CORE_GenVarName "o"
+   CORE_RefMacroVars
+   set op_id [CORE_GenVarName "o"]
 
    return  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
