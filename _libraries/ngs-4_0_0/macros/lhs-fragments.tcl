@@ -179,7 +179,7 @@ proc ngs-is-not-achieved { goal_id } {
 # 
 proc ngs-has-decided { goal_id { decision_value "" } } {
   CORE_RefMacroVars
-  CORE_GenVarIfEmpty decision_value "__decision-value"
+  CORE_GenVarIfEmpty decision_value "decision-value"
   return "[ngs-is-tagged $goal_id $NGS_DECIDED_TAG $decision_value]"
 }
 
@@ -479,23 +479,33 @@ proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
 
 #######################################################################################
 
-#
-# Basic match of the top state
+# Start an open ended production that simply binds to the top state
+# 
+# [ngs-match-top-state state_id]
 #
 proc ngs-match-top-state { state_id } {
     return "(state $state_id ^superstate nil)"
 }
 
-# Use to start a production to create a new goal
-# (binds to the NGS desired goals section
+# Start a production to create a stand-alone goal
 #
-# If the goal_name is given, it binds to the id for the goal pool associated
-#  with goals of that name. otherwise it binds one level higher at the master pool
+# If you are creating a sub-goal, use ngs-match-goal-to-create-subgoal instead.
+#  It has many more of the bindings you need.
 #
-# e.g. sp "my-production
-#         [ngs-match-goalpool <s> <goals> MyFavorouriteGoalType]
-#         -->
-#         [ngs-create-achievement-goal <goal-list> ... ]
+# If you don't give this macro a goal name, it will bind to the root goal pool
+#  which holds all of the goal sets (referenced through the goal names). If
+#  you provide a name, it will bind to the goal set of the given goal name.
+#  Providing a goal name is by far the most common use case.
+#
+# [ngs-match-goalpool state_id goal_pool (goal_name)]
+#
+# state_id - variable that will be bound to the top state.
+# goal_pool - variable that will be bound to the goal pool.  See note above
+#              on which pool this will be depending on the value of goal_name.
+# goal_name - (Optional) If provided, the goal_pool variable will be bound
+#               to the goal set for goals of the given name. If it is not
+#               provided, the goal_pool variable will be bound to the root
+#               goal pool.
 #
 proc ngs-match-goalpool { state_id goal_pool {goal_name ""} } {
   CORE_RefMacroVars
@@ -508,15 +518,21 @@ proc ngs-match-goalpool { state_id goal_pool {goal_name ""} } {
   } 
 }
 
-# start a production to bind to a goal in the goal pool
+# Start a prodution that does something with a goal on the top state
 #
-# Desired goals
+# This is a general purpose match production for cases when you need to do something with
+#  a goal from the top-state pools. For example, you might want to elaborate something onto 
+#  the goal. There are other more specific match macros that help with other common tasks.
 #
 # [ngs-match-goal state_id goal_name goal_id (type) (goal_pool_id)]
 #
-# @devnote There's a slight danger of conflict here in using the hardcoded "<s>" as the state's ID - 
-#          but <s> is such a convention in the soar community that it's unlikely to be 
-#          anything else.
+# state_id - variable that will be bound to the top state.
+# goal_name - name of the goal to be bound
+# goal_id - variable that will be bound to the goal of the given name
+# type - (Optional) constrains which goals can bind to one of NGS_GB_ACHIEVE or NGS_GB_MAINT.
+#            If it isn't provided, both types of goals are accepted.
+# goal_pool_id - (Optional) If provided, this is a variable that will be bound to the
+#     goal pool for goals of the given goal_name
 #
 proc ngs-match-goal { state_id
                       goal_name 
@@ -540,11 +556,29 @@ proc ngs-match-goal { state_id
   return $lhs_ret
 }
 
-# Start a production that acts after a goal is selected in a decision
+# Start a production that acts after a goal is selected in a decision.
 #
-# This will always match on the top state. In sub-state you can use
+# This helper macro reduces the complexity associated with matching a goal that has been selected in
+#  the goal selection process. It provides convenient bindings for the decision object and attribute
+#  which can be useful when writing productions that carry out the action implied by the decision.
+#
+# This macro will only bind goals for which [ngs-has-decided <goal> $NGS_YES] evaluates to true.
 #
 # [ngs-match-decided-goal state_id goal_name goal_id  decision_obj decision_attr (replacement_behavior) (decision_name) (type) (goal_pool_id)]
+#
+# state_id - variable that will be bound to the top state.
+# goal_name - name of the goal to be bound
+# goal_id - variable that will be bound to the goal of the given name
+# decision_obj - variable that will be bound to the object that should recieve the decision's resulting action
+# decision_attr - variable/constant that will be bound to the attribute that should recieve the decision's resulting action
+# replacement_behavior - variable or constant bound to the replacement-behavior of the decision WME. See rhs-fragments.tcl
+#                           for examples of how this is used. Typically you don't need to bind this since the infrastructure
+#                           handles it for you.
+# decision_name - (Optional) If provided, constrains the match to only be for goals that are deciding the given decision name.
+# type - (Optional) constrains which goals can bind to one of NGS_GB_ACHIEVE or NGS_GB_MAINT.
+#            If it isn't provided, both types of goals are accepted.
+# goal_pool_id - (Optional) If provided, this is a variable that will be bound to the
+#     goal pool for goals of the given goal_name
 #
 proc ngs-match-decided-goal { state_id
                               goal_name
@@ -570,7 +604,19 @@ proc ngs-match-decided-goal { state_id
 
 # Start a production to create a subgoal of another goal
 # 
+# This helper greatly simplifies the code you need to write to prepare to create a sub-goal.
+#  It provides convenient bindings for all of the major elements needed to create the sub-goal.
+#
 # [ngs-match-goal-to-create-subgoal state_id supergoal_name supergoal_id subgoal_name subgoal_pool_id (supergoal_type)]
+#
+# state_id - variable that will be bound to the top state. 
+# supergoal_name - name of the supergoal of the sub-goal you want to create
+# supergoal_id - variable that will be bound to the supergoal
+# subgoal_name - name of the subgoal you wish to create
+# subgoal_pool_id - variable that will get bound to the goal set for goals of subgoal_name. You will
+#                    place you new goal in this set.
+# supergoal_type - (Optional) You can additionaly constrain your supergoal match to one of NGS_GB_ACHIEVE 
+#                     or NGS_GB_MAINT using this parameter
 #
 proc ngs-match-goal-to-create-subgoal { state_id 
                                         supergoal_name 
@@ -602,14 +648,20 @@ proc ngs-match-goal-to-create-subgoal { state_id
 
 }
 
+##################### SUBSTATES ###############################
 
-
-# Create a condition that matches and binds within a substate.
+# Start a vanilla sub-state production that binds to a substate's key objects
 #
-# Optional paramaters let you bind to the top state and superstate respectively
+# There are other helper macros that make bindings for common substate actions easier.
 #
-# e.g. sp "my-production
-#          [ngs-match-substate <ss> <top-state> <super-state>]
+# [ngs-match-substate substate_id (params_id) (top_state_id) (superstate_id)]
+#
+# substate_id - variable that will be bound to the substate_id
+# params_id - (Optional) If provided, this variable will be bound to the params structure
+#               in the substate. The params structure is a link to the selected decide
+#               operator in the superstate.
+# top_state_id - (Optional) If provided, this variable is bound to the top state 
+# superstate_id - (Optional) If provided, this variable is bound to the superstate
 #
 proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {superstate_id ""}} {
 
@@ -638,7 +690,10 @@ proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {supersta
   return "(state $substate_id $superstate_test $top_state_test $params_test)"
 }
 
-# Start a production to bind to an active goal with a given most derived type
+# Start a production to bind to an active goal
+#
+# This is a common match macro in sub-state, providing you with bindings to the
+#  goal that caused the sub-state.
 #
 # Active goals have been selected for processing in a sub-state. This macro
 #  binds to the sub-state and tests the WM_ACTIVE_GOAL attribute in the 
@@ -647,10 +702,15 @@ proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {supersta
 #
 # [ngs-match-active-goal substate_id goal_name goal_id params_id top_state_id superstate_id]
 #
-# e.g. sp "my-production
-#          [ngs-match-active-goal myGoalName <my-goal> <ss>]
-#          -->
-#          ...do something...
+# substate_id - variable that will be bound to the substate_id
+# goal_name - name constraining which active goals will get bound
+# goal_id - variable that will be bound to the active goal (in the substate)
+# params_id - (Optional) If provided, this variable will be bound to the params structure
+#               in the substate. The params structure is a link to the selected decide
+#               operator in the superstate.
+# top_state_id - (Optional) If provided, this variable is bound to the top state 
+# superstate_id - (Optional) If provided, this variable is bound to the superstate
+#
 proc ngs-match-active-goal { substate_id
                              goal_name 
                              goal_id
@@ -662,6 +722,31 @@ proc ngs-match-active-goal { substate_id
   set lhs_ret "[ngs-match-substate $substate_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$WM_ACTIVE_GOAL $goal_id)
                [ngs-is-named $goal_id $goal_name]"
+
+  return $lhs_ret
+}
+
+
+# Start a production to bind to an active goal at the top-state
+#
+# Active goals have been selected for processing in a sub-state, but this version
+#  of the match macro binds to the top-state and tests for an active goal through
+#  the top state goal pool. If you want to bind to the sub-state that processes
+#  this active goal, use ngs-match-active-goal instead.
+#
+# [ngs-match-top-state-active-goal state_id goal_name goal_id]
+#
+# state_id - variable that will be bound to the top state 
+# goal_name - name constraining which active goals will be bound 
+# goal_id - variable that will be bound to an _active_ goal of the given name 
+#
+proc ngs-match-top-state-active-goal { state_id
+                                       goal_name 
+                                     goal_id } {
+  CORE_RefMacroVars
+
+  set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_name $goal_id)
+                 [ngs-is-active $goal_id]"
 
   return $lhs_ret
 }
@@ -782,28 +867,6 @@ proc ngs-match-to-create-return-goal { substate_id
   return $lhs_ret
 }
 
-# Start a production to bind to an active goal at the top-state
-#
-# Active goals have been selected for processing in a sub-state, but this version
-#  of the match macro binds to the top-state and tests for an active goal through
-#  the top state goal pool. If you want to bind to the sub-state that processes
-#  this active goal, use ngs-match-active-goal instead.
-#
-# e.g. sp "my-production
-#          [ngs-match-active-goal myGoalName <my-goal> <ss>]
-#          -->
-#          ...do something...
-#
-proc ngs-match-top-state-active-goal { state_id
-                                       goal_name 
-                             	       goal_id } {
-  CORE_RefMacroVars
-
-  set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_name $goal_id)
-                 [ngs-is-active $goal_id]"
-
-  return $lhs_ret
-}
 
 
 

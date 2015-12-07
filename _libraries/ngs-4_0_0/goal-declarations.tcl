@@ -87,7 +87,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
   ## Productions that support goal-based decision making
 
   # i-supported production to mark a decision on this goal as being required
-  sp* "ngs*core*goal*elaborate-decision-is-required*$goal_name
+  sp* "ngs*core*goal*elaborate-decision-is-required*undecided-exists*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-subgoal <g> <sub-goal>]
@@ -95,7 +95,19 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-has-not-decided <sub-goal>]
   -->
     [ngs-tag <decision-info> $NGS_TAG_REQUIRES_DECISION]"
-
+  
+  # Same as above, but looks for lack of a decided *yes*
+  sp* "ngs*core*goal*elaborate-decision-is-required*yes-does-not-exist*$goal_name
+    [ngs-match-goal <s> $goal_name <g>]
+    [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
+   -{
+      [ngs-is-subgoal <g> <sub-goal>]
+      [ngs-is-assigned-decision <sub-goal> <decision-name>]
+      [ngs-has-decided <sub-goal> $NGS_YES]
+    }
+  -->
+    [ngs-tag <decision-info> $NGS_TAG_REQUIRES_DECISION]"
+  
   # i-supported production to mark a decision as not having any current options
   #  if there is no sub-goal that can make the decision
   sp* "ngs*core*goal*elaborate-decision-no-decision-options*$goal_name

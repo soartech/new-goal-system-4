@@ -753,13 +753,22 @@ sp* "test*create-decision-goal*22
   [ngs-assign-decision <new-goal> o-decision $NGS_YES]"
 
 sp* "test*i-like-foo
-   [ngs-match-to-make-choice <s> o-decision <g> TopLevelGoal2]
+   [ngs-match-to-make-choice <s> o-decision <g> TopLevelGoal2 {} <top-state>]
    [ngs-is-decision-choice <s> <my-fav> DecisionGoal]
    (<my-fav> ^decision_value foo)
+   (<top-state> -^test-decision oof)
   -{
     [ngs-is-decision-choice <s> { {<other> <> <my-fav>} } DecisionGoal]
     (<other> ^decision_value oof)
    }
+-->
+   [ngs-make-choice-by-operator <s> <my-fav>]"
+
+sp* "test*i-actually-like-bar-best
+   [ngs-match-to-make-choice <s> o-decision <g> TopLevelGoal2 {} <top-state>]
+   [ngs-is-decision-choice <s> <my-fav> DecisionGoal]
+   (<my-fav> ^decision_value bar)
+   (<top-state> ^test-decision oof)
 -->
    [ngs-make-choice-by-operator <s> <my-fav>]"
 
@@ -792,7 +801,7 @@ sp* "test*make-foo-or-oof-work
 
 sp "test
   [ngs-match-goal <s> TopLevelGoal1 <g>]
-  (<s> ^test-decision oof)
+  (<s> ^test-decision bar)
   (<g> ^test-decision |SimpleDecision|)
 -->
   (pass)"
