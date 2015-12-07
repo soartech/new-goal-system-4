@@ -756,14 +756,45 @@ sp* "test*i-like-foo
    [ngs-match-to-make-choice <s> o-decision <g> TopLevelGoal2]
    [ngs-is-decision-choice <s> <my-fav> DecisionGoal]
    (<my-fav> ^decision_value foo)
+  -{
+    [ngs-is-decision-choice <s> { {<other> <> <my-fav>} } DecisionGoal]
+    (<other> ^decision_value oof)
+   }
 -->
    [ngs-make-choice-by-operator <s> <my-fav>]"
 
-sp* "test*make-foo-work
+sp* "test*create-decision-goal*23
+  [ngs-match-goal-to-create-subgoal <s> TopLevelGoal2 <supergoal> DecisionGoal <subgoals> $NGS_GB_MAINT]
+  (<s> ^test-decision foo)
+-->
+  [ngs-create-goal-in-place <subgoals> DecisionGoal $NGS_GB_ACHIEVE <new-goal> <supergoal> { decision_value oof }]
+  [ngs-assign-decision <new-goal> o-decision $NGS_YES]"
+
+sp* "test*create-decision-goal*24
+  [ngs-match-goal-to-create-subgoal <s> TopLevelGoal2 <supergoal> DecisionGoal <subgoals> $NGS_GB_MAINT]
+  (<s> ^test-decision foo)
+-->
+  [ngs-create-goal-in-place <subgoals> DecisionGoal $NGS_GB_ACHIEVE <new-goal> <supergoal> { decision_value rab }]
+  [ngs-assign-decision <new-goal> o-decision $NGS_YES]"
+
+sp* "test*i-like-oof
+   [ngs-match-to-make-choice <s> o-decision <g> TopLevelGoal2]
+   [ngs-is-decision-choice <s> <my-fav> DecisionGoal]
+   (<my-fav> ^decision_value oof)
+-->
+   [ngs-make-choice-by-operator <s> <my-fav>]"
+
+sp* "test*make-foo-or-oof-work
    [ngs-match-to-set-return-primitive <s> DecisionGoal <g> $NGS_DECISION_ITEM_RET_VAL_NAME]
    (<g> ^decision_value <dv>)
 -->
    [ngs-set-ret-val-by-operator <s> $NGS_DECISION_ITEM_RET_VAL_NAME <dv>]"
 
+sp "test
+  [ngs-match-goal <s> TopLevelGoal1 <g>]
+  (<s> ^test-decision oof)
+  (<g> ^test-decision |SimpleDecision|)
+-->
+  (pass)"
 }
 
