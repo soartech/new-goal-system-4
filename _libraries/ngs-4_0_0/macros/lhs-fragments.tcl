@@ -642,10 +642,7 @@ proc ngs-match-goal-to-create-subgoal { state_id
                  [ngs-is-type $supergoal_id $supergoal_type]"
   }
 
-  echo $lhs_ret
-
   return $lhs_ret
-
 }
 
 ##################### SUBSTATES ###############################

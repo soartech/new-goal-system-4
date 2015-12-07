@@ -87,7 +87,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
   ## Productions that support goal-based decision making
 
   # i-supported production to mark a decision on this goal as being required
-  sp* "ngs*core*goal*elaborate-decision-is-required*undecided-exists*$goal_name
+  sp "ngs*core*goal*elaborate-decision-is-required*undecided-exists*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-subgoal <g> <sub-goal>]
@@ -97,7 +97,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-tag <decision-info> $NGS_TAG_REQUIRES_DECISION]"
   
   # Same as above, but looks for lack of a decided *yes*
-  sp* "ngs*core*goal*elaborate-decision-is-required*yes-does-not-exist*$goal_name
+  sp "ngs*core*goal*elaborate-decision-is-required*yes-does-not-exist*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
    -{
@@ -110,7 +110,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
   
   # i-supported production to mark a decision as not having any current options
   #  if there is no sub-goal that can make the decision
-  sp* "ngs*core*goal*elaborate-decision-no-decision-options*$goal_name
+  sp "ngs*core*goal*elaborate-decision-no-decision-options*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
    -{
@@ -122,7 +122,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
 
   # i-supported production to mark a decision as having exactly one current
   #  option. These decision are made by default.
-  sp* "ngs*core*goal*elaborate-decision-one-decision-option*$goal_name
+  sp "ngs*core*goal*elaborate-decision-one-decision-option*$goal_name
     
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
@@ -140,7 +140,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-tag <decision-info> $NGS_TAG_ONE_OPTION]"
 
   # Operator proposal to make a decision if there is only one option
-  sp* "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_name
+  sp "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_name
     
     [ngs-match-goal <s> $goal_name <sub-goal>]
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
@@ -153,7 +153,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-create-tag-by-operator <s> <sub-goal> $NGS_DECIDED_TAG]"
 
   # Operator proposal to make a decision if there are multiple options
-  sp* "ngs*core*goal*propose-to-create-substate-if-more-than-one-choice*$goal_name
+  sp "ngs*core*goal*propose-to-create-substate-if-more-than-one-choice*$goal_name
     [ngs-match-goal <s> $goal_name <g>]
     [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
@@ -163,7 +163,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     (<o> ^decision-name <decision-name>)"
 
   # Automatically activate a goal after selection if it is flagged for auto-activation
-  sp* "ngs*core*goal*activate-goal-after-selection*$goal_name
+  sp "ngs*core*goal*activate-goal-after-selection*$goal_name
     [ngs-match-decided-goal <s> $goal_name <g> <obj> <attr> <behavior>]
     [ngs-is-tagged <g> $NGS_ACTIVATE_ON_DECISION]
     [ngs-is-not-tagged <g> $NGS_ALREADY_ACTIVATED]

@@ -893,7 +893,8 @@ proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
 #        by creating a set object and putting the set values within it ... the set
 #        object could be the return value).
 #
-# [ngs-set-ret-val-by-operator state_id ret_val_name value (add_prefs)]
+# 
+
 #
 # state_id - variable bound to the _sub-state_ in which the operator to set the return value should be created.
 # ret_val_name - name of the return value to set

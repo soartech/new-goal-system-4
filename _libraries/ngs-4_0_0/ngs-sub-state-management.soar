@@ -35,7 +35,7 @@ sp "ngs*core*substate*set-params
   (<s> ^params <o>)"
 
 # For decide goal sub-states, copy in the goals that represent the choices
-sp* "ngs*core*substate*copy-decision-goals
+sp "ngs*core*substate*copy-decision-goals
 	[ngs-match-active-goal <s> <any-goal-name> <g> <g-params>]
 	(<g-params> ^decision-name <decision-name>)
 	[ngs-is-subgoal <g> <sub-goal>]
@@ -45,7 +45,7 @@ sp* "ngs*core*substate*copy-decision-goals
 
 # Elaborates the return value structure for the decision. We don't know which object
 #  to tag yet because the selection hasn't been made yet.
-sp* "ngs*core*substate*create-decision-return-structure
+sp "ngs*core*substate*create-decision-return-structure
 	[ngs-match-substate <s>]
 	[ngs-is-named <s> $NGS_OP_DECIDE_GOAL]
 	(<s> ^$NGS_RETURN_VALUES <ret-vals>)
@@ -54,11 +54,11 @@ sp* "ngs*core*substate*create-decision-return-structure
 
 ##########
 # Copies the destination-object to the return value when returning a choice
-sp* "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*fill-in-dest-object-for-choice
+sp "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*fill-in-dest-object-for-choice
   [ngs-match-selected-operator-in-substate <ss> <o> $NGS_OP_SET_RETURN_VALUE]
   (<o>           ^ret-val-name       $NGS_DECISION_RET_VAL_NAME
   	             ^choice             <choice>)
-  (<s>           ^$NGS_RETURN_VALUES <ret-val-set>)
+  (<ss>          ^$NGS_RETURN_VALUES <ret-val-set>)
   (<ret-val-set> ^value-description  <v-desc>)
   (<v-desc>      ^name               $NGS_DECISION_RET_VAL_NAME) 
 -->
@@ -66,7 +66,7 @@ sp* "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*fill-in-dest-object-for-ch
 
 
 # Clears the decided flag on all choices right before entering the decision state
-sp* "ngs*core*substate*apply*$NGS_OP_DECIDE_GOAL*clear-all-decide-flags
+sp "ngs*core*substate*apply*$NGS_OP_DECIDE_GOAL*clear-all-decide-flags
     [ngs-match-selected-operator <s> <o> $NGS_OP_DECIDE_GOAL <g>]
 	(<o> ^decision-name <decision-name>)
 	[ngs-is-subgoal <g> <sub-goal>]
@@ -77,7 +77,7 @@ sp* "ngs*core*substate*apply*$NGS_OP_DECIDE_GOAL*clear-all-decide-flags
  	[ngs-untag <sub-goal> $NGS_ALREADY_ACTIVATED]"
 
 # Marks non-selected choices as NO after a choice is made
-sp* "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*mark-no-choice
+sp "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*mark-no-choice
 	[ngs-match-selected-operator-in-substate <ss> <o> $NGS_OP_COPY_RETURN_VALUES]
 	(<ss>          ^decision-choice   { <choice> <> <dest> }
 		           ^return-values     <ret-val-set>)
