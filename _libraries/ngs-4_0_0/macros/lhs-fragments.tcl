@@ -899,12 +899,14 @@ proc ngs-match-two-proposed-operators { state_id
 
 # Use start a production to apply an operator
 #
+# [ngs-match-selected-operator state_id op_id op_name (goal_id)]
+# 
 # e.g. sp "my-production
 #         [ngs-operator-application MyOperator <o> <og> <og-tags> <s>]
 #
 proc ngs-match-selected-operator {state_id
                                   op_id
-								  op_name 
+								                 op_name 
                                   {goal_id ""} } {
 
   set lhs_ret "(state $state_id ^operator $op_id)

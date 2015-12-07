@@ -67,9 +67,8 @@ sp* "ngs*core*substate*apply*$NGS_OP_SET_RETURN_VALUE*fill-in-dest-object-for-ch
 
 # Clears the decided flag on all choices right before entering the decision state
 sp* "ngs*core*substate*apply*$NGS_OP_DECIDE_GOAL*clear-all-decide-flags
-	[ngs-match-selected-operator-in-substate <ss> <o> $NGS_OP_DECIDE_GOAL]
-	(<o> ^goal <g>
-		 ^decision-name <decision-name>)
+    [ngs-match-selected-operator <s> <o> $NGS_OP_DECIDE_GOAL <g>]
+	(<o> ^decision-name <decision-name>)
 	[ngs-is-subgoal <g> <sub-goal>]
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
     [ngs-is-tagged <sub-goal> $NGS_DECIDED_TAG <tag-val>]
