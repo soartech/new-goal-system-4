@@ -391,7 +391,7 @@ proc ngs-is-obj-not-constructed { object_id } {
 # Binds to a specified return value, using the name of the return value as 
 #  the principle match condition.
 #
-# It is not usually necessary to use this macro. It is used internally by ngs-match-to-set-return-value
+# It is not usually necessary to use this macro. It is used internally by ngs-match-to-set-return-typed-obj
 #  which is the macro you will typically need to use when dealing with return values.
 #
 # This macro is most useful in a sub-state when you wish to test for the existance of
@@ -556,11 +556,13 @@ proc ngs-match-decided-goal { state_id
                               { type "" } 
                               { goal_pool_id "" }} {
   
+  CORE_RefMacroVars
+
   set supergoal_id [CORE_GenVarName "supergoal"]
   CORE_GenVarIfEmpty decision_name "decision-name"
 
   return "[ngs-match-goal $state_id $goal_name $goal_id $type $goal_pool_id]
-          [ngs-has-decided $goal_id]
+          [ngs-has-decided $goal_id $NGS_YES]
           [ngs-is-assigned-decision $goal_id $decision_name]
           [ngs-is-supergoal $goal_id $supergoal_id]
           [ngs-requested-decision $supergoal_id $decision_name $decision_obj $decision_attr $replacement_behavior]"
@@ -643,6 +645,8 @@ proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {supersta
 #  substate. If you want to bind through the top-state goal pool use
 #  ngs-match-top-state-active-goal instead.
 #
+# [ngs-match-active-goal substate_id goal_name goal_id params_id top_state_id superstate_id]
+#
 # e.g. sp "my-production
 #          [ngs-match-active-goal myGoalName <my-goal> <ss>]
 #          -->
@@ -699,18 +703,15 @@ proc ngs-match-to-make-choice { substate_id
 
 }
 
-# Start a production to bind to an active goal with a given most derived type
+# Start a production to set a return value to a typed object
 #
-# Active goals have been selected for processing in a sub-state. This macro
-#  binds to the sub-state and tests the WM_ACTIVE_GOAL attribute in the 
-#  substate. If you want to bind through the top-state goal pool use
-#  ngs-match-top-state-active-goal instead.
+# [ngs-match-to-set-return-typed-obj substate_id goal_name goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
 #
 # e.g. sp "my-production
 #          [ngs-match-active-goal myGoalName <my-goal> <ss>]
 #          -->
 #          ...do something...
-proc ngs-match-to-set-return-value { substate_id
+proc ngs-match-to-set-return-typed-obj { substate_id
                                      goal_name 
                                      goal_id
                                      return_value_name
@@ -729,7 +730,34 @@ proc ngs-match-to-set-return-value { substate_id
   return $lhs_ret
 }
 
-# May need a match-to-set-return-tag
+# Start a production that will set a return value as a primitive
+#
+# This also works to set return values that are boolean tags
+#
+# [ngs-match-to-set-return-primitive substate_id goal_name goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
+#
+# e.g. sp "my-production
+#          [ngs-match-active-goal myGoalName <my-goal> <ss>]
+#          -->
+#          ...do something...
+proc ngs-match-to-set-return-primitive { substate_id
+                                         goal_name 
+                                         goal_id
+                                         return_value_name
+                                         {return_value_desc_id ""} 
+                                         {params_id ""}
+                                         {top_state_id ""}
+                                         {superstate_id ""} } {
+  CORE_RefMacroVars
+  CORE_GenVarIfEmpty return_value_desc_id "val-desc"
+
+  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $params_id $top_state_id $superstate_id]
+               ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
+               ($return_value_desc_id    ^name  $return_value_name
+                                        -^value)"
+
+  return $lhs_ret
+}
 
 # Use when you need to match a state so you can create a goal as a return value
 #

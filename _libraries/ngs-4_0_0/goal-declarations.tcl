@@ -152,12 +152,12 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
 
   # Automatically activate a goal after selection if it is flagged for auto-activation
   sp* "ngs*core*goal*activate-goal-after-selection*$goal_name
-    [ngs-match-decided-goal <s> DecisionGoal <g> <obj> <attr> <behavior>]
+    [ngs-match-decided-goal <s> $goal_name <g> <obj> <attr> <behavior>]
     [ngs-is-tagged <g> $NGS_ACTIVATE_ON_DECISION]
     [ngs-is-not-tagged <g> $NGS_ALREADY_ACTIVATED]
   -->
     [ngs-create-decide-operator <s> $NGS_OP_ACHIEVE_DECIDED_GOAL <o> <ret-vals> <g>]
     [ngs-create-ret-val-in-place $NGS_DECISION_ITEM_RET_VAL_NAME <ret-vals> <obj> <attr> {} <behavior>]
-    [ngs-create-ret-tag-in-place $NGS_ACTIVATION_STATUS_RET_VAL <ret-vals> <obj> $NGS_ALREADY_ACTIVATED]"
+    [ngs-create-ret-tag-in-place $NGS_ACTIVATION_STATUS_RET_VAL <ret-vals> <g> $NGS_ALREADY_ACTIVATED]"
 
 }

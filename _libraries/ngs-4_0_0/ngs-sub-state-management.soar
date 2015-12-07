@@ -83,7 +83,7 @@ sp* "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*mark-no-choice
 	(<ss>          ^decision-choice   { <choice> <> <dest> }
 		           ^return-values     <ret-val-set>)
 	(<ret-val-set> ^value-description <rv-obj>)
-	(<rv-obj>      ^ret-val-name          $NGS_DECISION_RET_VAL_NAME
+	(<rv-obj>      ^name                 $NGS_DECISION_RET_VAL_NAME
 		           ^destination-object    <dest>)
 -->
 	[ngs-tag-goal-as-decided <choice> $NGS_NO]"

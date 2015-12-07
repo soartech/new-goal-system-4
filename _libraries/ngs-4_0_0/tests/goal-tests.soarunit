@@ -406,7 +406,7 @@ sp* "test*create-decide-operator
     [ngs-create-ret-val-in-place planning-result <ret-vals> <s> updated-plan]"
 
 sp* "test*create-fake-plan
-    [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> planning-result]
+    [ngs-match-to-set-return-typed-obj <ss> TestMaintenanceGoal <g> planning-result]
 -->
     [ngs-create-typed-object-for-ret-val <ss> planning-result MyPlan <new-plan> { text {|I'm here|} } ]"
 
@@ -418,7 +418,7 @@ sp* "test*construct-replacement-value
     [ngs-ocreate-typed-object-in-place <new-val> nested-item Location <new-loc> { x 1 y 2 z 0 }]"
   
 sp "test*move-replacement-value-to-return-set
-    [ngs-match-to-set-return-value <ss> TestMaintenanceGoal <g> replacement-value]
+    [ngs-match-to-set-return-typed-obj <ss> TestMaintenanceGoal <g> replacement-value]
     [ngs-is-attr-constructed <ss> new-value <new-val>]
 -->
 	[ngs-set-ret-val-by-operator <ss> replacement-value <new-val>]"
@@ -744,13 +744,13 @@ sp* "test*create-decision-goal*21
   [ngs-match-goal-to-create-subgoal <s> TopLevelGoal2 <supergoal> DecisionGoal <subgoals> $NGS_GB_MAINT]
 -->
   [ngs-create-goal-in-place <subgoals> DecisionGoal $NGS_GB_ACHIEVE <new-goal> <supergoal> { decision_value foo }]
-  [ngs-assign-decision <new-goal> o-decision]"
+  [ngs-assign-decision <new-goal> o-decision $NGS_YES]"
 
 sp* "test*create-decision-goal*22
   [ngs-match-goal-to-create-subgoal <s> TopLevelGoal2 <supergoal> DecisionGoal <subgoals> $NGS_GB_MAINT]
 -->
   [ngs-create-goal-in-place <subgoals> DecisionGoal $NGS_GB_ACHIEVE <new-goal> <supergoal> { decision_value bar }]
-  [ngs-assign-decision <new-goal> o-decision]"
+  [ngs-assign-decision <new-goal> o-decision $NGS_YES]"
 
 sp* "test*i-like-foo
    [ngs-match-to-make-choice <s> o-decision <g> TopLevelGoal2]
@@ -758,4 +758,12 @@ sp* "test*i-like-foo
    (<my-fav> ^decision_value foo)
 -->
    [ngs-make-choice-by-operator <s> <my-fav>]"
+
+sp* "test*make-foo-work
+   [ngs-match-to-set-return-primitive <s> DecisionGoal <g> $NGS_DECISION_ITEM_RET_VAL_NAME]
+   (<g> ^decision_value <dv>)
+-->
+   [ngs-set-ret-val-by-operator <s> $NGS_DECISION_ITEM_RET_VAL_NAME <dv>]"
+
 }
+
