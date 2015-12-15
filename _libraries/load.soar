@@ -1,3 +1,0 @@
-# We do not lod this, because it is loaded directly via _firstload.soar
-# CORE_LoadDir _core  
-CORE_LoadDir ngs-4_0_0
