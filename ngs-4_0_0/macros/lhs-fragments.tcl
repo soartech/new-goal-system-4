@@ -487,6 +487,34 @@ proc ngs-match-top-state { state_id } {
     return "(state $state_id ^superstate nil)"
 }
 
+# Use to bind to the input link
+#
+# Typically you would use this in your input handling macros, not often
+#  in your productions directly.
+#
+# [ngs-input-link state_id input_link_id]
+#
+# state_id - variable bound to the state (should be bound with a match production)
+# input_link_id - variable that will be bound to the root of the input link
+#
+proc ngs-input-link { state_id input_link_id } {
+  return "($state_id ^io.input-link $input_link_id)"
+}
+
+# Use to bind to the output link
+#
+# Typically you would use this in your output handling macros, not often
+#  in your productions directly.
+#
+# [ngs-output-link state_id input_link_id]
+#
+# state_id - variable bound to the state (should be bound with a match production)
+# output_link_id - variable that will be bound to the root of the input link
+#
+proc ngs-output-link { state_id output_link_id } {
+  return "($state_id ^io.output-link $output_link_id)"
+}
+
 # Start a production to create a stand-alone goal
 #
 # If you are creating a sub-goal, use ngs-match-goal-to-create-subgoal instead.
