@@ -2,6 +2,15 @@
 setup { 
   source "common.soar"
 
+  CORE_ActivateTraceCategory NGS_TRACE_TYPED_OBJECTS
+  CORE_ActivateTraceCategory NGS_TRACE_GOALS
+  CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
+  CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
+  CORE_ActivateTraceCategory NGS_TRACE_TAGS
+  CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES
+  CORE_ActivateTraceCategory NGS_TRACE_RETURN_VALUES
+  CORE_ActivateTraceCategory NGS_TRACE_DECISIONS
+
   NGS_DeclareGoal TestAchievementGoal
   NGS_DeclareGoal TestAchievementSubGoal
   NGS_DeclareGoal TestMaintenanceGoal
@@ -44,11 +53,12 @@ setup {
 
 test goal-i-support-goal-creation { 
 
-sp "test*create-achievement-goal
+sp* "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
     (<s> ^$WM_CYCLE_COUNT > 2)
 -->
-    [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]" 
+    [ngs-create-goal-in-place <goals> TestAchievementGoal $NGS_GB_ACHIEVE <new-goal>]
+    (write (crlf) |This is a Test|)" 
 
 sp "test
     [ngs-match-goal <s> TestAchievementGoal <g> $NGS_GB_ACHIEVE]
