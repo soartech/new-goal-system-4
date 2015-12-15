@@ -52,6 +52,10 @@ CORE_CreateMacroVar WM_OUT_STATUS_COMPLETE "complete"
 CORE_CreateMacroVar CORE_var_creation_counter 0
 
 #################################################
+# Debug tracing categories. This will be a dictionary
+CORE_CreateMacroVar CORE_trace_categories ""
+
+#################################################
 # Debug printing configuration
 
 # Level 0: nothing is output

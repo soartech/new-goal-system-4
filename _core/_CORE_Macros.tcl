@@ -219,6 +219,33 @@ proc CORE_LoadDir { directory } {
   popd
 }
 
+# Use to activate a trace (make it print)
+proc CORE_ActivateTraceCategory { trace_category } {
+  CORE_RefMacroVars
+  dict set CORE_trace_categories $trace_category 1
+}
+
+# Use to de-activate a trace category (make it not print)
+proc CORE_DeactivateTraceCategory { trace_category } {
+  CORE_RefMacroVars
+  dict set CORE_trace_categories $trace_category 1
+}
+
+# Use to create a debug trace output for a given trace category 
+#
+# The trace is only output if the given category is active
+# To activate a trace category use CORE_ActivateTraceCategory
+# 
+# 
+proc core-trace { trace_category trace_text } {
+  CORE_RefMacroVars
+  if { [dict exists $CORE_trace_categories $trace_category] == 1 } {
+    return "(write (crlf) |            -> $trace_text|)"
+  } else {
+    return ""
+  }
+}
+
 # Use this to source productions instead of sp. This allows
 #  easy printout and logging of productions when using TCL
 #  macros

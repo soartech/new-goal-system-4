@@ -105,3 +105,16 @@ CORE_CreateMacroVar NGS_OP_ACHIEVE_DECIDED_GOAL "ngs-op-achieve-decided-goal"
 # Built-in Types
 CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "NGS_TYPE_StateReturnValue"
 CORE_CreateMacroVar NGS_TYPE_DECISION_STRUCTURE "NGS_TYPE_DecisionStructure"
+
+# Debug trace categories. In your code you can activate these (don't activate here)
+# Then you will get a trace of the given type 
+CORE_DeactivateTraceCategory NGS_TRACE_TYPED_OBJECTS
+CORE_DeactivateTraceCategory NGS_TRACE_GOALS
+CORE_DeactivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
+CORE_DeactivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
+CORE_DeactivateTraceCategory NGS_TRACE_TAGS
+CORE_DeactivateTraceCategory NGS_TRACE_PRIMITIVES
+CORE_DeactivateTraceCategory NGS_TRACE_RETURN_VALUES
+CORE_DeactivateTraceCategory NGS_TRACE_DECISIONS
+
+
