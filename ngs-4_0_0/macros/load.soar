@@ -5,3 +5,5 @@ CORE_Source type-declarations.tcl
 
 CORE_Source lhs-fragments.tcl
 CORE_Source rhs-fragments.tcl
+
+CORE_Source debug.tcl

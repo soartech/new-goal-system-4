@@ -40,15 +40,17 @@ CORE_CreateMacroVar NGS_SUBSTATE_PARAMS "params"
 # Elements related to goal decisions
 CORE_CreateMacroVar NGS_DECISION_ATTR "requested-decision"
 CORE_CreateMacroVar NGS_DECIDES_ATTR "decides"
-CORE_CreateMacroVar NGS_DECIDED_TAG  "decided"
-CORE_CreateMacroVar NGS_ACTIVATE_ON_DECISION  "ngs*activate-on-decision"
-CORE_CreateMacroVar NGS_ALREADY_ACTIVATED "ngs*auto-activated"
-CORE_CreateMacroVar NGS_TAG_REQUIRES_DECISION "ngs*requires-decision"
-CORE_CreateMacroVar NGS_TAG_NO_OPTIONS "ngs*no-decision-options"
-CORE_CreateMacroVar NGS_TAG_ONE_OPTION "ngs*one-decision-option"
 CORE_CreateMacroVar NGS_DECISION_RET_VAL_NAME "ngs*decision"
 CORE_CreateMacroVar NGS_DECISION_ITEM_RET_VAL_NAME "ngs*decision-item"
 CORE_CreateMacroVar NGS_ACTIVATION_STATUS_RET_VAL "ngs*activation-status"
+
+CORE_CreateMacroVar NGS_TAG_ACTIVATE_ON_DECISION  "ngs*activate-on-decision"
+CORE_CreateMacroVar NGS_TAG_ALREADY_ACTIVATED "ngs*auto-activated"
+CORE_CreateMacroVar NGS_TAG_DECIDED  "decided"
+
+CORE_CreateMacroVar NGS_TAG_REQUIRES_DECISION "ngs*requires-decision"
+CORE_CreateMacroVar NGS_TAG_NO_OPTIONS "ngs*no-decision-options"
+CORE_CreateMacroVar NGS_TAG_ONE_OPTION "ngs*one-decision-option"
 
 
 # The prefix placed on all tags
@@ -105,6 +107,14 @@ CORE_CreateMacroVar NGS_OP_ACHIEVE_DECIDED_GOAL "ngs-op-achieve-decided-goal"
 # Built-in Types
 CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "NGS_TYPE_StateReturnValue"
 CORE_CreateMacroVar NGS_TYPE_DECISION_STRUCTURE "NGS_TYPE_DecisionStructure"
+
+# LHS Test Types
+CORE_CreateMacroVar NGS_TEST_EQUAL ""
+CORE_CreateMacroVar NGS_TEST_NOT_EQUAL "<>"
+CORE_CreateMacroVar NGS_TEST_LESS_THAN "<"
+CORE_CreateMacroVar NGS_TEST_LESS_THAN_OR_EQUAL "<="
+CORE_CreateMacroVar NGS_TEST_GREATER_THAN ">"
+CORE_CreateMacroVar NGS_TEST_GREATER_THAN_OR_EQUAL ">="
 
 # Debug trace categories. In your code you can activate these (don't activate here)
 # Then you will get a trace of the given type 

@@ -28,6 +28,227 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+######## Basic left hand side condition test macros ###########
+# Basic comparisons
+#
+# Use this sequence of macros to do tests on the left hand side
+#  of productions. Each macro allows you to do a test AND bind
+#  the value as a separate action (if desired). If you want to
+#  quickly bind several attributes of an object, use ngs-bind
+#  instead.
+#
+# [ngs-COMP obj_id attr val (val_id)]
+#
+# obj_id - variable bound to the object to test
+# attr   - attribute to test
+# val    - value to compare to
+# val_id - (Optional) if provided, will be bound to the
+#            value (separately from the test)
+#
+proc ngs-eq { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  # Probably should put in some processing to handle disjunctions
+  return [ngs-test $NGS_TEST_EQUAL $obj_id $attr $val $val_id]
+}
+proc ngs-neq { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return [ngs-test $NGS_TEST_NOT_EQUAL $obj_id $attr $val $val_id]
+}
+proc ngs-lt { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return [ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $val $val_id]
+}
+proc ngs-lte { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $val $val_id]
+}
+proc ngs-gt { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return [ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $val $val_id]
+}
+proc ngs-gte { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return [ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]
+}
+proc ngs-gte-lt { obj_id attr low_val high_val { val_id ""} } {
+  CORE_RefMacroVars
+  return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
+          [ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $high_val]"
+}
+proc ngs-gte-lte { obj_id attr low_val high_val { val_id ""} } {
+  CORE_RefMacroVars
+  return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
+          [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $high_val]"
+}
+# Bind variables to an object's attributes
+# 
+# Use this macro to quickly and easily bind variables to an object's
+#  attributes. The variables will have the same name as the attributes.
+#  E.g. an attribute called "foo" will be bound to the variable <foo>.
+#
+# You can also use this macro to quick bind chains of attributes. E.g.
+#  you can bind system.time to <system> and <time> by doing the following
+#  [ngs-bind <input-link> system.time]. 
+#
+# If you need any attribute to bind to a variable with a different name
+#  than the attribute, you can indicate this via the : symbol. E.g.
+#  [ngs-bind <input-link> system:<sys>.time:<my-time>] which will convert
+#  to the following Soar code:
+#  (<input-link> ^system <sys>)
+#  (<sys>        ^time   <my-time>)
+#
+# Finally, if you want, you can constrain a binding to only occur
+#  for attributes of a specific type using the ! operator. E.g.
+#  [ngs-bind <input-link> agent!RobotAgent:<me>.location!Location] will expand to
+#  (<input-link> ^agent <me>)
+#  (<me>         ^type RobotAgent)
+#  (<me>         ^location <location>)
+#  (<location>   ^type Location)
+#  
+# [ngs-bind obj_id attr_list]
+#
+# obj_id - variable bound to the object for which to bind attributes
+# attr_list - list of attributes to bind
+#
+proc ngs-bind { obj_id attr_list } {
+  set lhs_ret ""
+
+  foreach attr $attr_list {
+    set obj $obj_id
+
+    # Handles dot notation
+    set segments [split $attr "."]
+    foreach segment $segments {
+
+      # Handle renaming the attributes in variable names
+      set names [split $segment ":"]
+      if { [llength $names] > 1} {
+        set attr_name [lindex $names 0]
+        set attr_var  [lindex $names 1]
+      } else {
+        set attr_name $segment
+        set attr_var  "<$segment>"
+      }
+
+      # Handle case of testing the type
+      set attr_type_pair [split $attr_name "!"]
+      if { [llength $attr_type_pair] > 1} {
+        set attr_name [lindex $attr_type_pair 0]
+        set attr_type [lindex $attr_type_pair 1]
+
+        if { [llength $names] < 2 } {
+          set attr_var "<$attr_name>"
+        }
+
+      } else {
+        set attr_type ""
+      }
+
+      if { $lhs_ret == "" } {
+        set lhs_ret "($obj ^$attr_name $attr_var)"
+      } else {
+        set lhs_ret "$lhs_ret
+                     ($obj ^$attr_name $attr_var)"        
+      }
+
+      if { $attr_type != "" } {
+        set lhs_ret "$lhs_ret
+                     [ngs-is-type $attr_var $attr_type]"
+      }
+
+      # prep for next iteration
+      set obj $attr_var 
+    }
+
+  }
+  return $lhs_ret
+}
+
+# The general test macro
+#
+# This macro is used by the more specific test macros to 
+#  generate the Soar code for left hand side tests. You
+#  typically don't need to use this in your productions.
+#
+# test_type - one of the NGS_TEST constants specifying the
+#              type of comparison to do
+# obj_id - variable bound to the object to test
+# attr   - the attribute to test
+# val    - the comarison value (the value to compare to)
+# val_id - (Optional) if provided, this variable will be bound
+#          to the value. 
+#
+proc ngs-test { test_type obj_id attr val { val_id ""} } {
+  if { $val_id == "" } {
+    return "($obj_id ^$attr $test_type $val)"
+  } else {
+    return "($obj_id ^$attr \{ $val_id $test_type $val \})"
+  }
+}
+
+############## Other standard testing macros ##########################
+
+# Binds to the time variables on the input link 
+#
+# Use to get the time for use in an agent
+#
+# [ngs-time state_id time (time_id) (time_test) (input_link_id)]
+#
+# state_id - variable bound to the state object 
+# time - variable to bind to the time or a constant to test the time 
+# time_id - (Optional) if you are testing the time (and not just binding)
+#            you can pass a variable name to bind to the time
+# time_test - (Optional) if you wish to compare the test to some value,
+#              pass one of the NGS_TEST constants in this parameter
+# input_link_id - (Optional) if provided, a variable that will be bound
+#                   to the input link identifier
+# 
+proc ngs-time { state_id time {time_id ""} {time_test ""} {input_link_id ""}} {
+  
+  CORE_RefMacroVars
+
+  set system_id [CORE_GenVarName "system"]
+
+  CORE_GenVarIfEmpty input_link_id "input-link"
+  CORE_SetIfEmpty time_test $NGS_TEST_EQUAL
+  
+  set lhs_ret "[ngs-input-link $state_id $input_link_id]
+               ($input_link_id ^system $system_id)"
+
+  return "$lhs_ret
+          [ngs-test $time_test $system_id time $time $time_id]"
+}
+
+# Same as ngs-time, but tests for time being between two values (using ngs-gte-lt)
+#
+# [ngs-time-range state_id start_time end_time (time_id) (input_link_id)]
+#
+proc ngs-time-range { state_id start_time end_time { time_id "" } { input_link_id "" }} {
+  set system_id [CORE_GenVarName "system"]
+  CORE_GenVarIfEmpty input_link_id "input-link"
+  
+  set lhs_ret "[ngs-input-link $state_id $input_link_id]
+               ($input_link_id ^system $system_id)"
+
+  return "$lhs_ret
+          [ngs-gte-lt $system_id time $start_time $end_time $time_id]"  
+}
+
+# Same as ngs-time, except for the cycle cycle-count
+#
+# [ngs-cycle state_id cycle (cycle_id) (cycle_test) (input_link_id)]
+#
+proc ngs-cycle { state_id cycle {cycle_id ""} {cycle_test ""} {input_link_id ""}} {
+  set system_id [CORE_GenVarName "system"]
+  CORE_GenVarIfEmpty input_link_id "input-link"
+  
+  set lhs_ret "[ngs-input-link $state_id $input_link_id]
+               ($input_link_id ^system $system_id)"
+
+  return "$lhs_ret
+          [ngs-test $cycle_test $system_id cycle-count $cycle $cycle_id]"
+}
+
 # Binds to an object's type, if it has a type attribute
 #
 # [ngs-is-type object_id type_name]
@@ -180,7 +401,7 @@ proc ngs-is-not-achieved { goal_id } {
 proc ngs-has-decided { goal_id { decision_value "" } } {
   CORE_RefMacroVars
   CORE_GenVarIfEmpty decision_value "decision-value"
-  return "[ngs-is-tagged $goal_id $NGS_DECIDED_TAG $decision_value]"
+  return "[ngs-is-tagged $goal_id $NGS_TAG_DECIDED $decision_value]"
 }
 
 # Evaluates to true if a decision has NOT been made on this goal
@@ -197,7 +418,7 @@ proc ngs-has-decided { goal_id { decision_value "" } } {
 proc ngs-has-not-decided { goal_id { decision_value "" } } {
   CORE_RefMacroVars
   CORE_GenVarIfEmpty decision_value "__decision-value"
-  return "[ngs-is-not-tagged $goal_id $NGS_DECIDED_TAG $decision_value]"
+  return "[ngs-is-not-tagged $goal_id $NGS_TAG_DECIDED $decision_value]"
 }
 
 # Evaluates to true if the given goal has been assigned a given decision
@@ -221,7 +442,7 @@ proc ngs-is-assigned-decision { goal_id decision_name } {
 #  bind to the information about the decision to be made and get the
 #  decision's object and attribute.
 #
-# [ngs-requested-decision goal_id decision_name (decision_obj) (decision_attr) (decision_info_id)]
+# [ngs-requested-decision goal_id decision_name (decision_obj) (decision_attr) (replacement_behavior) (decision_info_id)]
 #
 # goal_id - variable bound to the goal for which to check for a requested decision
 # decision_name - name of the decision to check for being requested
@@ -229,6 +450,7 @@ proc ngs-is-assigned-decision { goal_id decision_name } {
 #                  recieves the result of the decision)
 # decision_attr - (Optional) a variable to bind to the decision attribute (attribute
 #                  that recieves the result of the decision)
+# replacement_behavior - (Optional) a variable to bind to the replacement behavior for this decision object.attribute
 # decision_info_id - (Optional) a variable that is bound to the decision information object.
 #                   Typically only ngs code needs to do this.
 # 
@@ -436,7 +658,7 @@ proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value_id ""} { ret_val
 # This macro does not bind the subgoal. Use a different macro
 #  (e.g. ngs-match-active-goal) to bind the subgoal.
 # 
-# [ngs-is-supergoal goal_id supergoal_id *supergoal_name]
+# [ngs-is-supergoal goal_id supergoal_id (supergoal_name)]
 #
 # goal_id: Subgoal (already bound)
 # supergoal_id: Supergoal of "goal_id." Will be bound by this macro
@@ -455,12 +677,28 @@ proc ngs-is-supergoal { goal_id supergoal_id {supergoal_name ""} } {
 
 }
 
+# Use this to check if a given goal does not have a given supergoal
+#
+# Because this macro is a negation test, you cannot use variables
+#  that are bound exclusively in this macro
+# 
+# [ngs-is-not-supergoal goal_id supergoal_id (supergoal_name)]
+#
+# goal_id: Subgoal (already bound)
+# supergoal_id: Supergoal of "goal_id" You cannot use this variable unless
+#                 it is also bound somewhere else on the LHS. 
+# supergoal_name: (Optional) If provided, tests only for supergoals with the given name.
+#
+proc ngs-is-not-supergoal { goal_id supergoal_id {supergoal_name ""} } {
+  return "-{ [ngs-is-supergoal $goal_id $supergoal_id $supergoal_name] }"
+}
+
 # Use to bind to a goal's subgoal
 #
 # This macro does not bind the supegoal. Use a different macro
 #  (e.g. ngs-match-active-goal) to bind the supergoal.
 # 
-# [ngs-is-subgoal goal_id subgoal_id *subgoal_name]
+# [ngs-is-subgoal goal_id subgoal_id (subgoal_name)]
 #
 # goal_id: Supergoal (already bound)
 # subgoal_id: Subgoal of "goal_id." Will be bound by this macro
@@ -477,14 +715,46 @@ proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
   }
 }
 
+# Use this to check if a given goal does not have a given subgoal
+#
+# Because this macro is a negation test, you cannot use variables
+#  that are bound exclusively in this macro
+# 
+# [ngs-is-not-supergoal goal_id subgoal_id (subgoal_name)]
+#
+# goal_id: Subgoal (already bound)
+# subgoal_id: Subgoal of "goal_id" You cannot use this variable unless
+#                 it is also bound somewhere else on the LHS. 
+# subgoal_name: (Optional) If provided, tests only for subgoals with the given name.
+#
+proc ngs-is-not-subgoal { goal_id subgoal_id {subgoal_name ""} } {
+  return "-{ [ngs-is-subgoal $goal_id $subgoal_id $subgoal_name] }"
+}
+
 #######################################################################################
 
 # Start an open ended production that simply binds to the top state
 # 
 # [ngs-match-top-state state_id]
 #
-proc ngs-match-top-state { state_id } {
-    return "(state $state_id ^superstate nil)"
+proc ngs-match-top-state { state_id {bindings ""} {input_link ""} {output_link ""}} {
+
+  set lhs_ret "(state $state_id ^superstate nil)"
+  set io_id [CORE_GenVarName io]
+
+  if { $input_link != "" } {
+    lappend bindings io:$io_id.input-link:$input_link
+  }
+  if { $output_link != "" } {
+    lappend bindings io:$io_id.output-link:$output_link
+  }
+
+  if { $bindings == "" } {
+     return "(state $state_id ^superstate nil)"
+  } else {
+     return "(state $state_id ^superstate nil)
+             [ngs-bind $state_id $bindings]"
+  }
 }
 
 # Use to bind to the input link

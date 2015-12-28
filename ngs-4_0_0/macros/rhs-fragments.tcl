@@ -111,7 +111,7 @@ proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 proc ngs-tag-goal-as-decided { goal_id { decided_value ""} } {
   CORE_RefMacroVars
   CORE_SetIfEmpty decided_value $NGS_YES
-  return [ngs-tag $goal_id "$NGS_DECIDED_TAG" $decided_value]
+  return [ngs-tag $goal_id "$NGS_TAG_DECIDED" $decided_value]
 }
 
 # Create working memory element, i.e. an object "attribute"
@@ -230,6 +230,8 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
 #  macro is for creating the initial object and link. Use
 #  ngs-ocreate-typed-object-in-place to create a composed (nested)
 #  object that is linked to the newly created object.
+#
+# [ngs-create-typed-object-by-operator state_id parent_obj_id attribute type new_obj_id (attribute_list) (replacement_behavior) (add_prefs)]
 #
 # state_id - variable bound the state in which to propose the operator
 # parent_obj_id - variable bound to the id of the parent of the object being created
@@ -780,7 +782,7 @@ proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
               [core-trace NGS_TRACE_DECISIONS "? ASSIGN-DECISION, $decision_name, for goal | $goal_id |, AutoActivate = $NGS_NO."]"
   } else {
       return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)
-              [ngs-tag $goal_id $NGS_ACTIVATE_ON_DECISION]
+              [ngs-tag $goal_id $NGS_TAG_ACTIVATE_ON_DECISION]
               [core-trace NGS_TRACE_DECISIONS "? ASSIGN-DECISION, $decision_name, for goal | $goal_id |, AutoActivate = $NGS_YES."]"
   }
 }

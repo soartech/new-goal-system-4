@@ -148,7 +148,9 @@ proc ngs-construct { object_id typename { attribute_list "" } } {
 		# Defaults are created via NGS_DeclareType
 		dict for {key val} $defaults {
 			if { $val != "" } {
-				if {[dict exists $new_vals $key] == 0} {
+				# The "type" part is a hack to allow support for inheritance
+				# Type infrastructure needs more work
+				if {([dict exists $new_vals $key] == 0) || ($key == "type")} {
 					set ret_val "$ret_val ^$key $val"
 				} 
 			}
