@@ -76,3 +76,20 @@ NGS_DeclareType $NGS_TYPE_DECISION_STRUCTURE {
   destination-attribute ""
   replacement-behavior $NGS_REPLACE_IF_EXISTS
 }
+
+# Type used for output commands
+#
+# The base output command only declares a set of tags that may be
+#  placed on the output object by the output-link processing
+#
+# NGS_TAG_STATUS_COMPLETE - Set to NGS_YES after the output link processes
+#      the command. This will trigger ngs to remove the output command
+# NGS_TAG_ERROR - Set by the output link process if there is an error processing
+#      the command. This is the error identifier.
+# NGS_TAG_ERROR_STRING - Set by the output link proces sif there is an error processing
+#      the command. This is the error description.
+#
+NGS_DeclareType $NGS_TYPE_OUTPUT_COMMAND {}
+
+
+

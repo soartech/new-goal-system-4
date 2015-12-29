@@ -44,13 +44,6 @@ CORE_CreateMacroVar NGS_DECISION_RET_VAL_NAME "ngs*decision"
 CORE_CreateMacroVar NGS_DECISION_ITEM_RET_VAL_NAME "ngs*decision-item"
 CORE_CreateMacroVar NGS_ACTIVATION_STATUS_RET_VAL "ngs*activation-status"
 
-CORE_CreateMacroVar NGS_TAG_ACTIVATE_ON_DECISION  "ngs*activate-on-decision"
-CORE_CreateMacroVar NGS_TAG_ALREADY_ACTIVATED "ngs*auto-activated"
-CORE_CreateMacroVar NGS_TAG_DECIDED  "decided"
-
-CORE_CreateMacroVar NGS_TAG_REQUIRES_DECISION "ngs*requires-decision"
-CORE_CreateMacroVar NGS_TAG_NO_OPTIONS "ngs*no-decision-options"
-CORE_CreateMacroVar NGS_TAG_ONE_OPTION "ngs*one-decision-option"
 
 
 # The prefix placed on all tags
@@ -87,6 +80,15 @@ CORE_CreateMacroVar NGS_TAG_SOURCE_OBJ               "ngs*source-object"
 CORE_CreateMacroVar NGS_TAG_DECISION_COMPLETE        "ngs*decision-complete"
 CORE_CreateMacroVar	NGS_TAG_SELECTED_GOAL			 "ngs*selected-goal"
 CORE_CreateMacroVar NGS_TAG_I_SUPPORTED              "ngs*i-supported"
+CORE_CreateMacroVar NGS_TAG_ACTIVATE_ON_DECISION  	 "ngs*activate-on-decision"
+CORE_CreateMacroVar NGS_TAG_ALREADY_ACTIVATED 		 "ngs*auto-activated"
+CORE_CreateMacroVar NGS_TAG_DECIDED  			     "ngs*decided"
+CORE_CreateMacroVar NGS_TAG_REQUIRES_DECISION 		 "ngs*requires-decision"
+CORE_CreateMacroVar NGS_TAG_NO_OPTIONS 				 "ngs*no-decision-options"
+CORE_CreateMacroVar NGS_TAG_ONE_OPTION 				 "ngs*one-decision-option"
+CORE_CreateMacroVar NGS_TAG_STATUS_COMPLETE			 "ngs*status-complete"
+CORE_CreateMacroVar NGS_TAG_ERROR                    "ngs*ERROR"
+CORE_CreateMacroVar NGS_TAG_ERROR_STRING             "ngs*ERROR-string"
 
 CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 
@@ -105,8 +107,9 @@ CORE_CreateMacroVar NGS_OP_DECIDE_GOAL        "ngs-op-decide-goal"
 CORE_CreateMacroVar NGS_OP_ACHIEVE_DECIDED_GOAL "ngs-op-achieve-decided-goal"
 
 # Built-in Types
-CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "NGS_TYPE_StateReturnValue"
-CORE_CreateMacroVar NGS_TYPE_DECISION_STRUCTURE "NGS_TYPE_DecisionStructure"
+CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "NGS_StateReturnValue"
+CORE_CreateMacroVar NGS_TYPE_DECISION_STRUCTURE "NGS_DecisionStructure"
+CORE_CreateMacroVar NGS_TYPE_OUTPUT_COMMAND     "NGS_OutputCommand"
 
 # LHS Test Types
 CORE_CreateMacroVar NGS_TEST_EQUAL ""
@@ -126,5 +129,6 @@ CORE_DeactivateTraceCategory NGS_TRACE_TAGS
 CORE_DeactivateTraceCategory NGS_TRACE_PRIMITIVES
 CORE_DeactivateTraceCategory NGS_TRACE_RETURN_VALUES
 CORE_DeactivateTraceCategory NGS_TRACE_DECISIONS
-
+CORE_DeactivateTraceCategory NGS_TRACE_OUTPUT
+CORE_ActivateTraceCategory NGS_TRACE_ERRORS
 

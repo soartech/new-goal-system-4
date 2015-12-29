@@ -1,0 +1,22 @@
+# Propose operator to remove an output link command after being tagged as completed
+# This operator is given best preference so it happens right away
+sp "ngs*output-link*propose*remove-completed-command
+	[ngs-match-top-state <s> {} {} <ol>]
+	[ngs-bind <ol> command]
+	[ngs-is-tagged <command> $NGS_TAG_STATUS_COMPLETE]
+-->
+	[ngs-remove-attribute-by-operator <s> <ol> command <command> ">"]
+	[core-trace NGS_TRACE_OUTPUT "O CREATE-OUTPUT-COMMAND, (| <ol> |.command | <command> |)."]"
+
+# Print out to console any error messages
+sp "ngs*output-link*print-output-error
+	[ngs-match-top-state <s> {} {} <ol>]
+	[ngs-bind <ol> command]
+	[ngs-is-tagged <command> $NGS_TAG_ERROR <err>]
+	[ngs-is-tagged <command> $NGS_TAG_ERROR_STRING <err-string>]
+-->
+	[core-trace NGS_TRACE_ERRORS "!------------------------------------------------------------------!"]
+	[core-trace NGS_TRACE_ERRORS "! ERROR, (| <ol> |.command | <command> |)."]
+	[core-trace NGS_TRACE_ERRORS "! Error(| <err> |): | <err-string> |."]
+	[core-trace NGS_TRACE_ERRORS "!------------------------------------------------------------------!"]"
+	

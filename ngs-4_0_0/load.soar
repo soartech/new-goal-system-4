@@ -8,3 +8,4 @@ CORE_Source ngs-sub-state-management.soar
 CORE_Source goal-declarations.tcl
 CORE_Source ngs-removal-applications.soar
 CORE_Source ngs-standard-time-elaborations.soar
+CORE_Source ngs-output-handling.soar

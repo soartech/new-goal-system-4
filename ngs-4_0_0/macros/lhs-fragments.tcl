@@ -735,8 +735,13 @@ proc ngs-is-not-subgoal { goal_id subgoal_id {subgoal_name ""} } {
 
 # Start an open ended production that simply binds to the top state
 # 
-# [ngs-match-top-state state_id]
+# [ngs-match-top-state state_id (bindings) (input_link) (output_link)]
 #
+# state_id - Variable bound to the the state identifer (bound by this macro)
+# bindings - (Optional) If provided, a string to be passed to ngs-bind as
+#               [ngs-bind <state_id> $bindings]
+# input_link - (Optional) If provided, a variable to bind to the input link
+# output_link - (Optional) If provided, a varaible to bind to the output link
 proc ngs-match-top-state { state_id {bindings ""} {input_link ""} {output_link ""}} {
 
   set lhs_ret "(state $state_id ^superstate nil)"
@@ -766,9 +771,16 @@ proc ngs-match-top-state { state_id {bindings ""} {input_link ""} {output_link "
 #
 # state_id - variable bound to the state (should be bound with a match production)
 # input_link_id - variable that will be bound to the root of the input link
+# bindings - (Optional) If provided, a string to be passed to ngs-bind as
+#               [ngs-bind <input_link_id> $bindings]
 #
-proc ngs-input-link { state_id input_link_id } {
-  return "($state_id ^io.input-link $input_link_id)"
+proc ngs-input-link { state_id input_link_id {bindings ""} } {
+  if {$bindings == ""} {
+    return "($state_id ^io.input-link $input_link_id)"
+  } else {
+    return "($state_id ^io.input-link $input_link_id)
+            [ngs-bind $input_link_id $bindings]"
+  }
 }
 
 # Use to bind to the output link
@@ -780,9 +792,16 @@ proc ngs-input-link { state_id input_link_id } {
 #
 # state_id - variable bound to the state (should be bound with a match production)
 # output_link_id - variable that will be bound to the root of the input link
+# bindings - (Optional) If provided, a string to be passed to ngs-bind as
+#               [ngs-bind <output_link_id> $bindings]
 #
-proc ngs-output-link { state_id output_link_id } {
-  return "($state_id ^io.output-link $output_link_id)"
+proc ngs-output-link { state_id output_link_id {bindings ""} } {
+  if {$bindings == ""} {
+    return "($state_id ^io.output-link $output_link_id)"
+  } else {
+    return "($state_id ^io.output-link $output_link_id)
+            [ngs-bind $output_link_id $bindings]"
+  }
 }
 
 # Start a production to create a stand-alone goal
@@ -995,7 +1014,7 @@ proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {supersta
 #  substate. If you want to bind through the top-state goal pool use
 #  ngs-match-top-state-active-goal instead.
 #
-# [ngs-match-active-goal substate_id goal_name goal_id params_id top_state_id superstate_id]
+# [ngs-match-active-goal substate_id goal_name goal_id (params_id) (top_state_id) (superstate_id)]
 #
 # substate_id - variable that will be bound to the substate_id
 # goal_name - name constraining which active goals will get bound

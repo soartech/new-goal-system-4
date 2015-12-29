@@ -1,4 +1,46 @@
+#
+# Copyright (c) 2015, Soar Technology, Inc.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+# 
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+# 
+# * Neither the name of Soar Technology, Inc. nor the names of its contributors
+#   may be used to endorse or promote products derived from this software
+#   without the specific prior written permission of Soar Technology, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED BY SOAR TECHNOLOGY, INC. AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL SOAR TECHNOLOGY, INC. OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
+# Wrapper for Soar's deep-copy rhs function
+#
+# Use this to make the TCL syntax easier when doing deep copies
+# In general, deep copies are only necessary when handling input-link
+#  information.
+# 
+# [ngs-deep-copy obj_id]
+#
+# obj_id - variable bound to the object to deep copy
+#
+proc ngs-deep-copy { obj_id } {
+  return "(deep-copy $obj_id)"
+}
 
 # Creates a tag from a string of text
 #
@@ -12,7 +54,7 @@
 # returns - NGS fully qualified tag name
 #
 proc ngs-tag-for-name { tag_name } {
-  variable NGS_TAG_PREFIX
+  CORE_RefMacroVars
   return $NGS_TAG_PREFIX$tag_name
 }
 
@@ -151,6 +193,32 @@ proc ngs-create-attribute { parent_obj_id
  	        
 }
 
+# Remove a working memory element, i.e. an object "attribute"
+#
+# This will create the code to generate a simple soar WME 
+#  preference to remove a WME. 
+#
+# You can simply remove a WME using standard Soar
+#  syntax (which is a bit more compact), but in the future, this
+#  type of method might be used to do type checking or other 
+#  processing, so it's advisable to use it if the standard
+#  creation processes won't work for you.
+#
+# [ngs-remove-attribute parent_obj_id attribute value ]
+#
+# parent_obj_id - A variable bound to the parent object of the WME (left hand side)
+# attribute - A symbol bound to the attribute of the WME (middle value)
+# value - A symbol bound to the value of the WME (right hand side)
+#
+proc ngs-remove-attribute { parent_obj_id 
+                            attribute
+                            value } {
+
+  CORE_RefMacroVars
+    
+  return "($parent_obj_id ^$attribute $value -)"
+          
+}
 # Creates an object in a form appropriate for i-support
 #
 # Use this on the righ-hand side of a production to create a typed object
@@ -159,7 +227,7 @@ proc ngs-create-attribute { parent_obj_id
 #
 # NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
 #
-# E.g. [ngs-icreate-typed-object-in-place <parrent> attribute-name MyType <new-obj> { attr1 val1 attr2 val2 attr3-set {set1 set2 set3} }]
+# [ngs-icreate-typed-object-in-place <parrent> attribute-name MyType <new-obj> { attr1 val1 attr2 val2 attr3-set {set1 set2 set3} }]
 #
 # parent_obj_id - Variable bound to the object that will link to the newly constructed object
 # attribute - Name of the attribute that should hold the new object
@@ -485,7 +553,7 @@ proc ngs-create-decide-operator { state_id
                                   new_obj_id
                                   ret_val_set_id
                                   goal_id
- 								 {completion_tag ""}
+ 								                 {completion_tag ""}
                                  {add_prefs "="} } {
 
    CORE_RefMacroVars
@@ -512,7 +580,7 @@ proc ngs-create-decide-operator { state_id
 #  with a production or process that marks them as achieved when conditions are met.
 #  See ngs-tag-goal-achieved.
 #
-# [ngs-create-goal-in-place goal_set_id goal_name type new_obj_id (supergoal_id)]
+# [ngs-create-goal-in-place goal_set_id goal_name type new_obj_id (supergoal_id) (attribute_list)]
 #
 # goal_set_id - variable bound to the goal set in which to place this goal. Bind this
 #                variable on the left side using macro ngs-match-goalpool or ngs-match-goal.
@@ -833,11 +901,10 @@ proc ngs-create-ret-val-in-place { ret_val_name
       set attr_list "$attr_list destination-attribute $attribute"
     }
     if { $new_val != "" } {
-     	set attr_list "$attr_list value $new_val"
-    }
+      set attr_list "$attr_list value $new_val"
+    } 
 
     return [ngs-icreate-typed-object-in-place $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $attr_list]
-           
 }
 
 # Creates a return tag on an operator
@@ -915,7 +982,7 @@ proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
 #        object could be the return value).
 #
 # 
-
+# [ngs-set-ret-val-by-operator state_id ret_val_name value (add_prefs)]
 #
 # state_id - variable bound to the _sub-state_ in which the operator to set the return value should be created.
 # ret_val_name - name of the return value to set

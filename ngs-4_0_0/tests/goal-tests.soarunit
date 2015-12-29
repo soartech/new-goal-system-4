@@ -53,7 +53,7 @@ setup {
 
 test goal-i-support-goal-creation { 
 
-sp* "test*create-achievement-goal
+sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestAchievementGoal]
     (<s> ^$WM_CYCLE_COUNT > 2)
 -->

@@ -2,7 +2,7 @@
 # is elaborated to the system.time attribute on the input link.
 # To bind to or test the time, use ngs-time
 
-sp* "ngs*input-link*elaborate*time*simulation
+sp "ngs*input-link*elaborate*time*simulation
 	[ngs-match-top-state <s>]
     [ngs-input-link <s> <il>]
     [ngs-bind <il> system!SystemInformation.sim-time:<sys-time>]
@@ -10,7 +10,7 @@ sp* "ngs*input-link*elaborate*time*simulation
 	[ngs-create-attribute <system> time <sys-time>]
 	[ngs-tag <system> running-in simulation]"
 
-sp* "ngs*input-link*elaborate*time*real-world
+sp "ngs*input-link*elaborate*time*real-world
 	[ngs-match-top-state <s>]
     [ngs-input-link <s> <il>]
     [ngs-bind <il> system!SystemInformation.wall-time:<sys-time>]
@@ -18,7 +18,7 @@ sp* "ngs*input-link*elaborate*time*real-world
 	[ngs-create-attribute <system> time <sys-time>]
 	[ngs-tag <system> running-in real-world]"
 
-sp* "ngs*input-link*elaborate*time*soar-unit
+sp "ngs*input-link*elaborate*time*soar-unit
 	[ngs-match-top-state <s>]
     [ngs-input-link <s> <il>]
     [ngs-bind <il> system!SystemInformation.cycle-count:<sys-time>]

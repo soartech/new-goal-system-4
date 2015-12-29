@@ -109,7 +109,6 @@ proc expand_variables { var_list } {
 #  defaults for objects of this type.
 #
 proc NGS_DeclareType { typename attribute_list } {
-
 	# Create a variable that holds the default values for
 	#  the tyep's attribtues	
 	variable NGS_TYPEINFO_$typename
