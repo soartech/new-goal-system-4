@@ -233,7 +233,7 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 
   # Set all of the non-tag attributes
   set rhs_val "$rhs_val
-              [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
+              [ngs-construct $new_obj_id $type [lappend attribute_list type $type name $type]]"
 
   set rhs_val "$rhs_val
                [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
@@ -271,7 +271,7 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
 
   # Set all of the non-tag attributes
   set rhs_val "$rhs_val
-              [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
+              [ngs-construct $new_obj_id $type [lappend attribute_list type $type name $type]]"
 
   return "$rhs_val
           [core-trace NGS_TRACE_O_TYPED_OBJECTS "o CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
@@ -339,7 +339,6 @@ proc ngs-create-output-command-by-operator { state_id
 
   return "[ngs-create-typed-object-by-operator $state_id $output_link_id $NGS_OUTPUT_COMMAND_ATTRIBUTE \
                                              $command_type $cmd_id $attribute_list $NGS_ADD_TO_SET $add_prefs]
-          [ngs-create-attribute $cmd_id name $command_type]
           [core-trace NGS_TRACE_OUTPUT "O OUTPUT-COMMAND-ISSUED, $command_type, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $cmd_id |)."]"
 }
 
@@ -780,7 +779,7 @@ proc ngs-create-goal-as-return-value { state_id
 	             ($op_id ^dest-attribute        value-description
                     ^new-obj               $ret_val_id
                     ^replacement-behavior  $NGS_ADD_TO_SET)
-               ($ret_val_id ^name                  $NGS_GOAL_RETURN_VALUE
+               ($ret_val_id ^id                  $NGS_GOAL_RETURN_VALUE
                             ^destination-attribute $NGS_GOAL_ATTRIBUTE
                             ^replacement-behavior  $NGS_ADD_TO_SET
                             ^value    $new_obj_id)
@@ -833,7 +832,7 @@ proc ngs-irequest-decision { goal_id
    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
    set decision_id [CORE_GenVarName "_decision"]
-   set attr_list "name $decision_name destination-object $dec_obj destination-attribute $dec_attr replacement-behavior $replacement_behavior" 
+   set attr_list "id $decision_name destination-object $dec_obj destination-attribute $dec_attr replacement-behavior $replacement_behavior" 
 
    return "[ngs-icreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR $NGS_TYPE_DECISION_STRUCTURE $decision_id $attr_list]
            [core-trace NGS_TRACE_DECISIONS "I REQUEST-DECISION, $decision_name, for goal | $goal_id | result to (| $dec_obj |.$dec_attr)."]"
@@ -878,7 +877,7 @@ proc ngs-orequest-decision { goal_id
    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
    set decision_id [CORE_GenVarName "_decision"]
-   set attr_list "name $decision_name destination-object $dec_obj destination-attribute $dec_attr replacement-behavior $replacement_behavior" 
+   set attr_list "id $decision_name destination-object $dec_obj destination-attribute $dec_attr replacement-behavior $replacement_behavior" 
 
    return "[ngs-ocreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR $NGS_TYPE_DECISION_STRUCTURE $decision_id $attr_list]
            [core-trace NGS_TRACE_DECISIONS "o REQUEST-DECISION, $decision_name, for goal | $goal_id | result to (| $dec_obj |.$dec_attr)."]"
@@ -958,7 +957,7 @@ proc ngs-create-ret-val-in-place { ret_val_name
     CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
     set ret_val_id [CORE_GenVarName new-ret-val]
-    set attr_list "name $ret_val_name replacement-behavior $replacement_behavior" 
+    set attr_list "id $ret_val_name replacement-behavior $replacement_behavior" 
 
     if { $dest_obj_id != "" } {
       set attr_list "$attr_list destination-object $dest_obj_id"
