@@ -428,10 +428,11 @@ proc ngs-remove-attribute-by-operator { state_id
 									    {add_prefs "="} } {
 
 	CORE_RefMacroVars
-	return "[ngs-create-atomic-operator $state_id $NGS_REMOVE_ATTRIBUTE <o> $add_prefs]
+	return "[ngs-create-atomic-operator $state_id "(concat |remove-wme--| $parent_obj_id |--| $attribute |--| $value)" <o> $add_prefs]
 			    (<o> ^dest-object    $parent_obj_id
        		     ^dest-attribute $attribute
      	         ^value-to-remove $value)
+          [ngs-tag <o> $NGS_TAG_REMOVE_ATTRIBUTE]
           [core-trace NGS_TRACE_PRIMITIVES "O REMOVE-WME, (| $parent_obj_id |.$attribute $value)."]"
 }
 
