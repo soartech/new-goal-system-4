@@ -28,20 +28,6 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-# Wrapper for Soar's deep-copy rhs function
-#
-# Use this to make the TCL syntax easier when doing deep copies
-# In general, deep copies are only necessary when handling input-link
-#  information.
-# 
-# [ngs-deep-copy obj_id]
-#
-# obj_id - variable bound to the object to deep copy
-#
-proc ngs-deep-copy { obj_id } {
-  return "(deep-copy $obj_id)"
-}
-
 # Creates a tag from a string of text
 #
 # Tags have a prefix on them given by $NGS_TAG_PREFIX
@@ -373,6 +359,45 @@ proc ngs-create-primitive-by-operator { state_id
           [core-trace NGS_TRACE_PRIMITIVES "O CREATE-PRIMITIVE, (| $parent_obj_id |.$attribute $value)."]"
 
 }
+
+# Creates an object using Soar's built in deep-copy
+# 
+# Use this macro when you wish to completely copy a deep structure, 
+#  usually from the input link. You cannot create objects using deep
+#  copy any other way in NGS as if you use other methods 
+#  create-primitive-by-operator) the deep copied structure will get 
+#  i-support.
+#
+# [ngs-deep-copy-by-operator state_id parent_obj_id attribute value (replacement_behavior) (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# parent_obj_id - variable bound to the id of the parent of the primitive being created
+# attribute - attribute to which to bind the newly constructed primitive
+# value - variable bound to the identifier of the object you want to copy
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+proc ngs-deep-copy-by-operator { state_id
+                                 parent_obj_id 
+                                 attribute
+                                 value
+                                 {replacement_behavior ""} 
+                                 {add_prefs "="} } {
+
+  CORE_RefMacroVars
+  CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT <o> $add_prefs]
+          (<o> ^dest-object    $parent_obj_id
+               ^dest-attribute $attribute
+               ^new-obj        $value
+               ^replacement-behavior $replacement_behavior)
+          [ngs-tag <o> $NGS_TAG_DEEP_COPY]
+          [core-trace NGS_TRACE_TYPED_OBJECTS "O DEEP-COPY, (| $parent_obj_id |.$attribute $value)."]"
+}
+
 
 # Remove an o-supported working memory element
 #
@@ -845,7 +870,7 @@ proc ngs-orequest-decision { goal_id
 proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
   CORE_RefMacroVars
 
-  if { $activate_on_decision == "" } {
+  if { $activate_on_decision != $NGS_YES } {
       return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)
               [core-trace NGS_TRACE_DECISIONS "? ASSIGN-DECISION, $decision_name, for goal | $goal_id |, AutoActivate = $NGS_NO."]"
   } else {

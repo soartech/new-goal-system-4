@@ -44,8 +44,6 @@ CORE_CreateMacroVar NGS_DECISION_RET_VAL_NAME "ngs*decision"
 CORE_CreateMacroVar NGS_DECISION_ITEM_RET_VAL_NAME "ngs*decision-item"
 CORE_CreateMacroVar NGS_ACTIVATION_STATUS_RET_VAL "ngs*activation-status"
 
-
-
 # The prefix placed on all tags
 CORE_CreateMacroVar NGS_TAG_PREFIX "__tagged*"
 
@@ -89,6 +87,7 @@ CORE_CreateMacroVar NGS_TAG_ONE_OPTION 				 "ngs*one-decision-option"
 CORE_CreateMacroVar NGS_TAG_STATUS_COMPLETE			 "ngs*status-complete"
 CORE_CreateMacroVar NGS_TAG_ERROR                    "ngs*ERROR"
 CORE_CreateMacroVar NGS_TAG_ERROR_STRING             "ngs*ERROR-string"
+CORE_CreateMacroVar NGS_TAG_DEEP_COPY                "ngs*deep-copy"
 
 CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 
@@ -119,16 +118,16 @@ CORE_CreateMacroVar NGS_TEST_LESS_THAN_OR_EQUAL "<="
 CORE_CreateMacroVar NGS_TEST_GREATER_THAN ">"
 CORE_CreateMacroVar NGS_TEST_GREATER_THAN_OR_EQUAL ">="
 
-# Debug trace categories. In your code you can activate these (don't activate here)
-# Then you will get a trace of the given type 
-CORE_DeactivateTraceCategory NGS_TRACE_TYPED_OBJECTS
-CORE_DeactivateTraceCategory NGS_TRACE_GOALS
-CORE_DeactivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
-CORE_DeactivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
-CORE_DeactivateTraceCategory NGS_TRACE_TAGS
-CORE_DeactivateTraceCategory NGS_TRACE_PRIMITIVES
-CORE_DeactivateTraceCategory NGS_TRACE_RETURN_VALUES
-CORE_DeactivateTraceCategory NGS_TRACE_DECISIONS
-CORE_DeactivateTraceCategory NGS_TRACE_OUTPUT
-CORE_ActivateTraceCategory NGS_TRACE_ERRORS
+# Debug trace categories. You should put these in your debug.tcl file and
+#  load this before loading NGS.
+# CORE_ActivateTraceCategory NGS_TRACE_TYPED_OBJECTS
+# CORE_ActivateTraceCategory NGS_TRACE_GOALS
+# CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
+# CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
+# CORE_ActivateTraceCategory NGS_TRACE_TAGS
+# CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES
+# CORE_ActivateTraceCategory NGS_TRACE_RETURN_VALUES
+# CORE_ActivateTraceCategory NGS_TRACE_DECISIONS
+# CORE_ActivateTraceCategory NGS_TRACE_OUTPUT
+# CORE_ActivateTraceCategory NGS_TRACE_ERRORS
 

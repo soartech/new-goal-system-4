@@ -158,6 +158,7 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
     [ngs-is-not-tagged <decision-info> $NGS_TAG_ONE_OPTION]
+    [ngs-is-not-tagged <decision-info> $NGS_TAG_NO_OPTIONS]
   --> 
     [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]
     (<o> ^decision-name <decision-name>)"

@@ -1,5 +1,18 @@
 
-# Print out the goal trees
+# Print out the goal stacks
+#
+# Use to print out all goal stacks. Because this must be implemented
+#  as productions, it will execute 1 elaboration cycle to trigger the productions
+#  Depending on where  you are in the decision cycle when you pause, you may not see
+#  a printout because one elaboration cycle may not trigger the productions. If you don't
+#  see an output, execute the command again.
+#
+# Usage: nps (print all goal stacks)
+# Usage: nps GoalName1 GoalName2 (print goal stacks rooted at GoalName1 and GoalName2)
+#
+# args - (Optional) Pass in space-separated list of goal names to only show goal stacks
+#          that are rooted at the given goal name.
+#
 proc nps { args } {
 
 	if { $args != "" } {
@@ -103,18 +116,40 @@ proc nps { args } {
 	watch 1
 }
 
-# NGS Print (depth defaults to 2)
-proc np { id { depth 2 } } {
+# NGS Print 
+#
+# This is a specialized version of Soar's p (or print) command.
+# It defaults to printing as a tree and to depth 2. You can pass 
+#  an optional depth number to change the printing depth.
+#
+# Usage: np s1 (print the top state to depth 2)
+# Usage: np 3 s1 (print the top state to depth 3)
+# Usage: np i2 i3 (print input and output links to depth 2)
+# Usage: np 3 i2 i3 (print the input and output linkks to depth 3)
+#
+# args - An optional depth (integer) followed by identifiers. If the
+#          depth is not provided, a default print depth of 2 is used.
+#
+proc np { args } {
 
-	p --tree --depth $depth $id
+	if { [llength $args] == 0} {
+		echo "+---------------------------------------+"
+		echo "Usage: np (depth=2) id1 id2 id3 ..."
+	}
 
-}
+	set depth 2
+	set first [lindex $args 0]
 
-# NGS Print List (more than one identifier)
-proc npl { depth args } {
+	if { [string is integer [string index $first 0]] == 1 } {
+		set depth $first
+		set args [lreplace $args 0 0]
+	}
+
 	foreach id $args {
 		echo "+---------------------------------------+"
-		np $id $depth
+		echo "+ OBJECT: $id"
+		p --tree --depth $depth $id
 	}
 	echo "+---------------------------------------+"
+
 }

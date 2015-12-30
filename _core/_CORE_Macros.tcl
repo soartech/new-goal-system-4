@@ -141,9 +141,8 @@ proc CORE_CreateMacroVar { variable_name variable_value } {
    set "$variable_name" $variable_value
    
    # ... now reference the variable in our caller's context, too.
-   # JC: This doesn't make a difference if I comment it out. I have
-   #  to check on how variable scoping works
-   #uplevel 1 variable $variable_name
+   # Only seems to matter in some cases (don't know why)
+   uplevel 1 variable $variable_name
 }
 
 # Generates a unique symbol that is typically used
@@ -228,7 +227,7 @@ proc CORE_ActivateTraceCategory { trace_category } {
 # Use to de-activate a trace category (make it not print)
 proc CORE_DeactivateTraceCategory { trace_category } {
   CORE_RefMacroVars
-  dict set CORE_trace_categories $trace_category 1
+  dict set CORE_trace_categories $trace_category 0
 }
 
 # Use to create a debug trace output for a given trace category 
@@ -240,10 +239,12 @@ proc CORE_DeactivateTraceCategory { trace_category } {
 proc core-trace { trace_category trace_text } {
   CORE_RefMacroVars
   if { [dict exists $CORE_trace_categories $trace_category] == 1 } {
-    return "(write (crlf) |            -> $trace_text|)"
-  } else {
-    return ""
-  }
+    if { [dict get $CORE_trace_categories $trace_category] == 1 } {
+      return "(write (crlf) |            -> $trace_text|)"
+    }
+  } 
+  
+  return ""
 }
 
 # Use this to source productions instead of sp. This allows

@@ -52,7 +52,13 @@ proc ngs-eq { obj_id attr val { val_id ""} } {
 }
 proc ngs-neq { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
-  return [ngs-test $NGS_TEST_NOT_EQUAL $obj_id $attr $val $val_id]
+  # If not binding is provided, we use the more comprehensive
+  #  negation that will match even if the attribute doesn't exist
+  if {$val_id == ""} {
+    return "-{ [ngs-eq $obj_id $attr $val] }"
+  } else {
+    return [ngs-test $NGS_TEST_NOT_EQUAL $obj_id $attr $val $val_id]
+  }
 }
 proc ngs-lt { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
@@ -489,7 +495,7 @@ proc ngs-requested-decision { goal_id
 # Use this macro to bind to the choices in a decision substate for making
 #  goal-based choices.
 #
-# [ngs-is-decision-chioce state_id choice_id (choice_name)]
+# [ngs-is-decision-choice state_id choice_id (choice_name)]
 #
 # state_id - variable bound to a substate within which to check for a choice
 # choice_id - variable bound (or to be bound) to the choice. Choices are
@@ -525,6 +531,52 @@ proc ngs-is-not-decision-choice { state_id choice_id { choice_name ""} } {
               [ngs-is-named $choice_id $choice_name]
              }"
   }
+}
+
+# Binds to two decision choices (goals that make a decision) so that you
+#  cann compare them and make a selection
+#
+# Use this macro to bind to two decision choices when you want to select between
+#  exactly two choices
+#
+# [ngs-is-decision-choice-pair state_id choice1_id choice2_id (choice1_name) (choice2_name)]
+#
+# state_id - variable bound to a substate within which to check for a choice
+# choice1_id - variable bound (or to be bound) to the first choice. Choices are
+#              goal objects, each of which represents a choice.
+# choice1_name - (Optional) name of the first choice to which to bind. This is
+#                the goal name. If not provided, this will match any
+#                choice.
+# choice2_id - variable bound (or to be bound) to the second choice. Choices are
+#              goal objects, each of which represents a choice.
+# choice2_name - (Optional) name of the second choice to which to bind. This is
+#                the goal name. If not provided, this will match any
+#                choice.
+#
+proc ngs-is-decision-choice-pair { state_id 
+                                   choice1_id 
+                                   choice2_id 
+                                   { choice1_name ""} 
+                                   { choice2_name ""} } {
+  
+  set choice3_id [CORE_GenVarName "choice3_"]
+
+  set lhs_val "($state_id ^decision-choice $choice1_id
+                          ^decision-choice { $choice2_id <> $choice1_id })
+              -{
+                  ($state_id ^decision-choice { $choice3_id <> $choice1_id <> $choice2_id })
+               }"
+
+  if { $choice1_name != ""} {
+    set lhs_val  "$lhs_val
+                  [ngs-is-named $choice1_id $choice1_name]"
+  } 
+  if { $choice2_name != ""} {
+    set lhs_val  "$lhs_val
+                  [ngs-is-named $choice2_id $choice2_name]"
+  } 
+
+  return $lhs_val
 }
 
 # Evaluates to true if the object linked to the given attribute
@@ -814,7 +866,7 @@ proc ngs-output-link { state_id output_link_id {bindings ""} } {
 #  you provide a name, it will bind to the goal set of the given goal name.
 #  Providing a goal name is by far the most common use case.
 #
-# [ngs-match-goalpool state_id goal_pool (goal_name)]
+# [ngs-match-goalpool state_id goal_pool (goal_name) (state_bindings)]
 #
 # state_id - variable that will be bound to the top state.
 # goal_pool - variable that will be bound to the goal pool.  See note above
@@ -823,15 +875,24 @@ proc ngs-output-link { state_id output_link_id {bindings ""} } {
 #               to the goal set for goals of the given name. If it is not
 #               provided, the goal_pool variable will be bound to the root
 #               goal pool.
+# state_bindings - (Optional) If provided, a binding string to be passed to 
+#                   ngs-bind as in [ngs-bind $state_id $state_bindings]
 #
-proc ngs-match-goalpool { state_id goal_pool {goal_name ""} } {
+proc ngs-match-goalpool { state_id goal_pool {goal_name ""} { state_bindings ""}} {
   CORE_RefMacroVars
+
+  if { $state_bindings != "" } {
+    set state_bindings [ngs-bind $state_id $state_bindings]
+  }
+
   if {$goal_name != ""} {
     return "(state $state_id ^superstate nil 
-                             ^$WM_GOAL_SET.$goal_name $goal_pool)"
+                             ^$WM_GOAL_SET.$goal_name $goal_pool)
+            $state_bindings"
   } else {
     return "(state $state_id ^superstate nil 
-                             ^$WM_GOAL_SET $goal_pool)"
+                             ^$WM_GOAL_SET $goal_pool)
+            $state_bindings"
   } 
 }
 
@@ -1074,8 +1135,9 @@ proc ngs-match-top-state-active-goal { state_id
 #
 # substate_id - variable bound to the substate in which to make the choice
 # decision_name - name of the decision being made
-# decision_goal_id - variable to be bound to the id of the goal for which the decision is being made
-# decision_goal_name - name of the goal for which the decision is being made
+# decision_goal_id - variable to be bound to the id of the goal that requested the decision. To bind
+#   to one of the goal's that represent the choice, use the ngs-is-decision-choice macro
+# decision_goal_name - name of the goal that requested the decision
 # params_id - (Optional) If provided, a variable that will be bound to the params structure in the substate
 # top_state_id - (Optional) If provided, a variable that will be bound to the top state identifier
 # superstate_id - (Optional) If provided, a variable that will be bound to the superstate identifier

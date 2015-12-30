@@ -10,6 +10,7 @@ setup {
   CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES
   CORE_ActivateTraceCategory NGS_TRACE_RETURN_VALUES
   CORE_ActivateTraceCategory NGS_TRACE_DECISIONS
+  CORE_ActivateTraceCategory NGS_TRACE_OUTPUT
 
   NGS_DeclareGoal TestAchievementGoal
   NGS_DeclareGoal TestAchievementSubGoal

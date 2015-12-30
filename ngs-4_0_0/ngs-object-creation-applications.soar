@@ -280,6 +280,7 @@ sp "ngs*core*apply*intelligent-construction*level-0*shallow*add-to-set
 # For deep copies, copy-depth will be greater than 0
 sp "ngs*core*apply*intelligent-construction*level-0*deep*not-exist-so-create
   (state <s> ^operator <o>)
+  [ngs-is-attr-constructed <s> <o> <obj>]
   [ngs-is-tagged <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
   (<o> ^copy-depth > 0
        ^dest-object <dest>
@@ -723,5 +724,39 @@ sp "ngs*core*goal*elaborate-operator*$NGS_OP_CREATE_GOAL
 
 ###########################################################################
 
+###################### APPLY DEEP COPY ###############################
 
+# For shallow copies, copy-depth will be 0
+sp "ngs*core*apply*deep-copy-construction*not-exist-so-create
+  (state <s> ^operator <o>)
+  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  (<o> ^dest-object <dest>
+       ^dest-attribute <attr>
+       ^new-obj <obj-0>
+       ^replacement-behavior $NGS_REPLACE_IF_EXISTS)
+  (<dest> -^<attr>)
+-->
+  (<dest> ^<attr> (deep-copy <obj-0>) +)"
+
+sp "ngs*core*apply*deep-copy-construction*exist-so-replace
+  (state <s> ^operator <o>)
+  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  (<o> ^dest-object <dest>
+       ^dest-attribute <attr>
+       ^new-obj <obj-0>
+       ^replacement-behavior $NGS_REPLACE_IF_EXISTS)
+  (<dest> ^<attr> <old-obj>)
+-->
+  (<dest> ^<attr> <old-obj> -)
+  (<dest> ^<attr> (deep-copy <obj-0>) +)"
+
+sp "ngs*core*apply*intelligent-construction*add-to-set
+  (state <s> ^operator <o>)
+  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  (<o> ^dest-object <dest>
+       ^dest-attribute <attr>
+       ^new-obj <obj-0>
+       ^replacement-behavior $NGS_ADD_TO_SET)
+-->
+  (<dest> ^<attr> (deep-copy <obj-0>) +)"
 
