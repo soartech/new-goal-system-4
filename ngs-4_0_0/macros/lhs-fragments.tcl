@@ -1372,11 +1372,15 @@ proc ngs-match-two-proposed-operators { state_id
 #
 proc ngs-match-selected-operator {state_id
                                   op_id
-								                  op_name
+								                  {op_name ""}
                                   {goal_id ""} } {
 
-  set lhs_ret "(state $state_id ^operator $op_id)
-               ($op_id          ^name     $op_name)"
+  set lhs_ret "(state $state_id ^operator $op_id)"
+
+  if { $op_name != "" } {
+    set lhs_ret "$lhs_ret
+                 ($op_id ^name     $op_name)"
+  }
 
   if { $goal_id != "" } {
 
@@ -1396,7 +1400,7 @@ proc ngs-match-selected-operator {state_id
 #
 proc ngs-match-selected-operator-on-top-state {state_id
                                                op_id
-											   op_name
+											                         {op_name ""}
                                                {goal_id ""} } {
  
   return "[ngs-match-selected-operator $state_id $op_id $op_name $goal_id]
@@ -1410,7 +1414,7 @@ proc ngs-match-selected-operator-on-top-state {state_id
 #
 proc ngs-match-selected-operator-in-substate {substate_id                                               
                                               op_id
-											  op_name
+											                        {op_name ""}
                                               {goal_id ""} 
                                               {top_state_id ""}
                                               {superstate_id ""} } {
