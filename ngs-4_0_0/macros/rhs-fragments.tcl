@@ -119,7 +119,7 @@ proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 	CORE_RefMacroVars
 	CORE_GenVarIfEmpty operator_id "o"
 	return "[ngs-create-atomic-operator <s> "(concat |mark-goal-achieved--| $goal_id)" $operator_id]
-          [ngs-tag $operator_id $NGS_OP_TAG_MARK_ACHIEVED]
+          [ngs-tag $operator_id $NGS_TAG_MARK_ACHIEVED]
     		  ($operator_id ^goal $goal_id)"
 }
 
