@@ -743,7 +743,7 @@ proc ngs-create-goal-as-return-value { state_id
 
   set ret_val_id [CORE_GenVarName new-ret-val]
 
-  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_TAG_CREATE_GOAL_RET <o> $add_prefs]
+  set rhs_val "[ngs-create-atomic-operator $state_id "(concat |return-goal--$goal_name-| $new_obj_id)" <o> $add_prefs]
 	             (<o> ^dest-attribute        value-description
                     ^new-obj               $ret_val_id
                     ^replacement-behavior  $NGS_ADD_TO_SET)
@@ -753,6 +753,7 @@ proc ngs-create-goal-as-return-value { state_id
                             ^value    $new_obj_id)
                [ngs-construct $new_obj_id $goal_name $attribute_list]
                [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
+               [ngs-tag <o> $NGS_TAG_CREATE_GOAL_RET]
                [core-trace NGS_TRACE_RETURN_VALUES "O CREATE-GOAL-RETURN, $goal_name, | $new_obj_id |, $goal_type."]
                [core-trace NGS_TRACE_GOALS "O CREATE-GOAL, $goal_name, | $new_obj_id |, $goal_type."]"
                    
