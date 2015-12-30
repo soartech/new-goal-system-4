@@ -36,6 +36,7 @@ CORE_CreateMacroVar NGS_OP_ATTRIBUTE "operator"
 CORE_CreateMacroVar NGS_GOAL_ATTRIBUTE "goal"
 CORE_CreateMacroVar NGS_RETURN_VALUES "return-values"
 CORE_CreateMacroVar NGS_SUBSTATE_PARAMS "params"
+CORE_CreateMacroVar NGS_OUTPUT_COMMAND_ATTRIBUTE "command"
 
 # Elements related to goal decisions
 CORE_CreateMacroVar NGS_DECISION_ATTR "requested-decision"
@@ -91,14 +92,13 @@ CORE_CreateMacroVar NGS_TAG_DEEP_COPY                "ngs*deep-copy"
 CORE_CreateMacroVar NGS_TAG_CREATE_GOAL        		 "ngs*create-goal"
 CORE_CreateMacroVar NGS_TAG_CREATE_GOAL_RET    	     "ngs*create-goal-as-return-value"
 CORE_CreateMacroVar NGS_TAG_REMOVE_ATTRIBUTE         "ngs*remove-attribute"
-CORE_CreateMacroVar NGS_TAG_MARK_ACHIEVED         "ngs*mark-goal-achieved"
+CORE_CreateMacroVar NGS_TAG_MARK_ACHIEVED            "ngs*mark-goal-achieved"
 CORE_CreateMacroVar NGS_TAG_REMOVE_ACHIEVED          "ngs*remove-achieved-goal"
+CORE_CreateMacroVar NGS_TAG_SET_RETURN_VALUE         "ngs*set-return-value"
 
 CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 
 # Standard operators
-CORE_CreateMacroVar NGS_OP_CREATE_RET_VAL     "ngs-op-create-ret-val"
-CORE_CreateMacroVar NGS_OP_SET_RETURN_VALUE   "ngs-op-set-return-value"
 CORE_CreateMacroVar NGS_OP_COPY_RETURN_VALUES "ngs-op-copy-return-values-to-destination"
 CORE_CreateMacroVar NGS_OP_DECIDE_GOAL        "ngs-op-decide-goal"
 
@@ -117,8 +117,10 @@ CORE_CreateMacroVar NGS_TEST_GREATER_THAN_OR_EQUAL ">="
 
 # Debug trace categories. You should put these in your debug.tcl file and
 #  load this before loading NGS.
-# CORE_ActivateTraceCategory NGS_TRACE_TYPED_OBJECTS
-# CORE_ActivateTraceCategory NGS_TRACE_GOALS
+# CORE_ActivateTraceCategory NGS_TRACE_I_TYPED_OBJECTS
+# CORE_ActivateTraceCategory NGS_TRACE_O_TYPED_OBJECTS
+# CORE_ActivateTraceCategory NGS_TRACE_I_GOALS
+# CORE_ActivateTraceCategory NGS_TRACE_O_GOALS
 # CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
 # CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
 # CORE_ActivateTraceCategory NGS_TRACE_TAGS

@@ -240,7 +240,7 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
                [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
 
   return "$rhs_val
-          [core-trace NGS_TRACE_TYPED_OBJECTS "I CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
+          [core-trace NGS_TRACE_I_TYPED_OBJECTS "I CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
 
 }
 
@@ -274,7 +274,7 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
               [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
 
   return "$rhs_val
-          [core-trace NGS_TRACE_TYPED_OBJECTS "o CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
+          [core-trace NGS_TRACE_O_TYPED_OBJECTS "o CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
 
 }
 
@@ -315,13 +315,32 @@ proc ngs-create-typed-object-by-operator { state_id
 
   set op_id [CORE_GenVarName "o"]
 
-  return "[ngs-create-atomic-operator $state_id "(concat |create--| $attribute |--new-$type|)" $op_id $add_prefs]
+  return "[ngs-create-atomic-operator $state_id "(concat |create--| $attribute |--$type--| $new_obj_id)" $op_id $add_prefs]
           ($op_id ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
                ^replacement-behavior $replacement_behavior)
           [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
           [ngs-ocreate-typed-object-in-place $op_id new-obj $type $new_obj_id $attribute_list]
-          [core-trace NGS_TRACE_TYPED_OBJECTS "O CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
+          [core-trace NGS_TRACE_O_TYPED_OBJECTS "O CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
+}
+
+# Create an output link command
+#
+# [ngs-create-output-command-by-operator state_id output_link_id command_type cmd_id (attribute_list) (add_prefs)]
+#
+proc ngs-create-output-command-by-operator { state_id
+                                             output_link_id 
+                                             command_type
+                                             cmd_id
+                                            {attribute_list ""}
+                                            {add_prefs "="} } {
+
+  CORE_RefMacroVars
+
+  return "[ngs-create-typed-object-by-operator $state_id $output_link_id $NGS_OUTPUT_COMMAND_ATTRIBUTE \
+                                             $command_type $cmd_id $attribute_list $NGS_ADD_TO_SET $add_prefs]
+          [ngs-create-attribute $cmd_id name $command_type]
+          [core-trace NGS_TRACE_OUTPUT "O OUTPUT-COMMAND-ISSUED, $command_type, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $cmd_id |)."]"
 }
 
 # Creates a primitive working memory element using an atomic operator.
@@ -408,7 +427,7 @@ proc ngs-deep-copy-by-operator { state_id
                ^new-obj        $value
                ^replacement-behavior $replacement_behavior)
           [ngs-tag $op_id $NGS_TAG_DEEP_COPY]
-          [core-trace NGS_TRACE_TYPED_OBJECTS "O DEEP-COPY, (| $parent_obj_id |.$attribute $value)."]"
+          [core-trace NGS_TRACE_O_TYPED_OBJECTS "O DEEP-COPY, (| $parent_obj_id |.$attribute $value)."]"
 }
 
 
@@ -655,7 +674,7 @@ proc ngs-create-goal-in-place { goal_set_id
                [ngs-construct $new_obj_id $goal_name $attribute_list]
                [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
                [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]
-               [core-trace NGS_TRACE_GOALS "I CREATE-GOAL, $goal_name, | $new_obj_id |, $type."]"
+               [core-trace NGS_TRACE_I_GOALS "I CREATE-GOAL, $goal_name, | $new_obj_id |, $type."]"
 
   return $lhs_val   
 }
@@ -698,12 +717,12 @@ proc ngs-create-goal-by-operator { state_id
 
   set op_id [CORE_GenVarName "o"]
 
-  set lhs_val "[ngs-create-atomic-operator $state_id "(concat |create-goal-$goal_name-| $new_obj_id)" $op_id $add_prefs]
+  set lhs_val "[ngs-create-atomic-operator $state_id "(concat |create-goal--$goal_name--| $new_obj_id)" $op_id $add_prefs]
                [ngs-create-attribute $op_id new-obj $new_obj_id]
                [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
                [ngs-tag $op_id $NGS_TAG_CREATE_GOAL]
                [ngs-construct $new_obj_id $goal_name $attribute_list]
-               [core-trace NGS_TRACE_GOALS "O CREATE-GOAL, $goal_name, | $new_obj_id |, $type."]"
+               [core-trace NGS_TRACE_O_GOALS "O CREATE-GOAL, $goal_name, | $new_obj_id |, $type."]"
 
   return $lhs_val   
 }        
@@ -757,7 +776,7 @@ proc ngs-create-goal-as-return-value { state_id
   set ret_val_id [CORE_GenVarName new-ret-val]
   set op_id [CORE_GenVarName "o"]
 
-  set rhs_val "[ngs-create-atomic-operator $state_id "(concat |return-goal--$goal_name-| $new_obj_id)" $op_id $add_prefs]
+  set rhs_val "[ngs-create-atomic-operator $state_id "(concat |return-goal--$goal_name--| $new_obj_id)" $op_id $add_prefs]
 	             ($op_id ^dest-attribute        value-description
                     ^new-obj               $ret_val_id
                     ^replacement-behavior  $NGS_ADD_TO_SET)
@@ -769,7 +788,7 @@ proc ngs-create-goal-as-return-value { state_id
                [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
                [ngs-tag $op_id $NGS_TAG_CREATE_GOAL_RET]
                [core-trace NGS_TRACE_RETURN_VALUES "O CREATE-GOAL-RETURN, $goal_name, | $new_obj_id |, $goal_type."]
-               [core-trace NGS_TRACE_GOALS "O CREATE-GOAL, $goal_name, | $new_obj_id |, $goal_type."]"
+               [core-trace NGS_TRACE_O_GOALS "O CREATE-GOAL, $goal_name, | $new_obj_id |, $goal_type."]"
                    
   return $rhs_val
    
@@ -1008,12 +1027,13 @@ proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
   CORE_RefMacroVars
   set op_id [CORE_GenVarName "o"]
   
-  return "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id $add_prefs]
+  return "[ngs-create-atomic-operator $state_id "(concat |select-option--| $choice_id)" $op_id $add_prefs]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                           ^new-obj              $NGS_YES
                           ^ret-val-name         $NGS_DECISION_RET_VAL_NAME
                           ^choice               $choice_id)
            [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
+           [ngs-tag $op_id $NGS_TAG_SET_RETURN_VALUE]
            [core-trace NGS_TRACE_DECISIONS "O SELECTED-GOAL, | $choice_id | in state | $state_id |."]"
 }
 
@@ -1045,11 +1065,12 @@ proc ngs-set-ret-val-by-operator { state_id
     CORE_RefMacroVars
     set op_id [CORE_GenVarName "o"]
 
-    return "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id $add_prefs]
+    return "[ngs-create-atomic-operator $state_id "(concat |return--$ret_val_name--| $value)" $op_id $add_prefs]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                           ^new-obj              $value
                           ^ret-val-name         $ret_val_name)
             [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
+            [ngs-tag $op_id $NGS_TAG_SET_RETURN_VALUE]
             [core-trace NGS_TRACE_RETURN_VALUES "O SET-RETURN, $ret_val_name = $value."]"
 
 }
@@ -1078,11 +1099,12 @@ proc ngs-create-typed-object-for-ret-val { state_id
    CORE_RefMacroVars
    set op_id [CORE_GenVarName "o"]
 
-   return  "[ngs-create-atomic-operator $state_id $NGS_OP_SET_RETURN_VALUE $op_id]
+   return  "[ngs-create-atomic-operator $state_id "(concat |return--$ret_val_name--| $type_name |--| $new_obj_id)" $op_id]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                           ^ret-val-name         $ret_val_name)
             [ngs-ocreate-typed-object-in-place $op_id new-obj $type_name $new_obj_id $attribute_list]
             [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
+            [ngs-tag $op_id $NGS_TAG_SET_RETURN_VALUE]
             [core-trace NGS_TRACE_RETURN_VALUES "O CREATE-RETURN, $ret_val_name = $type_name, | $new_obj_id |."]"
 
 }
