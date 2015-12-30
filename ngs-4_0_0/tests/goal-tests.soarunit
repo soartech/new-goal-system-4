@@ -591,7 +591,8 @@ sp "test*log-steps-to-top-state
 	[ngs-tag <s> created-goal <g>]"
 
 sp "test*log-removals-to-top-state
-	[ngs-match-selected-operator <s> <o> $NGS_OP_REMOVE_ACHIEVED <g>]
+	[ngs-match-selected-operator <s> <o> <any-name> <g>]
+  [ngs-is-tagged <o> $NGS_TAG_REMOVE_ACHIEVED]
 -->
 	[ngs-tag <s> removed-goal <g>]"
 
@@ -699,7 +700,8 @@ sp "test*log-steps-to-top-state
 	[ngs-tag <s> created-goal <g>]"
 
 sp "test*log-removals-to-top-state
-	[ngs-match-selected-operator <s> <o> $NGS_OP_REMOVE_ACHIEVED <g>]
+	[ngs-match-selected-operator <s> <o> <any-name> <g>]
+  [ngs-is-tagged <o> $NGS_TAG_REMOVE_ACHIEVED]
 -->
 	[ngs-tag <s> removed-goal <g>]"
 

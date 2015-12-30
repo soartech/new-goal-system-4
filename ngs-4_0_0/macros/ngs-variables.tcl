@@ -91,7 +91,8 @@ CORE_CreateMacroVar NGS_TAG_DEEP_COPY                "ngs*deep-copy"
 CORE_CreateMacroVar NGS_TAG_CREATE_GOAL        		 "ngs*create-goal"
 CORE_CreateMacroVar NGS_TAG_CREATE_GOAL_RET    	     "ngs*create-goal-as-return-value"
 CORE_CreateMacroVar NGS_TAG_REMOVE_ATTRIBUTE         "ngs*remove-attribute"
-CORE_CreateMacroVar NGS_OP_TAG_MARK_ACHIEVED         "ngs-op-mark-goal-achieved"
+CORE_CreateMacroVar NGS_OP_TAG_MARK_ACHIEVED         "ngs*mark-goal-achieved"
+CORE_CreateMacroVar NGS_TAG_REMOVE_ACHIEVED          "ngs*remove-achieved-goal"
 
 CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 

@@ -80,7 +80,8 @@ proc NGS_DeclareGoal { goal_name {attribute_list ""} } {
     [ngs-is-tagged <g> $NGS_GS_ACHIEVED]
     [ngs-is-not-tagged <g> $NGS_TAG_I_SUPPORTED]
   -->
-    [ngs-create-atomic-operator <s> $NGS_OP_REMOVE_ACHIEVED <o>]
+    [ngs-create-atomic-operator <s> "(concat |remove-achieved-goal--| <g>)" <o>]
+    [ngs-tag <o> $NGS_TAG_REMOVE_ACHIEVED]
     (<o> ^goal-set <goals> ^goal <g>)"
 
   #############################################################
