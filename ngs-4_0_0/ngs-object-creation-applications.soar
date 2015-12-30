@@ -659,8 +659,9 @@ sp "ngs*core*apply*intelligent-construction*mark-objects-as-constructed*level-5
 
 # Augment a goal creation operator with the pieces that are missing
 #  from the default operator proposal (see rhs-fragments.tcl)
-sp "ngs*core*goal*elaborate-operator*$NGS_OP_CREATE_GOAL
-  [ngs-match-proposed-operator <s> <o> $NGS_OP_CREATE_GOAL]
+sp "ngs*core*goal*elaborate-operator*$NGS_TAG_CREATE_GOAL
+  (state <s> ^operator <o> +)
+  [ngs-is-tagged <o> $NGS_TAG_CREATE_GOAL]
   [ngs-match-goalpool <top-state> <goals> <gname>]
   (<o> ^new-obj <g>)
   [ngs-is-named <g> <gname>]

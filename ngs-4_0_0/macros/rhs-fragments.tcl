@@ -685,9 +685,10 @@ proc ngs-create-goal-by-operator { state_id
     lappend attribute_list supergoal $supergoal_id
   }
 
-  set lhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL <o> $add_prefs]
+  set lhs_val "[ngs-create-atomic-operator $state_id "(concat |create-goal-$goal_name-| $new_obj_id)" <o> $add_prefs]
                [ngs-create-attribute <o> new-obj $new_obj_id]
                [ngs-tag <o> $NGS_TAG_INTELLIGENT_CONSTRUCTION]
+               [ngs-tag <o> $NGS_TAG_CREATE_GOAL]
                [ngs-construct $new_obj_id $goal_name $attribute_list]
                [core-trace NGS_TRACE_GOALS "O CREATE-GOAL, $goal_name, | $new_obj_id |, $type."]"
 
@@ -742,7 +743,7 @@ proc ngs-create-goal-as-return-value { state_id
 
   set ret_val_id [CORE_GenVarName new-ret-val]
 
-  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_GOAL_RET <o> $add_prefs]
+  set rhs_val "[ngs-create-atomic-operator $state_id $NGS_TAG_CREATE_GOAL_RET <o> $add_prefs]
 	             (<o> ^dest-attribute        value-description
                     ^new-obj               $ret_val_id
                     ^replacement-behavior  $NGS_ADD_TO_SET)
