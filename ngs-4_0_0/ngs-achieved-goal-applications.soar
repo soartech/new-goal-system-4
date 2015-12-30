@@ -8,9 +8,11 @@ sp "ngs*core*goal*apply*$NGS_OP_REMOVE_ACHIEVED
 
 
 # Apply operator to mark goal achieved
-sp "ngs*core*goal*apply*$NGS_OP_MARK_ACHIEVED
-  [ngs-match-selected-operator <s> <o> $NGS_OP_MARK_ACHIEVED <goal>]
-  [ngs-is-not-achieved <g>]
+sp "ngs*core*goal*apply*mark-achieved
+  (state <s> ^operator <o>)
+  (<o> ^goal <goal>)
+  [ngs-is-tagged <o> $NGS_OP_TAG_MARK_ACHIEVED]
+  [ngs-is-not-achieved <goal>]
 -->
   [ngs-tag-goal-achieved <goal>]"
 
