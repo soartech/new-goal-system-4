@@ -55,7 +55,7 @@ proc ngs-neq { obj_id attr val { val_id ""} } {
   # If not binding is provided, we use the more comprehensive
   #  negation that will match even if the attribute doesn't exist
   if {$val_id == ""} {
-    return "-{ [ngs-eq $obj_id $attr $val] }"
+    return "-{ [ngs-test $NGS_TEST_EQUAL $obj_id $attr $val $val_id] }"
   } else {
     return [ngs-test $NGS_TEST_NOT_EQUAL $obj_id $attr $val $val_id]
   }
@@ -76,6 +76,26 @@ proc ngs-gte { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
   return [ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]
 }
+
+# Negations (useful for input-link testing)
+proc ngs-nlt { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return "-{[ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $val $val_id]}"
+}
+proc ngs-nlte { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return "-{[ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $val $val_id]}"
+}
+proc ngs-ngt { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return "-{[ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $val $val_id]}"
+}
+proc ngs-ngte { obj_id attr val { val_id ""} } {
+  CORE_RefMacroVars
+  return "-{[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]}"
+}
+
+# Test ranges
 proc ngs-gte-lt { obj_id attr low_val high_val { val_id ""} } {
   CORE_RefMacroVars
   return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
@@ -86,6 +106,7 @@ proc ngs-gte-lte { obj_id attr low_val high_val { val_id ""} } {
   return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
           [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $high_val]"
 }
+
 # Bind variables to an object's attributes
 # 
 # Use this macro to quickly and easily bind variables to an object's
@@ -111,15 +132,15 @@ proc ngs-gte-lte { obj_id attr low_val high_val { val_id ""} } {
 #  (<me>         ^location <location>)
 #  (<location>   ^type Location)
 #  
-# [ngs-bind obj_id attr_list]
+# [ngs-bind obj_id attr1 attr2 ...]
 #
 # obj_id - variable bound to the object for which to bind attributes
 # attr_list - list of attributes to bind
 #
-proc ngs-bind { obj_id attr_list } {
+proc ngs-bind { obj_id args } {
   set lhs_ret ""
 
-  foreach attr $attr_list {
+  foreach attr $args {
     set obj $obj_id
 
     # Handles dot notation
@@ -795,19 +816,29 @@ proc ngs-match-top-state { state_id {bindings ""} {input_link ""} {output_link "
   set lhs_ret "(state $state_id ^superstate nil)"
   set io_id [CORE_GenVarName io]
 
-  if { $input_link != "" } {
-    lappend bindings io:$io_id.input-link:$input_link
-  }
-  if { $output_link != "" } {
-    lappend bindings io:$io_id.output-link:$output_link
+  if { ($input_link != "") || ($output_link != "")} {
+    
+    set lhs_ret "$lhs_ret
+                 ($state_id ^io $io_id)"
+    
+    if { $input_link != "" } {
+      set lhs_ret "$lhs_ret
+                   ($io_id ^input-link $input_link)"
+    }
+    
+    if { $output_link != "" } {
+      set lhs_ret "$lhs_ret
+                   ($io_id ^output-link $output_link)"
+    }
+
   }
 
-  if { $bindings == "" } {
-     return "(state $state_id ^superstate nil)"
-  } else {
-     return "(state $state_id ^superstate nil)
-             [ngs-bind $state_id $bindings]"
-  }
+  if { $bindings != "" } {
+     set lhs_ret "$lhs_ret
+                  [ngs-bind $state_id $bindings]"
+  } 
+  
+  return $lhs_ret
 }
 
 # Use to bind to the input link

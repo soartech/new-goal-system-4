@@ -240,7 +240,7 @@ proc core-trace { trace_category trace_text } {
   CORE_RefMacroVars
   if { [dict exists $CORE_trace_categories $trace_category] == 1 } {
     if { [dict get $CORE_trace_categories $trace_category] == 1 } {
-      return "(write (crlf) |            -> $trace_text|)"
+      return "(write (crlf) |                    $trace_text|)"
     }
   } 
   
