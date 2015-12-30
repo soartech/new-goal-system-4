@@ -312,7 +312,7 @@ proc ngs-create-typed-object-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
-  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT <o> $add_prefs]
+  return "[ngs-create-atomic-operator $state_id "(concat |create--| $attribute |--new-$type|)" <o> $add_prefs]
           (<o> ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
                ^replacement-behavior $replacement_behavior)
@@ -350,7 +350,13 @@ proc ngs-create-primitive-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
-  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_PRIMITIVE <o> $add_prefs]
+  if { [string first $NGS_TAG_PREFIX $attribute] == 0 } {
+    set op_name "(concat |create-tag--| [string range $attribute [string length $NGS_TAG_PREFIX] end] |--| $value)"
+  } else {
+    set op_name "(concat |create-wme--| $attribute |--| $value)"
+  }
+
+  return "[ngs-create-atomic-operator $state_id $op_name <o> $add_prefs]
           (<o> ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
                ^new-obj        $value
@@ -389,7 +395,7 @@ proc ngs-deep-copy-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
-  return "[ngs-create-atomic-operator $state_id $NGS_OP_CREATE_OBJECT <o> $add_prefs]
+  return "[ngs-create-atomic-operator $state_id "(concat |deep-copy--| $attribute |--| $value)" <o> $add_prefs]
           (<o> ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
                ^new-obj        $value
@@ -544,7 +550,7 @@ proc ngs-create-atomic-operator { state_id
                                  {add_prefs "="} } {
   CORE_RefMacroVars
   return "[ngs-create-operator $state_id $op_name $NGS_OP_ATOMIC $new_obj_id $add_prefs]
-          [core-trace NGS_TRACE_ATOMIC_OPERATORS "I PROPOSE-ATOMIC, $op_name, | $state_id |.operator | $new_obj_id |)."]"                                 
+          [core-trace NGS_TRACE_ATOMIC_OPERATORS "I PROPOSE-ATOMIC, | $state_id |.operator | $new_obj_id |)."]"                                 
 }
             
 # Create a decision operator

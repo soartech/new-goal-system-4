@@ -1372,7 +1372,7 @@ proc ngs-match-two-proposed-operators { state_id
 #
 proc ngs-match-selected-operator {state_id
                                   op_id
-								                 op_name 
+								                  op_name
                                   {goal_id ""} } {
 
   set lhs_ret "(state $state_id ^operator $op_id)
