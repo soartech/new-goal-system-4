@@ -582,10 +582,9 @@ proc ngs-is-decision-choice-pair { state_id
 # Evaluates to true if the object linked to the given attribute
 #  has been completely constructed (i.e. is tagged with NGS_TAG_CONSTRUCTED)
 #
-# IMPORTANT: You should ALWAYS use this macro instead of just testing for the
-#  existance of the given attribute wme whenever you working with objects that
-#  have structure (i.e. non-primitives). Otherwise your production is likely
-#  to fire prematurely while the object is still being constructed.
+# NOTE: This macro used to be necessary to use when testing whether object
+#  creation had complete. With the new all-or-nothing creation process, you
+#  rarely need to use this macro anymore (though it still works).
 #
 # See also - ngs-is-obj-constructed for version where attribute already exists
 #
@@ -603,10 +602,9 @@ proc ngs-is-attr-constructed { parent_id attribute object_id } {
 # Evaluates to true if the object linked to the given attribute
 #  has NOT yet been completely constructed (i.e. is tagged with NGS_TAG_CONSTRUCTED)
 #
-# IMPORTANT: You should ALWAYS use this macro instead of just testing for the
-#  existance of the given attribute wme whenever you working with objects that
-#  have structure (i.e. non-primitives). Otherwise your production is likely
-#  to fire prematurely while the object is still being constructed.
+# NOTE: This macro used to be necessary to use when testing whether object
+#  creation had complete. With the new all-or-nothing creation process, you
+#  rarely need to use this macro anymore (though it still works).
 #
 # See also - ngs-is-obj-not-constructed for version where attribute already exists
 #
@@ -624,10 +622,9 @@ proc ngs-is-attr-not-constructed { parent_id attribute {object_id ""} } {
 # Evaluates to true if the object has been completely constructed 
 #  (i.e. is tagged with NGS_TAG_CONSTRUCTED)
 #
-# IMPORTANT: You should ALWAYS use this macro instead of just testing for the
-#  existance of the given attribute wme whenever you working with objects that
-#  have structure (i.e. non-primitives). Otherwise your production is likely
-#  to fire prematurely while the object is still being constructed.
+# NOTE: This macro used to be necessary to use when testing whether object
+#  creation had complete. With the new all-or-nothing creation process, you
+#  rarely need to use this macro anymore (though it still works).
 #
 # See also - ngs-is-attr-constructed for version when the attribute linking
 #   the object to its parent may not exist.
@@ -645,10 +642,9 @@ proc ngs-is-obj-constructed { object_id } {
 # Evaluates to true if the object l has NOT yet been completely constructed 
 #  (i.e. is tagged with NGS_TAG_CONSTRUCTED)
 #
-# IMPORTANT: You should ALWAYS use this macro instead of just testing for the
-#  existance of the given attribute wme whenever you working with objects that
-#  have structure (i.e. non-primitives). Otherwise your production is likely
-#  to fire prematurely while the object is still being constructed.
+# NOTE: This macro used to be necessary to use when testing whether object
+#  creation had complete. With the new all-or-nothing creation process, you
+#  rarely need to use this macro anymore (though it still works).
 #
 # See also - ngs-is-attr-constructed for version when the attribute linking
 #   the object to its parent may not exist.

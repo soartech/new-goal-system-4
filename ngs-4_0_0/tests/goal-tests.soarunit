@@ -101,20 +101,22 @@ sp "test*setup-shallow-copy-object
 -->
   [ngs-icreate-typed-object-in-place <s> sub-structure Foo <new-obj> { existing-attribute-set {1 2} } ]"
 
+# [ngs-is-attr-not-constructed <s> complex]
 sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
               -^step)
-    [ngs-is-attr-not-constructed <s> complex]
+    (<s> -^complex)  
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } ]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
-     
+
+#[ngs-is-attr-constructed <s> complex <complex>]
 sp "test*step1*done
      (state <s> ^superstate nil
                 ^sub-structure <sub-structure>
                -^step)
-     [ngs-is-attr-constructed <s> complex <complex>]
+     (<s> ^complex <complex>)
      (<complex> -^primitive1 bar)
 -->
      [ngs-create-primitive-by-operator <s> <s> step 2]"
@@ -125,7 +127,7 @@ sp "test*create-new-object-2
                ^sub-structure <sub-structure>
                ^step 2)
     -{
-        [ngs-is-attr-constructed <s> complex <complex>]
+        (<s> ^complex <complex>)
         (<complex> ^primitive1 bar)
      }
 -->
@@ -136,10 +138,10 @@ sp "test*step2*done
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
                ^step 2)
-    [ngs-is-attr-constructed <s> complex <complex>]
+    (<s> ^complex <complex>)
     (<complex> ^primitive1 bar)
     -{
-        [ngs-is-attr-constructed <s> complex <complex2>]
+        (<s> ^complex <complex2>)
         (<complex2> -^primitive1 bar)
      }
 -->
@@ -149,10 +151,10 @@ sp "test*create-new-object-3
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
                ^step 3)
-    [ngs-is-attr-constructed <s> complex <complex>]
+    (<s> ^complex <complex>)
     (<complex> ^primitive1 bar)
     -{
-        [ngs-is-attr-constructed <s> complex <complex2>]
+        (<s> ^complex <complex2>)
         (<complex2> -^primitive1 bar)
      }
 -->
@@ -183,7 +185,7 @@ test deep-copy-with-set-values {
 
 sp "test*create-new-object-1
     (state <s> ^superstate nil)
-    [ngs-is-attr-not-constructed <s> complex]
+    (<s> -^complex)
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject2 <new-obj>]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
@@ -250,7 +252,7 @@ sp "test*create-new-object-1
     (state <s> ^superstate nil
                ^sub-structure <sub-structure>
               -^step)
-    [ngs-is-attr-not-constructed <s> complex]
+    (<s> -^complex)
 -->
 	[ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <level1> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
     [ngs-ocreate-typed-object-in-place <level1> deep-structure ComplexObject <level2> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
