@@ -829,11 +829,12 @@ test operator-side-effects {
 
   NGS_DeclareType StructuredObject { value 1 collection-val ""}
 
-  sp* "test*create-typed-object-with-tag-primitive
+  sp "test*create-typed-object-with-tag-primitive
     [ngs-match-top-state <s>]
+    [ngs-nex <s> first-object]
     [ngs-is-not-tagged <s> first-tag]
   -->
-    [ngs-create-typed-object-by-operator <s> <s> first-object ComplexObject2 <new-obj>]
+    [ngs-create-typed-object-by-operator <s> <s> first-object ComplexObject2 <new-obj> {val 1}]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
     [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeB <deep2>]
     [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeA <deep21>]
@@ -845,13 +846,62 @@ test operator-side-effects {
 
   sp "test*create-first-side-effect
     [ngs-match-proposed-operator <s> <o>]
+    [ngs-nex <s> first-object]
   -->
-    [ngs-add-tag-side-effect <o> $NGS_SIDE_EFFECT_ADD <s> first-tag]"
+    [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> first-tag $NGS_YES $NGS_REPLACE_IF_EXISTS <o>]"
 
-
-  sp "test
+  sp "test*create-shallow-copy-with-tag-primitive
     [ngs-match-top-state <s> first-object]
-    [ngs-is-tagged <s> first-tag]
+    [ngs-nex <s> second-object]
+    [ngs-is-not-tagged <s> second-tag]
+  -->
+    [ngs-create-primitive-by-operator <s> <s> second-object <first-object>]
+    [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> second-tag]
+    [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_REMOVE <s> first-tag]"
+
+  sp "test*create-type-copy-with-tag-primitive*3
+    [ngs-match-top-state <s> second-object]
+    [ngs-nex <s> third-object]
+    [ngs-is-not-tagged <s> third-tag]
+  -->
+    [ngs-create-typed-object-by-operator <s> <s> third-object ComplexObject2 <new-obj> {val 2}]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeB <deep2>]
+    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeA <deep21>]
+    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeB <deep22>]
+    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeA <deep211>]
+    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeB <deep212>]
+    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeA <deep2111>]
+    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeB <deep2112>]
+    [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> third-tag]
+    [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD <s> second-object 5 $NGS_ADD_TO_SET]"
+
+  sp "test*create-type-copy-with-tag-primitive*4
+    [ngs-match-top-state <s> first-object]
+    [ngs-is-tagged <s> third-tag]
+    [ngs-neq <s> third-object <first-object> <third-object>]
+    [ngs-is-not-tagged <s> fourth-tag]
+  -->
+    [ngs-create-tag-by-operator <s> <s> fourth-tag]
+    [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD <s> first-object <third-object>]"
+
+ sp "test*create-type-copy-with-tag-primitive*5
+     [ngs-match-top-state <s> second-object.val]
+     [ngs-is-tagged <s> fourth-tag]
+     [ngs-is-not-tagged <s> fifth-tag]
+  -->
+     [ngs-deep-copy-by-operator <s> <s> fifth-object <second-object>]
+     [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> fifth-tag]"
+  
+  sp* "test
+    [ngs-match-top-state <s>]
+    [ngs-bind <s> first-object:<so3> "second-object:{<so1> <> <so5>}" second-object:5 third-object:<so3> fifth-object:<so5>.val:<val5>]
+    [ngs-eq <so1> val <val5>]
+    [ngs-is-not-tagged <s> first-tag]
+    [ngs-is-tagged <s> second-tag]
+    [ngs-is-tagged <s> third-tag]
+    [ngs-is-tagged <s> fourth-tag]
+    [ngs-is-tagged <s> fifth-tag]
   -->
     (pass)"
 }

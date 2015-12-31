@@ -340,7 +340,7 @@ proc ngs-create-typed-object-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
-  set op_id [CORE_GenVarName "o"]
+  set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name "create-$type" $attribute $new_obj_id $parent_obj_id]
 
   return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
@@ -407,7 +407,7 @@ proc ngs-create-primitive-by-operator { state_id
     set op_name [ngs-create-op-name create-wme $attribute $value $parent_obj_id]
   }
 
-  set op_id [CORE_GenVarName "o"]
+  set op_id $NGS_OP_ID
 
   return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
           ($op_id ^dest-object    $parent_obj_id
@@ -448,7 +448,7 @@ proc ngs-deep-copy-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
-  set op_id [CORE_GenVarName "o"]
+  set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name deep-copy $attribute $value $parent_obj_id]
 
   return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
@@ -485,7 +485,7 @@ proc ngs-remove-attribute-by-operator { state_id
 
 	CORE_RefMacroVars
 
-  set op_id [CORE_GenVarName "o"]
+  set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name remove-wme $attribute $value $parent_obj_id]
 
 	return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
@@ -696,7 +696,6 @@ proc ngs-create-decide-operator { state_id
 #
 # [ngs-add-primitive-side-effect op_id action dest_obj dest_attr value (replacement_behavior)]
 #
-# op_id - a variable bound to the operator to which to add the side effect 
 # action - one of NGS_SIDE_EFFECT_REMOVE or NGS_SIDE_EFFECT_ADD indicating whether the side 
 #           effect is to add or remove the given WME
 # dest_obj - the object that will recieve the side effect  (id of the wme constructed)
@@ -705,11 +704,16 @@ proc ngs-create-decide-operator { state_id
 # replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
 #                        will remove any existing values for the given attribute while creating the new one. 
 #                        The latter will leave any existing values for the same attribute in place.
+# op_id - (Optional) A variable bound to the operator to which to add the side effect. By default the 
+#            variable used is $NGS_OP_ID (which is used for all ngs macros). You will need to use this
+#            parameter if you are elaborating the side effect onto the operator separately from the 
+#            production that created it.
 #
-proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {replacement_behavior ""} } {
+proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacement_behavior ""} {op_id ""}} {
   
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+  CORE_SetIfEmpty op_id $NGS_OP_ID
 
   set se_id [CORE_GenVarName "side-effect"]
   set attr_list "action $action destination-object $dest_obj destination-attribute $dest_attr \
@@ -729,7 +733,7 @@ proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {repl
   }
 
   return "[ngs-ocreate-typed-object-in-place $op_id side-effect $NGS_OP_SIDE_EFFECT $se_id $attr_list]
-          [core-trace NGS_TRACE_SIDE_EFFECTS "O SIDE-EFFECT on | $op_id |, (| $dest_obj |.$attr_text $val_text)."]"
+          [core-trace NGS_TRACE_SIDE_EFFECTS "O SIDE-EFFECT on | $NGS_OP_ID |, $action (| $dest_obj |.$attr_text $val_text)."]"
 }
 
 # Adds a side-effect to an operator
@@ -759,7 +763,6 @@ proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {repl
 #
 # [ngs-add-tag-side-effect op_id action dest_obj tag_name (value) (replacement_behavior)]
 #
-# op_id - a variable bound to the operator to which to add the side effect 
 # action - one of NGS_SIDE_EFFECT_REMOVE or NGS_SIDE_EFFECT_ADD indicating whether the side 
 #           effect is to add or remove the given WME
 # dest_obj - the object that will recieve the side effect  (id of the wme constructed)
@@ -768,12 +771,16 @@ proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {repl
 # replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
 #                        will remove any existing values for the given attribute while creating the new one. 
 #                        The latter will leave any existing values for the same attribute in place.
+# op_id - (Optional) A variable bound to the operator to which to add the side effect. By default the 
+#            variable used is $NGS_OP_ID (which is used for all ngs macros). You will need to use this
+#            parameter if you are elaborating the side effect onto the operator separately from the 
+#            production that created it.
 #
-proc ngs-add-tag-side-effect { op_id action dest_obj tag_name {value ""} {replacement_behavior ""} } {
+proc ngs-add-tag-side-effect { action dest_obj tag_name {value ""} {replacement_behavior ""} {op_id ""}} {
   
   CORE_RefMacroVars
   CORE_SetIfEmpty value $NGS_YES
-  return "[ngs-add-primitive-side-effect $op_id $action $dest_obj [ngs-tag-for-name $tag_name] $value $replacement_behavior]"
+  return "[ngs-add-primitive-side-effect $action $dest_obj [ngs-tag-for-name $tag_name] $value $replacement_behavior $op_id]"
 }
 
 # Create an i-supported goal
@@ -859,7 +866,7 @@ proc ngs-create-goal-by-operator { state_id
     lappend attribute_list supergoal $supergoal_id
   }
 
-  set op_id [CORE_GenVarName "o"]
+  set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name create-$goal_type "$basetype-goal" $new_obj_id]
 
   set lhs_val "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
@@ -919,7 +926,7 @@ proc ngs-create-goal-as-return-value { state_id
   }
 
   set ret_val_id [CORE_GenVarName new-ret-val]
-  set op_id [CORE_GenVarName "o"]
+  set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name return-$goal_type "$basetype-goal" $new_obj_id]
 
   set rhs_val "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
@@ -1171,7 +1178,7 @@ proc ngs-create-ret-tag-in-place { ret_val_name
 #
 proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
   CORE_RefMacroVars
-  set op_id [CORE_GenVarName "o"]
+  set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name select "decision-option" $choice_id]
   
   return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
@@ -1210,7 +1217,7 @@ proc ngs-set-ret-val-by-operator { state_id
                                    {add_prefs "="} } {
 
     CORE_RefMacroVars
-    set op_id [CORE_GenVarName "o"]
+    set op_id $NGS_OP_ID
     set op_name [ngs-create-op-name return $ret_val_name $value]
 
     return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
@@ -1245,7 +1252,7 @@ proc ngs-create-typed-object-for-ret-val { state_id
  										                       { attribute_list "" } } {
 
    CORE_RefMacroVars
-   set op_id [CORE_GenVarName "o"]
+   set op_id $NGS_OP_ID
    set op_name [ngs-create-op-name "return-new-$type_name" $ret_val_name $new_obj_id]
 
    return  "[ngs-create-atomic-operator $state_id $new_obj_id $op_id]

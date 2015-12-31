@@ -33,6 +33,7 @@ CORE_CreateMacroVar WM_GOAL_SET "goals"
 CORE_CreateMacroVar WM_ACTIVE_GOAL "active-goal"
 
 CORE_CreateMacroVar NGS_OP_ATTRIBUTE "operator"
+CORE_CreateMacroVar NGS_OP_ID        "<o>"
 CORE_CreateMacroVar NGS_GOAL_ATTRIBUTE "goal"
 CORE_CreateMacroVar NGS_RETURN_VALUES "return-values"
 CORE_CreateMacroVar NGS_SUBSTATE_PARAMS "params"
