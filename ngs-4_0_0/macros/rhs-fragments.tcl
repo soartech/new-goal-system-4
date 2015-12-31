@@ -714,7 +714,21 @@ proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {repl
   set attr_list "action $action destination-object $dest_obj destination-attribute $dest_attr \
                  value  $value replacement-behavior $replacement_behavior"
 
-  return "[ngs-icreate-typed-object-in-place $op_id side-effect NGS_OP_SIDE_EFFECT $se_id #attr_list]"
+
+  if {[string index $dest_attr 0] == "<"} {
+    set attr_text "| $dest_attr |"
+  } else {
+    set attr_text "$dest_attr"
+  }
+
+  if {[string index $value 0] == "<"} {
+    set val_text "| $value |"
+  } else {
+    set val_text "$value"
+  }
+
+  return "[ngs-icreate-typed-object-in-place $op_id side-effect NGS_OP_SIDE_EFFECT $se_id #attr_list]
+          [core-trace NGS_TRACE_SIDE_EFFECTS "O SIDE-EFFECT, (| $dest_obj |.$attr_text $val_text).]"
 }
 
 # Adds a side-effect to an operator
