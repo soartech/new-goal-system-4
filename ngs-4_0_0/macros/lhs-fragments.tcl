@@ -60,6 +60,9 @@ proc ngs-eq { obj_id attr val { val_id ""} } {
 #  so the standard inequality method (<>) is used when you do need
 #  to bind.
 #
+# Note: You should use ngs-nex if you want to test just for the
+#        absence of an attribute
+#
 proc ngs-neq { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
   # If not binding is provided, we use the more comprehensive

@@ -28,6 +28,32 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# Creates a trace-friendly operator name 
+#
+# This is used internally by NGS, it is not a user macro.
+#
+# [ngs-create-op-name description attribute value (object_id)]
+#
+# description - Short description fo the operator (e.g. create)
+# attribute - attribute (or return value) affected by the operation
+# value - value involved in the operation
+# object_id - (Optional) Identifer for the object involved in the operation
+#
+proc ngs-create-op-name { description attribute value {object_id ""} }  {
+
+  if {[string index $attribute 0] == "<"} {
+    set attr_text "|--| $attribute |--|"
+  } else {
+    set attr_text "|--$attribute--|"
+  }
+
+  if {$object_id != ""} {
+    return "(concat |$description--| $object_id $attr_text $value)"
+  } else {
+    return "(concat |$description| $attr_text $value)"
+  }
+}
+
 # Creates a tag from a string of text
 #
 # Tags have a prefix on them given by $NGS_TAG_PREFIX
@@ -118,7 +144,8 @@ proc ngs-tag-goal-achieved { goal_id } {
 proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 	CORE_RefMacroVars
 	CORE_GenVarIfEmpty operator_id "o"
-	return "[ngs-create-atomic-operator <s> "(concat |mark-goal-achieved--| $goal_id)" $operator_id]
+  set op_name [ngs-create-op-name mark-achieved goal $goal_id]
+	return "[ngs-create-atomic-operator <s> $op_name $operator_id]
           [ngs-tag $operator_id $NGS_TAG_MARK_ACHIEVED]
     		  ($operator_id ^goal $goal_id)"
 }
@@ -314,8 +341,9 @@ proc ngs-create-typed-object-by-operator { state_id
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
   set op_id [CORE_GenVarName "o"]
+  set op_name [ngs-create-op-name "create-$type" $attribute $new_obj_id $parent_obj_id]
 
-  return "[ngs-create-atomic-operator $state_id "(concat |create--| $attribute |--$type--| $new_obj_id)" $op_id $add_prefs]
+  return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
           ($op_id ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
                ^replacement-behavior $replacement_behavior)
@@ -348,6 +376,8 @@ proc ngs-create-output-command-by-operator { state_id
 #  can include any of the symbol types exclusing ids (i.e. strings, integers, floating point values).
 #  To create identifiers, use other macros such as ngs-create-typed-object-by-operator or any of the
 #  various methods to create goals.
+#
+# NOTE: you can also use this macro to "shallow copy" a link to an existing identifer.
 # 
 # [ngs-create-primitive-by-operator state_id parent_obj_id attribute value (replacement_behavior) (add_prefs)]
 #
@@ -372,9 +402,9 @@ proc ngs-create-primitive-by-operator { state_id
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
   if { [string first $NGS_TAG_PREFIX $attribute] == 0 } {
-    set op_name "(concat |create-tag--| [string range $attribute [string length $NGS_TAG_PREFIX] end] |--| $value)"
+    set op_name [ngs-create-op-name create-tag [string range $attribute [string length $NGS_TAG_PREFIX] end] $value $parent_obj_id]
   } else {
-    set op_name "(concat |create-wme--| $attribute |--| $value)"
+    set op_name [ngs-create-op-name create-wme $attribute $value $parent_obj_id]
   }
 
   set op_id [CORE_GenVarName "o"]
@@ -419,8 +449,9 @@ proc ngs-deep-copy-by-operator { state_id
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
   set op_id [CORE_GenVarName "o"]
+  set op_name [ngs-create-op-name deep-copy $attribute $value $parent_obj_id]
 
-  return "[ngs-create-atomic-operator $state_id "(concat |deep-copy--| $attribute |--| $value)" $op_id $add_prefs]
+  return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
           ($op_id ^dest-object    $parent_obj_id
                ^dest-attribute $attribute
                ^new-obj        $value
@@ -455,8 +486,9 @@ proc ngs-remove-attribute-by-operator { state_id
 	CORE_RefMacroVars
 
   set op_id [CORE_GenVarName "o"]
+  set op_name [ngs-create-op-name remove-wme $attribute $value $parent_obj_id]
 
-	return "[ngs-create-atomic-operator $state_id "(concat |remove-wme--| $parent_obj_id |--| $attribute |--| $value)" $op_id $add_prefs]
+	return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
 			    ($op_id ^dest-object    $parent_obj_id
        		     ^dest-attribute $attribute
      	         ^value-to-remove $value)
@@ -627,8 +659,14 @@ proc ngs-create-decide-operator { state_id
            	       [ngs-create-ret-tag-in-place $NGS_TAG_DECISION_COMPLETE $ret_val_set_id $goal_id $completion_tag]"
    }
 
+   if { [string first "(concat" $op_name] == 0 } {
+      set op_name_text $op_name
+   } else {
+      set op_name_text |$op_name|
+   }
+
    return "$rhs_val
-           [core-trace NGS_TRACE_DECIDE_OPERATORS "I PROPOSE-DECIDE, $op_name for goal | $goal_id |, (| $state_id |.operator | $new_obj_id |)."]"
+           [core-trace NGS_TRACE_DECIDE_OPERATORS "I PROPOSE-DECIDE, | $op_name_text | for goal | $goal_id |, (| $state_id |.operator | $new_obj_id |)."]"
 }
 
 # Create an i-supported goal
@@ -715,8 +753,9 @@ proc ngs-create-goal-by-operator { state_id
   }
 
   set op_id [CORE_GenVarName "o"]
+  set op_name [ngs-create-op-name create-$goal_type "$basetype-goal" $new_obj_id]
 
-  set lhs_val "[ngs-create-atomic-operator $state_id "(concat |create-goal--$goal_type--| $new_obj_id)" $op_id $add_prefs]
+  set lhs_val "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
                [ngs-create-attribute $op_id new-obj $new_obj_id]
                [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
                [ngs-tag $op_id $NGS_TAG_CREATE_GOAL]
@@ -774,8 +813,9 @@ proc ngs-create-goal-as-return-value { state_id
 
   set ret_val_id [CORE_GenVarName new-ret-val]
   set op_id [CORE_GenVarName "o"]
+  set op_name [ngs-create-op-name return-$goal_type "$basetype-goal" $new_obj_id]
 
-  set rhs_val "[ngs-create-atomic-operator $state_id "(concat |return-goal--$goal_type--| $new_obj_id)" $op_id $add_prefs]
+  set rhs_val "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
 	             ($op_id ^dest-attribute        value-description
                     ^new-obj               $ret_val_id
                     ^replacement-behavior  $NGS_ADD_TO_SET)
@@ -1025,8 +1065,9 @@ proc ngs-create-ret-tag-in-place { ret_val_name
 proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
   CORE_RefMacroVars
   set op_id [CORE_GenVarName "o"]
+  set op_name [ngs-create-op-name select "decision-option" $choice_id]
   
-  return "[ngs-create-atomic-operator $state_id "(concat |select-option--| $choice_id)" $op_id $add_prefs]
+  return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                           ^new-obj              $NGS_YES
                           ^ret-val-name         $NGS_DECISION_RET_VAL_NAME
@@ -1063,8 +1104,9 @@ proc ngs-set-ret-val-by-operator { state_id
 
     CORE_RefMacroVars
     set op_id [CORE_GenVarName "o"]
+    set op_name [ngs-create-op-name return $ret_val_name $value]
 
-    return "[ngs-create-atomic-operator $state_id "(concat |return--$ret_val_name--| $value)" $op_id $add_prefs]
+    return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                           ^new-obj              $value
                           ^ret-val-name         $ret_val_name)
@@ -1097,8 +1139,9 @@ proc ngs-create-typed-object-for-ret-val { state_id
 
    CORE_RefMacroVars
    set op_id [CORE_GenVarName "o"]
+   set op_name [ngs-create-op-name "return-new-$type_name" $ret_val_name $new_obj_id]
 
-   return  "[ngs-create-atomic-operator $state_id "(concat |return--$ret_val_name--| $type_name |--| $new_obj_id)" $op_id]
+   return  "[ngs-create-atomic-operator $state_id $new_obj_id $op_id]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                           ^ret-val-name         $ret_val_name)
             [ngs-ocreate-typed-object-in-place $op_id new-obj $type_name $new_obj_id $attribute_list]
