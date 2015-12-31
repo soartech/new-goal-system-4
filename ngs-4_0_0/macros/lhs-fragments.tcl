@@ -50,6 +50,16 @@ proc ngs-eq { obj_id attr val { val_id ""} } {
   # Probably should put in some processing to handle disjunctions
   return [ngs-test $NGS_TEST_EQUAL $obj_id $attr $val $val_id]
 }
+
+# NOT Equal to
+#
+# Note that this is more general than just "<>". It will correctly
+#  handle cases when the attribute you are testing doesn't exist
+#  so long as you don't bind to the variable (i.e. don't pass in
+#  a val_id). You cannnot bind to an attribute that doesn't exist
+#  so the standard inequality method (<>) is used when you do need
+#  to bind.
+#
 proc ngs-neq { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
   # If not binding is provided, we use the more comprehensive
@@ -60,24 +70,28 @@ proc ngs-neq { obj_id attr val { val_id ""} } {
     return [ngs-test $NGS_TEST_NOT_EQUAL $obj_id $attr $val $val_id]
   }
 }
+# Less Than "<"
 proc ngs-lt { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
   return [ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $val $val_id]
 }
+# Less Than or Equal To "<="
 proc ngs-lte { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
   return [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $val $val_id]
 }
+# Greater Than ">"
 proc ngs-gt { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
   return [ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $val $val_id]
 }
+# Greater Than or Equal To ">="
 proc ngs-gte { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
   return [ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]
 }
 
-# Negations (useful for input-link testing)
+# Negated versions of the inequality comparisons (useful for input-link testing)
 proc ngs-nlt { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
   return "-{[ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $val $val_id]}"
@@ -95,7 +109,7 @@ proc ngs-ngte { obj_id attr val { val_id ""} } {
   return "-{[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]}"
 }
 
-# Test ranges
+# Range versions of the inequality comparisons
 proc ngs-gte-lt { obj_id attr low_val high_val { val_id ""} } {
   CORE_RefMacroVars
   return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
@@ -105,6 +119,19 @@ proc ngs-gte-lte { obj_id attr low_val high_val { val_id ""} } {
   CORE_RefMacroVars
   return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
           [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $high_val]"
+}
+
+# Evaluates to true when an attribute does NOT exist
+#
+# This is equivilent to -^attribute sytax in Soar, but is
+#  consistent with the NGS naming/syntax scheme
+#
+# [ngs-nex object_id attribute]
+#
+# object_id - variable bound to the object to test
+# attribute - the attribute to test for lack of existence
+proc ngs-nex { object_id attribute } {
+  return "($object_id -^$attribute)"
 }
 
 # Bind variables to an object's attributes
@@ -1219,13 +1246,25 @@ proc ngs-match-to-make-choice { substate_id
 
 # Start a production to set a return value to a typed object
 #
-# [ngs-match-to-set-return-typed-obj substate_id goal_type goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
+# Use this method in substates when you want to set a return value. This macro can be used both
+#  in cases where you want to set the return value to anything other than a goal. To set return 
+#  of a goal use ngs-match-to-create-return-goal. The difference is the retraction condition
+#  in each macro (goal creation uses a different retraction condition).
 #
-# e.g. sp "my-production
-#          [ngs-match-active-goal myGoalName <my-goal> <ss>]
-#          -->
-#          ...do something...
-proc ngs-match-to-set-return-typed-obj { substate_id
+# [ngs-match-to-set-return-val substate_id goal_type goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
+#
+# substate_id - variable bound to the substate in which the value is being returned 
+# goal_type - type of the active goal 
+# goal_id - variable to be bound to the active goal
+# return_value_name - name of the return value to set 
+# return_value_desc_id - (Optional) If provided, a variable to be bound to the object of type $NGS_TYPE_STATE_RETURN_VALUE
+#                           which contains the meta information about the return value. You typically do  not need to bind this.
+# params_id - (Optional) If provided, a variable to be bound to the parameters for the substate.
+# params_id - (Optional) If provided, a variable that will be bound to the params structure in the substate
+# top_state_id - (Optional) If provided, a variable that will be bound to the top state identifier
+# superstate_id - (Optional) If provided, a variable that will be bound to the superstate identifier
+#
+proc ngs-match-to-set-return-val { substate_id
                                      goal_type 
                                      goal_id
                                      return_value_name
@@ -1236,44 +1275,33 @@ proc ngs-match-to-set-return-typed-obj { substate_id
   CORE_RefMacroVars
   CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
+  # This method of retracting is probably no longer necessary given all-or-nothing construction
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
                ($return_value_desc_id    ^name  $return_value_name)
-               [ngs-is-attr-not-constructed $return_value_desc_id value]"
+               [ngs-nex $return_value_desc_id value]"
 
   return $lhs_ret
 }
 
-# Start a production that will set a return value as a primitive
-#
-# This also works to set return values that are boolean tags
-#
-# [ngs-match-to-set-return-primitive substate_id goal_type goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
-#
-# e.g. sp "my-production
-#          [ngs-match-active-goal myGoalName <my-goal> <ss>]
-#          -->
-#          ...do something...
-proc ngs-match-to-set-return-primitive { substate_id
-                                         goal_type 
-                                         goal_id
-                                         return_value_name
-                                         {return_value_desc_id ""} 
-                                         {params_id ""}
-                                         {top_state_id ""}
-                                         {superstate_id ""} } {
-  CORE_RefMacroVars
-  CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
-  set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id $params_id $top_state_id $superstate_id]
-               ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
-               ($return_value_desc_id    ^name  $return_value_name
-                                        -^value)"
-
-  return $lhs_ret
-}
-
-# Use when you need to match a state so you can create a goal as a return value
+# Start a production to return a goal from a substate
+#
+# Use this method in substates when you want to create a goal as a return value. If you want to 
+#  return some other type of value, use ngs-match-to-create-return-val instead. The main difference 
+#  between the two macros is that they use different retraction conditions. This macro also requires
+#  fewer paramers.
+#
+# [ngs-match-to-create-return-goal substate_id goal_type goal_id new_goal_type (params_id) (top_state_id) (superstate_id)]
+#
+# substate_id - variable bound to the substate in which the value is being returned 
+# goal_type - type of the active goal 
+# goal_id - variable to be bound to the active goal
+# new_goal_type - type of the goal being created
+# params_id - (Optional) If provided, a variable to be bound to the parameters for the substate.
+# params_id - (Optional) If provided, a variable that will be bound to the params structure in the substate
+# top_state_id - (Optional) If provided, a variable that will be bound to the top state identifier
+# superstate_id - (Optional) If provided, a variable that will be bound to the superstate identifier
 #
 proc ngs-match-to-create-return-goal { substate_id
                                        goal_type 
@@ -1296,54 +1324,70 @@ proc ngs-match-to-create-return-goal { substate_id
   return $lhs_ret
 }
 
-
-
-
-# Return the bindings for an acceptable operator _proposal_
+# Start a production to elaborate an operator or set operator preferences
 #
-# This will not bind to a selected operator. 
-#  
+# Use this macro when you want to elaborate an operator or set its preferences.
+#  This macro matches operator _preferences_, not applications. Anything on 
+#  the RHS of a production using this macro will get i-support.
 #
-# e.g., sp "my-production
-#          [ngs-match-proposed-operator <myoperator>]
-#          ...
+# [ngs-match-proposed-operator state_id op_id op_name (goal_id) (op_type)]
+#
+# state_id - variable to be bound to the state in which the operator is proposed 
+# op_id - variable to be bound to the proposed (but not selected) operator 
+# op_name - (Optional) If provided, the name of the operator that is bound to op_id 
+# goal_id - (Optional) If provided, the goal bound to the operator. Not all operators are
+#            bound to goals. Decide operators are.
+# op_type - (Optional) If provided, a goal type to constrain the match - one of NGS_OP_ATOMIC 
+#            or NGS_OP_DECIDE
 #
 proc ngs-match-proposed-operator { state_id
-								   op_id
+								                   op_id
                                    {op_name ""}
-                				   {goal_id ""}
-                 				   {op_type ""} } {
+                				           {goal_id ""}
+                 				           {op_type ""} } {
 
   set lhs_ret "(state $state_id ^operator $op_id +)"
 
-   if { $op_name != "" } {
+  if { $op_name != "" } {
      set lhs_ret "$lhs_ret
             	  ($op_id ^name $op_name)"
 	} 
 
   if { $goal_id != ""} { 
-	set lhs_ret "$lhs_ret
-           		($op_id ^goal $goal_id)" 
+	    set lhs_ret "$lhs_ret
+               		($op_id ^goal $goal_id)" 
   }
 
   if { $op_type != ""} { 
-	set lhs_ret "$lhs_ret
-                 ($op_id ^type $op_type)"
+	     set lhs_ret "$lhs_ret
+                    ($op_id ^type $op_type)"
   }
 
   return $lhs_ret
 }
 
-# Return the bindings for two proposed-but-not-necessarily-selected operators
+# Start a production to set pairwise operator preferences
 #
-# e.g., sp "my-production
-#          [ngs-match-two-proposed-operators myoperator1 myoperator2]
-#          ...
+# Use this macro when you want to set binary preferences betwen two operators.
+#  This macro matches operator _preferences_, not applications. Anything on 
+#  the RHS of a production using this macro will get i-support.
 #
-# @devnote There's a slight danger of conflict here in using the hardcoded "<s>" as the state's ID - 
-#          but <s> is such a convention in the soar community that it's unlikely to be 
-#          anything else.
-
+# [ngs-match-two-proposed-operators state_id op1_id op2_id op1_name op2_name (goal1_id) (goal2_id) (op1_type) (op2_type)]
+#
+# state_id - variable to be bound to the state in which the operator is proposed 
+# op1_id - variable to be bound to the first proposed (but not selected) operator 
+# op1_id - variable to be bound to the second proposed (but not selected) operator 
+# op1_name - (Optional) If provided, the name of the first operator, bound to op1_id 
+# op1_name - (Optional) If provided, the name of the second operator, bound to op2_id 
+# goal1_id - (Optional) If provided, the goal bound to the first operator. Not all operators are
+#            bound to goals. Decide operators are.
+# goal2_id - (Optional) If provided, the goal bound to the second operator. Not all operators are
+#            bound to goals. Decide operators are.
+# op1_type - (Optional) If provided, a goal type to constrain the match of the first operator - 
+#            one of NGS_OP_ATOMIC or NGS_OP_DECIDE
+# op2_type - (Optional) If provided, a goal type to constrain the match of the second operator - 
+#            one of NGS_OP_ATOMIC or NGS_OP_DECIDE
+#
 proc ngs-match-two-proposed-operators { state_id
                                         op1_id 
                                         op2_id
@@ -1356,7 +1400,7 @@ proc ngs-match-two-proposed-operators { state_id
 
 
    set lhs_ret "(state $state_id ^operator $op1_id +
-							     ^operator $op2_id +)"
+							                   ^operator $op2_id +)"
 
 
    if { $op1_name != "" } {
@@ -1391,10 +1435,18 @@ proc ngs-match-two-proposed-operators { state_id
 
 # Use start a production to apply an operator
 #
+# IMPORTANT: You almost never need to use this macro because NGS applies all of your operators
+#  for you. It is used internally by ngs. Before using this macro, make sure one of the standard
+#  operators won't work (e.g. for goal creation, primitive creation, tag creation,
+#  object creation, and output command creation).
+#
 # [ngs-match-selected-operator state_id op_id op_name (goal_id)]
 # 
-# e.g. sp "my-production
-#         [ngs-operator-application MyOperator <o> <og> <og-tags> <s>]
+# state_id - variable to be bound to the state in which the operator is selected 
+# op_id - variable to be bound to the selected operator 
+# op_name - (Optional) If provided, the name of the operator that is bound to op_id 
+# goal_id - (Optional) If provided, the goal bound to the operator. Not all operators are
+#            bound to goals. Decide operators are.
 #
 proc ngs-match-selected-operator {state_id
                                   op_id
@@ -1405,24 +1457,34 @@ proc ngs-match-selected-operator {state_id
 
   if { $op_name != "" } {
     set lhs_ret "$lhs_ret
-                 ($op_id ^name     $op_name)"
+                 ($op_id ^name $op_name)"
   }
 
   if { $goal_id != "" } {
-
     set lhs_ret "$lhs_ret
-                 ($op_id        ^goal     $goal_id)"
-
+                 ($op_id ^goal $goal_id)"
   }
 
   return $lhs_ret  
 }
 
 
-# Use start a production to apply an operator
+# Use start a production to apply an operator (only on the top state)
 #
-# e.g. sp "my-production
-#         [ngs-operator-application MyOperator <o> <og> <og-tags> <s>]
+# IMPORTANT: You almost never need to use this macro because NGS applies all of your operators
+#  for you. It is used internally by ngs. Before using this macro, make sure one of the standard
+#  operators won't work (e.g. for goal creation, primitive creation, tag creation,
+#  object creation, and output command creation).
+#
+# This version of the match production will only match operators selected on the top state
+#
+# [ngs-match-selected-operator-on-top-state state_id op_id op_name (goal_id)]
+# 
+# state_id - variable to be bound to the state in which the operator is selected 
+# op_id - variable to be bound to the selected operator 
+# op_name - (Optional) If provided, the name of the operator that is bound to op_id 
+# goal_id - (Optional) If provided, the goal bound to the operator. Not all operators are
+#            bound to goals. Decide operators are.
 #
 proc ngs-match-selected-operator-on-top-state {state_id
                                                op_id
@@ -1433,10 +1495,24 @@ proc ngs-match-selected-operator-on-top-state {state_id
           ($state_id ^superstate nil)"
 }
 
-# Use start a production to apply an operator
+# Use start a production to apply an operator (only in a substate)
 #
-# e.g. sp "my-production
-#         [ngs-operator-application MyOperator <o> <og> <og-tags> <s>]
+# IMPORTANT: You almost never need to use this macro because NGS applies all of your operators
+#  for you. It is used internally by ngs. Before using this macro, make sure one of the standard
+#  operators won't work (e.g. for goal creation, primitive creation, tag creation,
+#  object creation, and output command creation).
+#
+# This version of the match production will only match operators selected in a substate
+#
+# [ngs-match-selected-operator-on-top-state state_id op_id op_name (goal_id)]
+# 
+# substate_id - variable to be bound to the state in which the operator is selected 
+# op_id - variable to be bound to the selected operator 
+# op_name - (Optional) If provided, the name of the operator that is bound to op_id 
+# goal_id - (Optional) If provided, the goal bound to the operator. Not all operators are
+#            bound to goals. Decide operators are.
+# top_state_id - (Optional) If provided, a variable that will be bound to the top state identifier
+# superstate_id - (Optional) If provided, a variable that will be bound to the superstate identifier
 #
 proc ngs-match-selected-operator-in-substate {substate_id                                               
                                               op_id

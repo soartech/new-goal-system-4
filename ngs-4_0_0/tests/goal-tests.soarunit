@@ -419,7 +419,7 @@ sp "test*create-decide-operator
     [ngs-create-ret-val-in-place planning-result <ret-vals> <s> updated-plan]"
 
 sp "test*create-fake-plan
-    [ngs-match-to-set-return-typed-obj <ss> TestMaintenanceGoal <g> planning-result]
+    [ngs-match-to-set-return-val <ss> TestMaintenanceGoal <g> planning-result]
 -->
     [ngs-create-typed-object-for-ret-val <ss> planning-result MyPlan <new-plan> { text {|I'm here|} } ]"
 
@@ -431,7 +431,7 @@ sp "test*construct-replacement-value
     [ngs-ocreate-typed-object-in-place <new-val> nested-item Location <new-loc> { x 1 y 2 z 0 }]"
   
 sp "test*move-replacement-value-to-return-set
-    [ngs-match-to-set-return-typed-obj <ss> TestMaintenanceGoal <g> replacement-value]
+    [ngs-match-to-set-return-val <ss> TestMaintenanceGoal <g> replacement-value]
     [ngs-is-attr-constructed <ss> new-value <new-val>]
 -->
 	[ngs-set-ret-val-by-operator <ss> replacement-value <new-val>]"
@@ -809,7 +809,7 @@ sp "test*i-like-oof
    [ngs-make-choice-by-operator <s> <my-fav>]"
 
 sp "test*make-foo-or-oof-work
-   [ngs-match-to-set-return-primitive <s> DecisionGoal <g> $NGS_DECISION_ITEM_RET_VAL_NAME]
+   [ngs-match-to-set-return-val <s> DecisionGoal <g> $NGS_DECISION_ITEM_RET_VAL_NAME]
    (<g> ^decision_value <dv>)
 -->
    [ngs-set-ret-val-by-operator <s> $NGS_DECISION_ITEM_RET_VAL_NAME <dv>]"
