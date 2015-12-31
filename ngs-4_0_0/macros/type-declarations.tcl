@@ -44,7 +44,7 @@
 #           being created.
 NGS_DeclareType $NGS_TYPE_STATE_RETURN_VALUE {
 
-  id ""
+  name ""
   destination-object ""
   destination-attribute ""
   replacement-behavior $NGS_REPLACE_IF_EXISTS
@@ -71,7 +71,7 @@ NGS_DeclareType $NGS_TYPE_STATE_RETURN_VALUE {
 #                        The latter will leave any existing values for the same attribute in place.
 #
 NGS_DeclareType $NGS_TYPE_DECISION_STRUCTURE {
-  id ""
+  name ""
   destination-object ""
   destination-attribute ""
   replacement-behavior $NGS_REPLACE_IF_EXISTS

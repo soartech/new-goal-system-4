@@ -61,7 +61,7 @@ sp "ngs*core*substate*apply*set-return-value*fill-in-dest-object-for-choice
   	             ^choice             <choice>)
   (<ss>          ^$NGS_RETURN_VALUES <ret-val-set>)
   (<ret-val-set> ^value-description  <v-desc>)
-  (<v-desc>      ^id              $NGS_DECISION_RET_VAL_NAME) 
+  (<v-desc>      ^name              $NGS_DECISION_RET_VAL_NAME) 
 -->
   (<v-desc> ^destination-object <choice> +)"
 
@@ -83,7 +83,7 @@ sp "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*mark-no-choice
 	(<ss>          ^decision-choice   { <choice> <> <dest> }
 		           ^return-values     <ret-val-set>)
 	(<ret-val-set> ^value-description <rv-obj>)
-	(<rv-obj>      ^id                 $NGS_DECISION_RET_VAL_NAME
+	(<rv-obj>      ^name                 $NGS_DECISION_RET_VAL_NAME
 		           ^destination-object    <dest>)
 -->
 	[ngs-tag-goal-as-decided <choice> $NGS_NO]"
@@ -97,7 +97,7 @@ sp "ngs*core*ret-vals*elaborate-operator*set-return-value*fill-in-missing-values
   (<o>           ^ret-val-name       <ret-val-name>)
   (<s>           ^$NGS_RETURN_VALUES <ret-val-set>)
   (<ret-val-set> ^value-description  <v-desc>)
-  (<v-desc>      ^id             <ret-val-name>) 
+  (<v-desc>      ^name             <ret-val-name>) 
 -->
   (<o> ^dest-object <v-desc> +)
   (<o> ^dest-attribute value +)"

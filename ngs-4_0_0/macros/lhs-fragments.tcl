@@ -510,7 +510,7 @@ proc ngs-requested-decision { goal_id
   CORE_GenVarIfEmpty decision_info_id "decision-info"
 
   set lhs_ret "($goal_id ^$NGS_DECISION_ATTR $decision_info_id)
-               ($decision_info_id ^id $decision_name)"
+               ($decision_info_id ^name $decision_name)"
 
   if { $decision_obj != "" } {
     set lhs_ret "$lhs_ret
@@ -733,7 +733,7 @@ proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value_id ""} { ret_val
     CORE_GenVarIfEmpty ret_val_desc_id "val-desc"
 
     set lhs_val "($ret_val_set_id  ^value-description $ret_val_desc_id)
-                 ($ret_val_desc_id ^id $ret_val_name)
+                 ($ret_val_desc_id ^name $ret_val_name)
                  [ngs-is-tagged $ret_val_desc_id $NGS_TAG_CONSTRUCTED]"
 
     if { $ret_value_id != "" } {
@@ -1212,7 +1212,7 @@ proc ngs-match-to-make-choice { substate_id
           [ngs-is-named $substate_id $NGS_OP_DECIDE_GOAL]
           ($params_id ^decision-name $decision_name)
           ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
-          ($return_value_desc_id    ^id  $NGS_DECISION_RET_VAL_NAME
+          ($return_value_desc_id    ^name  $NGS_DECISION_RET_VAL_NAME
                                    -^destination-object)"
 
 }
@@ -1238,7 +1238,7 @@ proc ngs-match-to-set-return-typed-obj { substate_id
 
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
-               ($return_value_desc_id    ^id  $return_value_name)
+               ($return_value_desc_id    ^name  $return_value_name)
                [ngs-is-attr-not-constructed $return_value_desc_id value]"
 
   return $lhs_ret
@@ -1267,7 +1267,7 @@ proc ngs-match-to-set-return-primitive { substate_id
 
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
-               ($return_value_desc_id    ^id  $return_value_name
+               ($return_value_desc_id    ^name  $return_value_name
                                         -^value)"
 
   return $lhs_ret
