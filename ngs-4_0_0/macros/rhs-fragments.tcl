@@ -669,6 +669,97 @@ proc ngs-create-decide-operator { state_id
            [core-trace NGS_TRACE_DECIDE_OPERATORS "I PROPOSE-DECIDE, | $op_name_text | for goal | $goal_id |, (| $state_id |.operator | $new_obj_id |)."]"
 }
 
+# Adds a side-effect to an operator
+#
+# This version works for adding primitives and links to existing objects, but not for tags.
+# Use ngs-add-tag-side-effect for tags.
+#
+# A side effect is an additional action that can be taken for most operators.
+# The action must be a primitive action (creation or removal of a wme). So you can
+#  use side effects to set tags, add a primitive attribute, or create an alias/link 
+#  to an objects. Multipe side effects are allowed per operator.
+# 
+# The following macros can be combined with side effects (others cannot):
+#  * ngs-create-typed-object-by-operator
+#  * ngs-create-goal-by-operator
+#  * ngs-create-goal-as-return-value
+#  * ngs-create-primitive-by-operator
+#  * ngs-create-tag-by-operator
+#  * ngs-create-typed-object-for-ret-val
+#  * ngs-set-ret-val-by-operator
+#  * ngs-make-choice-by-operator
+#  * ngs-deep-copy-by-operator
+#  * ngs-create-output-command-by-operator
+#
+# Side effects can be difficult to debug, so use wisely. 
+# You can trace side effects using NGS_TRACE_SIDE_EFFECTS.
+#
+# [ngs-add-primitive-side-effect op_id action dest_obj dest_attr value (replacement_behavior)]
+#
+# op_id - a variable bound to the operator to which to add the side effect 
+# action - one of NGS_SIDE_EFFECT_REMOVE or NGS_SIDE_EFFECT_ADD indicating whether the side 
+#           effect is to add or remove the given WME
+# dest_obj - the object that will recieve the side effect  (id of the wme constructed)
+# dest_attr - Attribute of the wme to be constructed as the side effect
+# value - the value to set for the wme to be constructed as the side effect 
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+#
+proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {replacement_behavior ""} } {
+  
+  CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+  set se_id [CORE_GenVarName "side-effect"]
+  set attr_list "action $action destination-object $dest_obj destination-attribute $dest_attr \
+                 value  $value replacement-behavior $replacement_behavior"
+
+  return "[ngs-icreate-typed-object-in-place $op_id side-effect NGS_OP_SIDE_EFFECT $se_id #attr_list]"
+}
+
+# Adds a side-effect to an operator
+#
+# This version works for adding tags to objects. To add other types of attributes use
+#  ngs-add-primitive-side-effect
+#
+# A side effect is an additional action that can be taken for most operators.
+# The action must be a primitive action (creation or removal of a wme). So you can
+#  use side effects to set tags, add a primitive attribute, or create an alias/link 
+#  to an objects. Multipe side effects are allowed per operator.
+# 
+# The following macros can be combined with side effects (others cannot):
+#  * ngs-create-typed-object-by-operator
+#  * ngs-create-goal-by-operator
+#  * ngs-create-goal-as-return-value
+#  * ngs-create-primitive-by-operator
+#  * ngs-create-tag-by-operator
+#  * ngs-create-typed-object-for-ret-val
+#  * ngs-set-ret-val-by-operator
+#  * ngs-make-choice-by-operator
+#  * ngs-deep-copy-by-operator
+#  * ngs-create-output-command-by-operator
+#
+# Side effects can be difficult to debug, so use wisely. 
+# You can trace side effects using NGS_TRACE_SIDE_EFFECTS.
+#
+# [ngs-add-tag-side-effect op_id action dest_obj tag_name (value) (replacement_behavior)]
+#
+# op_id - a variable bound to the operator to which to add the side effect 
+# action - one of NGS_SIDE_EFFECT_REMOVE or NGS_SIDE_EFFECT_ADD indicating whether the side 
+#           effect is to add or remove the given WME
+# dest_obj - the object that will recieve the side effect  (id of the wme constructed)
+# tag_name - Name of the tag to add as the side effect 
+# value - (Optional the tag value to set (NGS_YES is the default)
+# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+#
+proc ngs-add-tag-side-effect { op_id action dest_obj tag_name {value ""} {replacement_behavior ""} } {
+  
+  CORE_SetIfEmpty value $NGS_YES
+  return "[ngs-add-primitive-side-effect $op_id $action $dest_obj [ngs-tag-for-name $tag_name] $value $replacement_behavior]"
+}
+
 # Create an i-supported goal
 #
 # Use this macro to create i-supported goals. I-supported goals should be configured
@@ -967,7 +1058,7 @@ proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
 #  the information from this return value structure to determine where to place its
 #  return values
 #
-# [ngs-create-ret-val-in-place ret_val_name ret_val_set_id dest_obj_id attribute (new_val) (replacement_bheavior)]
+# [ngs-create-ret-val-in-place ret_val_name ret_val_set_id dest_obj_id attribute (new_val) (replacement_behavior)]
 #
 # ret_val_name - Name of the return value. The decide operator should document the return values it constructs such
 #  that when you create this operator you know which return values to create. Note that you can create additional 

@@ -37,7 +37,7 @@
 # name - name of the return value (a string)
 # destination-object - identifier for the object that should recieve the return value
 # destination-attribute - name of the attribute to recieve the return value
-# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+# replacement-behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
 #                        will remove any existing values for the given attribute while creating the new one. 
 #                        The latter will leave any existing values for the same attribute in place.
 # value - the return value itself (any type). Typically this is set separately from the return value structure
@@ -49,7 +49,6 @@ NGS_DeclareType $NGS_TYPE_STATE_RETURN_VALUE {
   destination-attribute ""
   replacement-behavior $NGS_REPLACE_IF_EXISTS
   value ""
-
 }
 
 # Type used to define a decision as part of a goal
@@ -66,7 +65,7 @@ NGS_DeclareType $NGS_TYPE_STATE_RETURN_VALUE {
 # name - name of the decision (just a user defined string)
 # destination-object - identifier for the object that should recieve recieve the decided attribute
 # destination-attribute - name of the attribute that represents the result of the decision
-# replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+# replacement-behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
 #                        will remove any existing values for the given attribute while creating the new one. 
 #                        The latter will leave any existing values for the same attribute in place.
 #
@@ -76,6 +75,31 @@ NGS_DeclareType $NGS_TYPE_DECISION_STRUCTURE {
   destination-attribute ""
   replacement-behavior $NGS_REPLACE_IF_EXISTS
 }
+
+# Type used for operator side effects
+#
+# This type is used internally by NGS to track side effects on operators.
+#
+# Side effects are limited to simple primitive and shallow copy constructs
+# See ngs-add-side-effect and ngs-has-side-effect for details on how to 
+#  set up and use side effects.
+#
+# destination-object - identifier for the object that should recieve the value
+# destination-attribute - name of the attribute to recieve the value
+# replacement-behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
+#                        will remove any existing values for the given attribute while creating the new one. 
+#                        The latter will leave any existing values for the same attribute in place.
+# value - the value to be set as a side effect of the operator
+# action - one of NGS_SIDE_EFFECT_REMOVE or NGS_SIDE_EFFECT_ADD
+#
+NGS_DeclareType $NGS_OP_SIDE_EFFECT {
+	destination-object ""
+	destination-attribute ""
+	replacement-behavior ""
+	value ""
+    action ""
+}
+
 
 # Type used for output commands
 #

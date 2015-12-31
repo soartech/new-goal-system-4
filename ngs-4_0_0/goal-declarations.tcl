@@ -90,7 +90,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # i-supported production to mark a decision on this goal as being required
   sp "ngs*core*goal*elaborate-decision-is-required*undecided-exists*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
-    [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
+    [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-subgoal <g> <sub-goal>]
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
     [ngs-has-not-decided <sub-goal>]
@@ -100,7 +100,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Same as above, but looks for lack of a decided *yes*
   sp "ngs*core*goal*elaborate-decision-is-required*yes-does-not-exist*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
-    [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
+    [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
    -{
       [ngs-is-subgoal <g> <sub-goal>]
       [ngs-is-assigned-decision <sub-goal> <decision-name>]
@@ -113,7 +113,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   #  if there is no sub-goal that can make the decision
   sp "ngs*core*goal*elaborate-decision-no-decision-options*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
-    [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
+    [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
    -{
       [ngs-is-subgoal <g> <sub-goal>]
       [ngs-is-assigned-decision <sub-goal> <decision-name>]
@@ -126,7 +126,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   sp "ngs*core*goal*elaborate-decision-one-decision-option*$goal_type
     
     [ngs-match-goal <s> $goal_type <g>]
-    [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
+    [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
    
     [ngs-is-subgoal <g> <sub-goal>]
@@ -147,7 +147,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
 
     [ngs-is-supergoal <sub-goal> <supergoal>]
-    [ngs-requested-decision <supergoal> <decision-name> {} {} {} <decision-info>]
+    [ngs-has-requested-decision <supergoal> <decision-name> {} {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
     [ngs-is-tagged <decision-info> $NGS_TAG_ONE_OPTION]
   -->
@@ -156,7 +156,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Operator proposal to make a decision if there are multiple options
   sp "ngs*core*goal*propose-to-create-substate-if-more-than-one-choice*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
-    [ngs-requested-decision <g> <decision-name> {} {} {} <decision-info>]
+    [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
     [ngs-is-not-tagged <decision-info> $NGS_TAG_ONE_OPTION]
     [ngs-is-not-tagged <decision-info> $NGS_TAG_NO_OPTIONS]

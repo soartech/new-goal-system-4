@@ -69,6 +69,10 @@ CORE_CreateMacroVar NGS_GB_MAINT   "maintenance"
 CORE_CreateMacroVar NGS_OP_ATOMIC "atomic"
 CORE_CreateMacroVar NGS_OP_DECIDE "decide"
 
+# Operations used for side effects. 
+CORE_CreateMacroVar NGS_SIDE_EFFECT_REMOVE "remove"
+CORE_CreateMacroVar NGS_SIDE_EFFECT_ADD    "create"
+
 # Substate Tags
 CORE_CreateMacroVar NGS_TAG_SUBSTATE_RESULT_RETURNED "ngs*substate-result-returned"
 CORE_CreateMacroVar NGS_TAG_CONSTRUCTED 			 "ngs*constructed"
@@ -106,6 +110,7 @@ CORE_CreateMacroVar NGS_OP_DECIDE_GOAL        "ngs-op-decide-goal"
 CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "NGS_StateReturnValue"
 CORE_CreateMacroVar NGS_TYPE_DECISION_STRUCTURE "NGS_DecisionStructure"
 CORE_CreateMacroVar NGS_TYPE_OUTPUT_COMMAND     "NGS_OutputCommand"
+CORE_CreateMacroVar NGS_OP_SIDE_EFFECT          "NGS_SideEffect"
 
 # LHS Test Types
 CORE_CreateMacroVar NGS_TEST_EQUAL ""
@@ -123,6 +128,7 @@ CORE_CreateMacroVar NGS_TEST_GREATER_THAN_OR_EQUAL ">="
 # CORE_ActivateTraceCategory NGS_TRACE_O_GOALS
 # CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
 # CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
+# CORE_ActivateTraceCategory NGS_TRACE_SIDE_EFFECTS
 # CORE_ActivateTraceCategory NGS_TRACE_TAGS
 # CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES
 # CORE_ActivateTraceCategory NGS_TRACE_RETURN_VALUES

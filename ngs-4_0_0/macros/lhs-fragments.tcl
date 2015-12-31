@@ -518,7 +518,7 @@ proc ngs-is-assigned-decision { goal_id decision_name } {
 #  bind to the information about the decision to be made and get the
 #  decision's object and attribute.
 #
-# [ngs-requested-decision goal_id decision_name (decision_obj) (decision_attr) (replacement_behavior) (decision_info_id)]
+# [ngs-has-requested-decision goal_id decision_name (decision_obj) (decision_attr) (replacement_behavior) (decision_info_id)]
 #
 # goal_id - variable bound to the goal for which to check for a requested decision
 # decision_name - name of the decision to check for being requested
@@ -530,7 +530,7 @@ proc ngs-is-assigned-decision { goal_id decision_name } {
 # decision_info_id - (Optional) a variable that is bound to the decision information object.
 #                   Typically only ngs code needs to do this.
 # 
-proc ngs-requested-decision { goal_id 
+proc ngs-has-requested-decision { goal_id 
                               decision_name 
                               { decision_obj ""  }
                               { decision_attr "" }
@@ -654,6 +654,74 @@ proc ngs-conditions-false-for-all-other-choices { choice_id other_choice_id args
   return "-{
               $lhs_ret
            }"
+}
+
+# Evaluates to true if an operator has side effects
+#
+# A side effect is an additional action that can be taken for most operators.
+# The action must be a primitive action (creation or removal of a wme). So you can
+#  use side effects to set tags, add a primitive attribute, or create an alias/link 
+#  to an objects. 
+# 
+# The following macros can be combined with side effects (others cannot):
+#  * ngs-create-typed-object-by-operator
+#  * ngs-create-goal-by-operator
+#  * ngs-create-goal-as-return-value
+#  * ngs-create-primitive-by-operator
+#  * ngs-create-tag-by-operator
+#  * ngs-create-typed-object-for-ret-val
+#  * ngs-set-ret-val-by-operator
+#  * ngs-make-choice-by-operator
+#  * ngs-deep-copy-by-operator
+#  * ngs-create-output-command-by-operator
+#
+# Side effects can be difficult to debug, so use wisely. 
+# You can trace side effects using NGS_TRACE_SIDE_EFFECTS.
+#
+# [ngs-has-side-effect op_id (side_effect_id)]
+#
+# op_id - a variable bound to the operator to test
+# side_effect_id - (Optional) If provided, binds to the structure containing the side-effect meta-data
+#                     See type-declarations.tcl for the definition of this structure
+#
+proc ngs-has-side-effect { op_id 
+                           {side_effect_id ""} } {
+  
+  CORE_SetIfEmpty side_effect_id "side-effect"
+  
+  if { $side_effect_id != ""} {
+    return "[ngs-bind $op_id side-effect:$side_effect_id]"
+  }
+}
+
+# Evaluates to true if the operator does NOT have any side effects
+#
+# A side effect is an additional action that can be taken for most operators.
+# The action must be a primitive action (creation or removal of a wme). So you can
+#  use side effects to set tags, add a primitive attribute, or create an alias/link 
+#  to an objects. 
+# 
+# The following macros can be combined with side effects (others cannot):
+#  * ngs-create-typed-object-by-operator
+#  * ngs-create-goal-by-operator
+#  * ngs-create-goal-as-return-value
+#  * ngs-create-primitive-by-operator
+#  * ngs-create-tag-by-operator
+#  * ngs-create-typed-object-for-ret-val
+#  * ngs-set-ret-val-by-operator
+#  * ngs-make-choice-by-operator
+#  * ngs-deep-copy-by-operator
+#  * ngs-create-output-command-by-operator
+#
+# Side effects can be difficult to debug, so use wisely. 
+# You can trace side effects using NGS_TRACE_SIDE_EFFECTS.
+#
+# [ngs-does-not-have-side-effects op_id (side_effect_id)]
+#
+# op_id - a variable bound to the operator to test
+#
+proc ngs-does-not-have-side-effects { op_id } {
+  return "[ngs-nex $op_id side-effect]"
 }
 
 # Evaluates to true if the object linked to the given attribute
@@ -1060,7 +1128,7 @@ proc ngs-match-decided-goal { state_id
           [ngs-has-decided $goal_id $NGS_YES]
           [ngs-is-assigned-decision $goal_id $decision_name]
           [ngs-is-supergoal $goal_id $supergoal_id]
-          [ngs-requested-decision $supergoal_id $decision_name $decision_obj $decision_attr $replacement_behavior]"
+          [ngs-has-requested-decision $supergoal_id $decision_name $decision_obj $decision_attr $replacement_behavior]"
 }
 
 # Start a production to create a subgoal of another goal
