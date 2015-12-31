@@ -133,6 +133,8 @@ proc ngs-construct { object_id typename { attribute_list "" } } {
 
 	set ret_val "($object_id"
 
+	lappend attribute_list my-type $typename
+	
 	# These are the values that were passed in (if any)
 	set new_vals [expand_variables $attribute_list]
 

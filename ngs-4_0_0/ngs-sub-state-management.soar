@@ -36,7 +36,7 @@ sp "ngs*core*substate*set-params
 
 # For decide goal sub-states, copy in the goals that represent the choices
 sp "ngs*core*substate*copy-decision-goals
-	[ngs-match-active-goal <s> <any-goal-name> <g> <g-params>]
+	[ngs-match-active-goal <s> <any-goal-type> <g> <g-params>]
 	(<g-params> ^decision-name <decision-name>)
 	[ngs-is-subgoal <g> <sub-goal>]
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
@@ -106,11 +106,11 @@ sp "ngs*core*ret-vals*elaborate-operator*set-return-value*fill-in-missing-values
 sp "ngs*core*ret-vals*elaborate-operator*$NGS_TAG_CREATE_GOAL_RET*fill-in-return-val-set
   (state <s> ^operator <o> +)
   [ngs-is-tagged <o> $NGS_TAG_CREATE_GOAL_RET]
-  [ngs-match-goalpool <top-state> <goals> <goal-name>] 
+  [ngs-match-goalpool <top-state> <goals> <goal-type>] 
   (<s> ^$NGS_RETURN_VALUES <ret-val-set>)
   (<o> ^new-obj            <new-ret-val>)
   (<new-ret-val> ^value    <new-goal>)
-  [ngs-is-named <new-goal> <goal-name>]  
+  [ngs-is-my-type <new-goal> <goal-type>]  
 -->
   (<o>           ^dest-object        <ret-val-set> +)
   (<new-ret-val> ^destination-object <goals>)"

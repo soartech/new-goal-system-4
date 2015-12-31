@@ -233,7 +233,7 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 
   # Set all of the non-tag attributes
   set rhs_val "$rhs_val
-              [ngs-construct $new_obj_id $type [lappend attribute_list type $type name $type]]"
+              [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
 
   set rhs_val "$rhs_val
                [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
@@ -271,7 +271,7 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
 
   # Set all of the non-tag attributes
   set rhs_val "$rhs_val
-              [ngs-construct $new_obj_id $type [lappend attribute_list type $type name $type]]"
+              [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
 
   return "$rhs_val
           [core-trace NGS_TRACE_O_TYPED_OBJECTS "o CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
@@ -640,12 +640,12 @@ proc ngs-create-decide-operator { state_id
 #  with a production or process that marks them as achieved when conditions are met.
 #  See ngs-tag-goal-achieved.
 #
-# [ngs-create-goal-in-place goal_set_id goal_name type new_obj_id (supergoal_id) (attribute_list)]
+# [ngs-create-goal-in-place goal_set_id goal_type basetype new_obj_id (supergoal_id) (attribute_list)]
 #
 # goal_set_id - variable bound to the goal set in which to place this goal. Bind this
 #                variable on the left side using macro ngs-match-goalpool or ngs-match-goal.
-# goal_name - user-defined name of the goal to construct
-# type - type of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
+# goal_type - user-defined type of the goal to construct
+# basetype - basetype of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
 #          maintenance goals respectively. Achievement goals are removed upon achievement
 #          while maintenance goals are not removed.
 # new_obj_id - variable that will be bound to the id of the newly constructed goal
@@ -655,8 +655,8 @@ proc ngs-create-decide-operator { state_id
 #                  (i.e. a multi-valued attribute), put the set values in a list (see example above).
 #
 proc ngs-create-goal-in-place { goal_set_id 
-                                goal_name 
-                                type 
+                                goal_type 
+                                basetype 
                                 new_obj_id 
                                 {supergoal_id ""} 
                                 {attribute_list ""} } {
@@ -664,16 +664,16 @@ proc ngs-create-goal-in-place { goal_set_id
   CORE_RefMacroVars
   variable lhs_val
 
-  lappend attribute_list name $goal_name type $type
+  lappend attribute_list type $basetype
   if { $supergoal_id != "" } {
     lappend attribute_list supergoal $supergoal_id
   }
 
   set lhs_val "[ngs-create-attribute $goal_set_id $NGS_GOAL_ATTRIBUTE $new_obj_id]
-               [ngs-construct $new_obj_id $goal_name $attribute_list]
+               [ngs-construct $new_obj_id $goal_type $attribute_list]
                [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
                [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]
-               [core-trace NGS_TRACE_I_GOALS "I CREATE-GOAL, $goal_name, | $new_obj_id |, $type."]"
+               [core-trace NGS_TRACE_I_GOALS "I CREATE-GOAL, $goal_type, | $new_obj_id |, $basetype."]"
 
   return $lhs_val   
 }
@@ -683,11 +683,11 @@ proc ngs-create-goal-in-place { goal_set_id
 # Use this macro to create o-supported goals. To create i-supported goals use 
 #  ngs-create-goal-in-place. 
 #
-# [ngs-create-goal-by-operator state_id goal_name type new_obj_id (supergoal_id)]
+# [ngs-create-goal-by-operator state_id goal_type basetype new_obj_id (supergoal_id)]
 #
 # state_id - variable bound to the state in which the operator should be proposed
-# goal_name - user-defined name of the goal to construct
-# type - type of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
+# goal_type - user-defined type of the goal to construct
+# basetype - basetype of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
 #          maintenance goals respectively. Achievement goals are removed upon achievement
 #          while maintenance goals are not removed.
 # new_obj_id - variable that will be bound to the id of the newly constructed goal
@@ -699,8 +699,8 @@ proc ngs-create-goal-in-place { goal_set_id
 #  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-create-goal-by-operator { state_id
-                                   goal_name
-                                   type
+                                   goal_type
+                                   basetype
                                    new_obj_id
                                    {supergoal_id ""}
                                    {attribute_list ""} 
@@ -709,19 +709,19 @@ proc ngs-create-goal-by-operator { state_id
   CORE_RefMacroVars
   variable lhs_val
 
-  lappend attribute_list name $goal_name type $type
+  lappend attribute_list type $basetype
   if { $supergoal_id != "" } {
     lappend attribute_list supergoal $supergoal_id
   }
 
   set op_id [CORE_GenVarName "o"]
 
-  set lhs_val "[ngs-create-atomic-operator $state_id "(concat |create-goal--$goal_name--| $new_obj_id)" $op_id $add_prefs]
+  set lhs_val "[ngs-create-atomic-operator $state_id "(concat |create-goal--$goal_type--| $new_obj_id)" $op_id $add_prefs]
                [ngs-create-attribute $op_id new-obj $new_obj_id]
                [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
                [ngs-tag $op_id $NGS_TAG_CREATE_GOAL]
-               [ngs-construct $new_obj_id $goal_name $attribute_list]
-               [core-trace NGS_TRACE_O_GOALS "O CREATE-GOAL, $goal_name, | $new_obj_id |, $type."]"
+               [ngs-construct $new_obj_id $goal_type $attribute_list]
+               [core-trace NGS_TRACE_O_GOALS "O CREATE-GOAL, $goal_type, | $new_obj_id |, $basetype."]"
 
   return $lhs_val   
 }        
@@ -741,11 +741,11 @@ proc ngs-create-goal-by-operator { state_id
 #  stored in the return value set. Then, upon completion of the sub-state it will be moved
 #  to the top-state goal pool.
 #
-# [ngs-create-goal-as-return-value state_id goal_name goal_type new_obj_id (supergoal_id) (goal_pool_id) (add_prefs)]
+# [ngs-create-goal-as-return-value state_id goal_type basetype new_obj_id (supergoal_id) (goal_pool_id) (add_prefs)]
 #
 # state_id - variable bound to the _sub-state_ in which the operator to create the goal should be proposed.
-# goal_name - user-defined name of the goal to construct
-# goal_type - type of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
+# goal_type - user-defined type of the goal to construct
+# basetype - basetype of the goal. One of NGS_GB_ACHIEVE or NGS_GB_MAINT for achievement and
 #              maintenance goals respectively. Achievement goals are removed upon achievement
 #              while maintenance goals are not removed.
 # new_obj_id - variable that will be bound to the id of the newly constructed goal
@@ -757,8 +757,8 @@ proc ngs-create-goal-by-operator { state_id
 #  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-create-goal-as-return-value { state_id
-                                       goal_name
-									                     goal_type
+                                       goal_type
+									                     basetype
                                        new_obj_id
                                        {supergoal_id ""}
                                        {attribute_list ""} 
@@ -767,7 +767,7 @@ proc ngs-create-goal-as-return-value { state_id
   CORE_RefMacroVars
   variable rhs_val
 
-  lappend attribute_list name $goal_name type $goal_type
+  lappend attribute_list type $basetype
   if { $supergoal_id != "" } {
     lappend attribute_list supergoal $supergoal_id
   }
@@ -775,7 +775,7 @@ proc ngs-create-goal-as-return-value { state_id
   set ret_val_id [CORE_GenVarName new-ret-val]
   set op_id [CORE_GenVarName "o"]
 
-  set rhs_val "[ngs-create-atomic-operator $state_id "(concat |return-goal--$goal_name--| $new_obj_id)" $op_id $add_prefs]
+  set rhs_val "[ngs-create-atomic-operator $state_id "(concat |return-goal--$goal_type--| $new_obj_id)" $op_id $add_prefs]
 	             ($op_id ^dest-attribute        value-description
                     ^new-obj               $ret_val_id
                     ^replacement-behavior  $NGS_ADD_TO_SET)
@@ -783,11 +783,11 @@ proc ngs-create-goal-as-return-value { state_id
                             ^destination-attribute $NGS_GOAL_ATTRIBUTE
                             ^replacement-behavior  $NGS_ADD_TO_SET
                             ^value    $new_obj_id)
-               [ngs-construct $new_obj_id $goal_name $attribute_list]
+               [ngs-construct $new_obj_id $goal_type $attribute_list]
                [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
                [ngs-tag $op_id $NGS_TAG_CREATE_GOAL_RET]
-               [core-trace NGS_TRACE_RETURN_VALUES "O CREATE-GOAL-RETURN, $goal_name, | $new_obj_id |, $goal_type."]
-               [core-trace NGS_TRACE_O_GOALS "O CREATE-GOAL, $goal_name, | $new_obj_id |, $goal_type."]"
+               [core-trace NGS_TRACE_RETURN_VALUES "O CREATE-GOAL-RETURN, $goal_type, | $new_obj_id |, $goal_type."]
+               [core-trace NGS_TRACE_O_GOALS "O CREATE-GOAL, $goal_type, | $new_obj_id |, $basetype."]"
                    
   return $rhs_val
    

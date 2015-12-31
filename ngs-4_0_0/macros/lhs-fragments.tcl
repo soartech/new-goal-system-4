@@ -315,6 +315,25 @@ proc ngs-is-not-named { object_id name } {
   return "($object_id -^name $name)"
 }
 
+# Evaluates to true if the given object's most derived type is type_name
+# 
+# The most derived type is denoted as "my-type"
+#
+# [ngs-is-my-type object_id type_name]
+#
+proc ngs-is-my-type { object_id type_name } {
+  return "($object_id ^my-type $type_name)"
+}
+
+# Evaluates to true if the given object's most derived type is NOT type_name
+# 
+# The most derived type is denoted as "my-type"
+#
+# [ngs-is-not-my-type object_id type_name]
+#
+proc ngs-is-not-my-type { object_id type_name } {
+  return "($object_id -^my-type $type_name)"
+}
 
 # Binds to a given tag, if the tag exists.
 #
@@ -516,21 +535,21 @@ proc ngs-requested-decision { goal_id
 # Use this macro to bind to the choices in a decision substate for making
 #  goal-based choices.
 #
-# [ngs-is-decision-choice state_id choice_id (choice_name)]
+# [ngs-is-decision-choice state_id choice_id (choice_type)]
 #
 # state_id - variable bound to a substate within which to check for a choice
 # choice_id - variable bound (or to be bound) to the choice. Choices are
 #              goal objects, each of which represents a choice.
-# choice_name - (Optional) name of the choice to which to bind. This is
-#                the goal name. If not provided, this will match any
+# choice_type - (Optional) type (my-type) of the choice to which to bind. This is
+#                the goal type. If not provided, this will match any
 #                choice.
 #
-proc ngs-is-decision-choice { state_id choice_id { choice_name ""} } {
-  if { $choice_name == ""} {
+proc ngs-is-decision-choice { state_id choice_id { choice_type ""} } {
+  if { $choice_type == ""} {
     return "($state_id ^decision-choice $choice_id)"
   } else {
     return "($state_id ^decision-choice $choice_id)
-            [ngs-is-named $choice_id $choice_name]"
+            [ngs-is-my-type $choice_id $choice_type]"
   }
 }
 
@@ -539,17 +558,17 @@ proc ngs-is-decision-choice { state_id choice_id { choice_name ""} } {
 # state_id - variable bound to a substate within which to check for a choice
 # choice_id - variable bound to the choice. Choices are
 #              goal objects, each of which represents a choice.
-# choice_name - (Optional) name of the choice to check for. This is
-#                the goal name. If not provided, this will match any
+# choice_type - (Optional) type of the choice to check for. This is
+#                the goal type. If not provided, this will match any
 #                choice.
 #
-proc ngs-is-not-decision-choice { state_id choice_id { choice_name ""} } {
-  if { $choice_name == ""} {
+proc ngs-is-not-decision-choice { state_id choice_id { choice_type ""} } {
+  if { $choice_type == ""} {
     return "($state_id -^decision-choice $choice_id)"
   } else {
     return "-{
               ($state_id ^decision-choice $choice_id)
-              [ngs-is-named $choice_id $choice_name]
+              [ngs-is-my-type $choice_id $choice_type]
              }"
   }
 }
@@ -563,7 +582,7 @@ proc ngs-is-not-decision-choice { state_id choice_id { choice_name ""} } {
 #  decision choices. The negation is importan to ensure that the decision
 #  operator only matches once when there are multiple decision choices.
 #
-# If you need to test the name of the 'other' decision choice you need to do this 
+# If you need to test the type of the 'other' decision choice you need to do this 
 #  as part of your condition parameters.
 #
 # Example: Select the choice with the most recent creation time. Note the
@@ -734,19 +753,19 @@ proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value_id ""} { ret_val
 # This macro does not bind the subgoal. Use a different macro
 #  (e.g. ngs-match-active-goal) to bind the subgoal.
 # 
-# [ngs-is-supergoal goal_id supergoal_id (supergoal_name)]
+# [ngs-is-supergoal goal_id supergoal_id (supergoal_type)]
 #
 # goal_id: Subgoal (already bound)
 # supergoal_id: Supergoal of "goal_id." Will be bound by this macro
-# supergoal_name: (Optional) If provided, the supergoal will only be bound
-#                   if it has the given name.
+# supergoal_type: (Optional) If provided, the supergoal will only be bound
+#                   if it has the given type.
 #
-proc ngs-is-supergoal { goal_id supergoal_id {supergoal_name ""} } {
+proc ngs-is-supergoal { goal_id supergoal_id {supergoal_type ""} } {
 
   set main_test_line "($goal_id ^supergoal $supergoal_id)"
-  if { $supergoal_name != "" } {
+  if { $supergoal_type != "" } {
 	   return "$main_test_line 
-            [ngs-is-named $supergoal_id $supergoal_name]"
+            [ngs-is-my-type $supergoal_id $supergoal_type]"
   } else {
       return $main_test_line
   }
@@ -758,15 +777,15 @@ proc ngs-is-supergoal { goal_id supergoal_id {supergoal_name ""} } {
 # Because this macro is a negation test, you cannot use variables
 #  that are bound exclusively in this macro
 # 
-# [ngs-is-not-supergoal goal_id supergoal_id (supergoal_name)]
+# [ngs-is-not-supergoal goal_id supergoal_id (supergoal_type)]
 #
 # goal_id: Subgoal (already bound)
 # supergoal_id: Supergoal of "goal_id" You cannot use this variable unless
 #                 it is also bound somewhere else on the LHS. 
-# supergoal_name: (Optional) If provided, tests only for supergoals with the given name.
+# supergoal_type: (Optional) If provided, tests only for supergoals with the given type.
 #
-proc ngs-is-not-supergoal { goal_id supergoal_id {supergoal_name ""} } {
-  return "-{ [ngs-is-supergoal $goal_id $supergoal_id $supergoal_name] }"
+proc ngs-is-not-supergoal { goal_id supergoal_id {supergoal_type ""} } {
+  return "-{ [ngs-is-supergoal $goal_id $supergoal_id $supergoal_type] }"
 }
 
 # Use to bind to a goal's subgoal
@@ -774,18 +793,18 @@ proc ngs-is-not-supergoal { goal_id supergoal_id {supergoal_name ""} } {
 # This macro does not bind the supegoal. Use a different macro
 #  (e.g. ngs-match-active-goal) to bind the supergoal.
 # 
-# [ngs-is-subgoal goal_id subgoal_id (subgoal_name)]
+# [ngs-is-subgoal goal_id subgoal_id (subgoal_type)]
 #
 # goal_id: Supergoal (already bound)
 # subgoal_id: Subgoal of "goal_id." Will be bound by this macro
-# subgoal_name: (Optional) If provided, the subgoal will only be bound
-#                   if it has the given name.
+# subgoal_type: (Optional) If provided, the subgoal will only be bound
+#                   if it has the given type.
 #
-proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
+proc ngs-is-subgoal { goal_id subgoal_id {subgoal_type ""} } {
   set main_test_line "($goal_id ^subgoal $subgoal_id)"
-  if { $subgoal_name != "" } {
+  if { $subgoal_type != "" } {
     return "$main_test_line 
-            [ngs-is-named $subgoal_id $subgoal_name]"
+            [ngs-is-my-type $subgoal_id $subgoal_type]"
   } else {
     return $main_test_line
   }
@@ -796,15 +815,15 @@ proc ngs-is-subgoal { goal_id subgoal_id {subgoal_name ""} } {
 # Because this macro is a negation test, you cannot use variables
 #  that are bound exclusively in this macro
 # 
-# [ngs-is-not-supergoal goal_id subgoal_id (subgoal_name)]
+# [ngs-is-not-supergoal goal_id subgoal_id (subgoal_type)]
 #
 # goal_id: Subgoal (already bound)
 # subgoal_id: Subgoal of "goal_id" You cannot use this variable unless
 #                 it is also bound somewhere else on the LHS. 
-# subgoal_name: (Optional) If provided, tests only for subgoals with the given name.
+# subgoal_type: (Optional) If provided, tests only for subgoals with the given type.
 #
-proc ngs-is-not-subgoal { goal_id subgoal_id {subgoal_name ""} } {
-  return "-{ [ngs-is-subgoal $goal_id $subgoal_id $subgoal_name] }"
+proc ngs-is-not-subgoal { goal_id subgoal_id {subgoal_type ""} } {
+  return "-{ [ngs-is-subgoal $goal_id $subgoal_id $subgoal_type] }"
 }
 
 #######################################################################################
@@ -895,33 +914,33 @@ proc ngs-output-link { state_id output_link_id {bindings ""} } {
 # If you are creating a sub-goal, use ngs-match-goal-to-create-subgoal instead.
 #  It has many more of the bindings you need.
 #
-# If you don't give this macro a goal name, it will bind to the root goal pool
-#  which holds all of the goal sets (referenced through the goal names). If
-#  you provide a name, it will bind to the goal set of the given goal name.
-#  Providing a goal name is by far the most common use case.
+# If you don't give this macro a goal type, it will bind to the root goal pool
+#  which holds all of the goal sets (referenced through the goal types). If
+#  you provide a type, it will bind to the goal set of the given goal type.
+#  Providing a goal type is by far the most common use case.
 #
-# [ngs-match-goalpool state_id goal_pool (goal_name) (state_bindings)]
+# [ngs-match-goalpool state_id goal_pool (goal_type) (state_bindings)]
 #
 # state_id - variable that will be bound to the top state.
 # goal_pool - variable that will be bound to the goal pool.  See note above
-#              on which pool this will be depending on the value of goal_name.
-# goal_name - (Optional) If provided, the goal_pool variable will be bound
-#               to the goal set for goals of the given name. If it is not
+#              on which pool this will be depending on the value of goal_type.
+# goal_type - (Optional) If provided, the goal_pool variable will be bound
+#               to the goal set for goals of the given type. If it is not
 #               provided, the goal_pool variable will be bound to the root
 #               goal pool.
 # state_bindings - (Optional) If provided, a binding string to be passed to 
 #                   ngs-bind as in [ngs-bind $state_id $state_bindings]
 #
-proc ngs-match-goalpool { state_id goal_pool {goal_name ""} { state_bindings ""}} {
+proc ngs-match-goalpool { state_id goal_pool {goal_type ""} { state_bindings ""}} {
   CORE_RefMacroVars
 
   if { $state_bindings != "" } {
     set state_bindings [ngs-bind $state_id $state_bindings]
   }
 
-  if {$goal_name != ""} {
+  if {$goal_type != ""} {
     return "(state $state_id ^superstate nil 
-                             ^$WM_GOAL_SET.$goal_name $goal_pool)
+                             ^$WM_GOAL_SET.$goal_type $goal_pool)
             $state_bindings"
   } else {
     return "(state $state_id ^superstate nil 
@@ -936,33 +955,33 @@ proc ngs-match-goalpool { state_id goal_pool {goal_name ""} { state_bindings ""}
 #  a goal from the top-state pools. For example, you might want to elaborate something onto 
 #  the goal. There are other more specific match macros that help with other common tasks.
 #
-# [ngs-match-goal state_id goal_name goal_id (type) (goal_pool_id)]
+# [ngs-match-goal state_id goal_type goal_id (basetype) (goal_pool_id)]
 #
 # state_id - variable that will be bound to the top state.
-# goal_name - name of the goal to be bound
-# goal_id - variable that will be bound to the goal of the given name
-# type - (Optional) constrains which goals can bind to one of NGS_GB_ACHIEVE or NGS_GB_MAINT.
+# goal_type - type of the goal to be bound
+# goal_id - variable that will be bound to the goal of the given type
+# basetype - (Optional) constrains which goals can bind to one of NGS_GB_ACHIEVE or NGS_GB_MAINT.
 #            If it isn't provided, both types of goals are accepted.
 # goal_pool_id - (Optional) If provided, this is a variable that will be bound to the
-#     goal pool for goals of the given goal_name
+#     goal pool for goals of the given goal_type
 #
 proc ngs-match-goal { state_id
-                      goal_name 
+                      goal_type 
                       goal_id 
-                      {type ""}
+                      {basetype ""}
                       {goal_pool_id ""}} {
   CORE_RefMacroVars
 
   # Default value initialization
   CORE_GenVarIfEmpty goal_pool_id "goal-pool"
 
-  set lhs_ret "[ngs-match-goalpool $state_id $goal_pool_id $goal_name]
+  set lhs_ret "[ngs-match-goalpool $state_id $goal_pool_id $goal_type]
                ($goal_pool_id ^goal $goal_id)
                [ngs-is-tagged $goal_id $NGS_TAG_CONSTRUCTED]"
 
-  if { $type != "" } {
+  if { $basetype != "" } {
     set lhs_ret "$lhs_ret
-                 [ngs-is-type $goal_id $type]"
+                 [ngs-is-type $goal_id $basetype]"
   }
 
   return $lhs_ret
@@ -976,30 +995,30 @@ proc ngs-match-goal { state_id
 #
 # This macro will only bind goals for which [ngs-has-decided <goal> $NGS_YES] evaluates to true.
 #
-# [ngs-match-decided-goal state_id goal_name goal_id  decision_obj decision_attr (replacement_behavior) (decision_name) (type) (goal_pool_id)]
+# [ngs-match-decided-goal state_id goal_type goal_id  decision_obj decision_attr (replacement_behavior) (decision_name) (basetype) (goal_pool_id)]
 #
 # state_id - variable that will be bound to the top state.
-# goal_name - name of the goal to be bound
-# goal_id - variable that will be bound to the goal of the given name
+# goal_type - type of the goal to be bound
+# goal_id - variable that will be bound to the goal of the given type
 # decision_obj - variable that will be bound to the object that should recieve the decision's resulting action
 # decision_attr - variable/constant that will be bound to the attribute that should recieve the decision's resulting action
 # replacement_behavior - variable or constant bound to the replacement-behavior of the decision WME. See rhs-fragments.tcl
 #                           for examples of how this is used. Typically you don't need to bind this since the infrastructure
 #                           handles it for you.
 # decision_name - (Optional) If provided, constrains the match to only be for goals that are deciding the given decision name.
-# type - (Optional) constrains which goals can bind to one of NGS_GB_ACHIEVE or NGS_GB_MAINT.
+# basetype - (Optional) constrains which goals can bind to one of NGS_GB_ACHIEVE or NGS_GB_MAINT.
 #            If it isn't provided, both types of goals are accepted.
 # goal_pool_id - (Optional) If provided, this is a variable that will be bound to the
-#     goal pool for goals of the given goal_name
+#     goal pool for goals of the given goal_type
 #
 proc ngs-match-decided-goal { state_id
-                              goal_name
+                              goal_type
                               goal_id
                               decision_obj
                               decision_attr
                               { replacement_behavior "" }
                               { decision_name "" }
-                              { type "" } 
+                              { basetype "" } 
                               { goal_pool_id "" }} {
   
   CORE_RefMacroVars
@@ -1007,7 +1026,7 @@ proc ngs-match-decided-goal { state_id
   set supergoal_id [CORE_GenVarName "supergoal"]
   CORE_GenVarIfEmpty decision_name "decision-name"
 
-  return "[ngs-match-goal $state_id $goal_name $goal_id $type $goal_pool_id]
+  return "[ngs-match-goal $state_id $goal_type $goal_id $basetype $goal_pool_id]
           [ngs-has-decided $goal_id $NGS_YES]
           [ngs-is-assigned-decision $goal_id $decision_name]
           [ngs-is-supergoal $goal_id $supergoal_id]
@@ -1019,23 +1038,23 @@ proc ngs-match-decided-goal { state_id
 # This helper greatly simplifies the code you need to write to prepare to create a sub-goal.
 #  It provides convenient bindings for all of the major elements needed to create the sub-goal.
 #
-# [ngs-match-goal-to-create-subgoal state_id supergoal_name supergoal_id subgoal_name subgoal_pool_id (supergoal_type)]
+# [ngs-match-goal-to-create-subgoal state_id supergoal_type supergoal_id subgoal_type subgoal_pool_id (supergoal_type)]
 #
 # state_id - variable that will be bound to the top state. 
-# supergoal_name - name of the supergoal of the sub-goal you want to create
+# supergoal_type - type of the supergoal of the sub-goal you want to create
 # supergoal_id - variable that will be bound to the supergoal
-# subgoal_name - name of the subgoal you wish to create
-# subgoal_pool_id - variable that will get bound to the goal set for goals of subgoal_name. You will
+# subgoal_type - type of the subgoal you wish to create
+# subgoal_pool_id - variable that will get bound to the goal set for goals of subgoal_type. You will
 #                    place you new goal in this set.
-# supergoal_type - (Optional) You can additionaly constrain your supergoal match to one of NGS_GB_ACHIEVE 
+# supergoal_basetype - (Optional) You can additionaly constrain your supergoal match to one of NGS_GB_ACHIEVE 
 #                     or NGS_GB_MAINT using this parameter
 #
 proc ngs-match-goal-to-create-subgoal { state_id 
-                                        supergoal_name 
+                                        supergoal_type 
                                         supergoal_id 
-                                        subgoal_name
+                                        subgoal_type
                                         subgoal_pool_id 
-                                        { supergoal_type "" } } {
+                                        { supergoal_basetype "" } } {
 
   CORE_RefMacroVars
 
@@ -1044,14 +1063,14 @@ proc ngs-match-goal-to-create-subgoal { state_id
 
   set lhs_ret "(state $state_id ^superstate nil
                                 ^$WM_GOAL_SET    $goal_pool_id)
-               ($goal_pool_id   ^$supergoal_name $supergoal_pool_id
-                                ^$subgoal_name   $subgoal_pool_id)
+               ($goal_pool_id   ^$supergoal_type $supergoal_pool_id
+                                ^$subgoal_type   $subgoal_pool_id)
                ($supergoal_pool_id ^goal         $supergoal_id)
                [ngs-is-tagged $supergoal_id      $NGS_TAG_CONSTRUCTED]"
 
-  if { $supergoal_type != "" } {
+  if { $supergoal_basetype != "" } {
     set lhs_ret "$lhs_ret
-                 [ngs-is-type $supergoal_id $supergoal_type]"
+                 [ngs-is-type $supergoal_id $supergoal_basetype]"
   }
 
   return $lhs_ret
@@ -1109,10 +1128,10 @@ proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {supersta
 #  substate. If you want to bind through the top-state goal pool use
 #  ngs-match-top-state-active-goal instead.
 #
-# [ngs-match-active-goal substate_id goal_name goal_id (params_id) (top_state_id) (superstate_id)]
+# [ngs-match-active-goal substate_id goal_type goal_id (params_id) (top_state_id) (superstate_id)]
 #
 # substate_id - variable that will be bound to the substate_id
-# goal_name - name constraining which active goals will get bound
+# goal_type - type constraining which active goals will get bound
 # goal_id - variable that will be bound to the active goal (in the substate)
 # params_id - (Optional) If provided, this variable will be bound to the params structure
 #               in the substate. The params structure is a link to the selected decide
@@ -1121,7 +1140,7 @@ proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {supersta
 # superstate_id - (Optional) If provided, this variable is bound to the superstate
 #
 proc ngs-match-active-goal { substate_id
-                             goal_name 
+                             goal_type 
                              goal_id
                              {params_id ""}
                              {top_state_id ""}
@@ -1130,7 +1149,7 @@ proc ngs-match-active-goal { substate_id
 
   set lhs_ret "[ngs-match-substate $substate_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$WM_ACTIVE_GOAL $goal_id)
-               [ngs-is-named $goal_id $goal_name]"
+               [ngs-is-my-type $goal_id $goal_type]"
 
   return $lhs_ret
 }
@@ -1143,18 +1162,18 @@ proc ngs-match-active-goal { substate_id
 #  the top state goal pool. If you want to bind to the sub-state that processes
 #  this active goal, use ngs-match-active-goal instead.
 #
-# [ngs-match-top-state-active-goal state_id goal_name goal_id]
+# [ngs-match-top-state-active-goal state_id goal_type goal_id]
 #
 # state_id - variable that will be bound to the top state 
-# goal_name - name constraining which active goals will be bound 
-# goal_id - variable that will be bound to an _active_ goal of the given name 
+# goal_type - type constraining which active goals will be bound 
+# goal_id - variable that will be bound to an _active_ goal of the given type 
 #
 proc ngs-match-top-state-active-goal { state_id
-                                       goal_name 
+                                       goal_type 
                                      goal_id } {
   CORE_RefMacroVars
 
-  set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_name $goal_id)
+  set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_type $goal_id)
                  [ngs-is-active $goal_id]"
 
   return $lhs_ret
@@ -1165,13 +1184,13 @@ proc ngs-match-top-state-active-goal { state_id
 #
 # Typically you pair this match macro with the ngs-make-choice-by-operator RHS macro
 #
-# [ngs-match-to-make-choice substate_id decision_name decision_goal_id decision_goal_name (params_id) (top_state_id) (superstate_id)]
+# [ngs-match-to-make-choice substate_id decision_name decision_goal_id decision_goal_type (params_id) (top_state_id) (superstate_id)]
 #
 # substate_id - variable bound to the substate in which to make the choice
 # decision_name - name of the decision being made
 # decision_goal_id - variable to be bound to the id of the goal that requested the decision. To bind
 #   to one of the goal's that represent the choice, use the ngs-is-decision-choice macro
-# decision_goal_name - name of the goal that requested the decision
+# decision_goal_type - type of the goal that requested the decision
 # params_id - (Optional) If provided, a variable that will be bound to the params structure in the substate
 # top_state_id - (Optional) If provided, a variable that will be bound to the top state identifier
 # superstate_id - (Optional) If provided, a variable that will be bound to the superstate identifier
@@ -1179,7 +1198,7 @@ proc ngs-match-top-state-active-goal { state_id
 proc ngs-match-to-make-choice { substate_id 
                                 decision_name 
                                 decision_goal_id
-                                decision_goal_name
+                                decision_goal_type
                                 {params_id ""} 
                                 {top_state_id ""} 
                                 {superstate_id ""} } {
@@ -1189,7 +1208,7 @@ proc ngs-match-to-make-choice { substate_id
 
   set return_value_desc_id [CORE_GenVarName "ret-vals"]
 
-  return "[ngs-match-active-goal $substate_id $decision_goal_name $decision_goal_id $params_id $top_state_id $superstate_id]
+  return "[ngs-match-active-goal $substate_id $decision_goal_type $decision_goal_id $params_id $top_state_id $superstate_id]
           [ngs-is-named $substate_id $NGS_OP_DECIDE_GOAL]
           ($params_id ^decision-name $decision_name)
           ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
@@ -1200,14 +1219,14 @@ proc ngs-match-to-make-choice { substate_id
 
 # Start a production to set a return value to a typed object
 #
-# [ngs-match-to-set-return-typed-obj substate_id goal_name goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
+# [ngs-match-to-set-return-typed-obj substate_id goal_type goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
 #
 # e.g. sp "my-production
 #          [ngs-match-active-goal myGoalName <my-goal> <ss>]
 #          -->
 #          ...do something...
 proc ngs-match-to-set-return-typed-obj { substate_id
-                                     goal_name 
+                                     goal_type 
                                      goal_id
                                      return_value_name
                                      {return_value_desc_id ""} 
@@ -1217,7 +1236,7 @@ proc ngs-match-to-set-return-typed-obj { substate_id
   CORE_RefMacroVars
   CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
-  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $params_id $top_state_id $superstate_id]
+  set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
                ($return_value_desc_id    ^id  $return_value_name)
                [ngs-is-attr-not-constructed $return_value_desc_id value]"
@@ -1229,14 +1248,14 @@ proc ngs-match-to-set-return-typed-obj { substate_id
 #
 # This also works to set return values that are boolean tags
 #
-# [ngs-match-to-set-return-primitive substate_id goal_name goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
+# [ngs-match-to-set-return-primitive substate_id goal_type goal_id return_value_name (return_value_desc_id) (params_id) (top_state_id) (superstate_id)]
 #
 # e.g. sp "my-production
 #          [ngs-match-active-goal myGoalName <my-goal> <ss>]
 #          -->
 #          ...do something...
 proc ngs-match-to-set-return-primitive { substate_id
-                                         goal_name 
+                                         goal_type 
                                          goal_id
                                          return_value_name
                                          {return_value_desc_id ""} 
@@ -1246,7 +1265,7 @@ proc ngs-match-to-set-return-primitive { substate_id
   CORE_RefMacroVars
   CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
-  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $params_id $top_state_id $superstate_id]
+  set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
                ($return_value_desc_id    ^id  $return_value_name
                                         -^value)"
@@ -1257,7 +1276,7 @@ proc ngs-match-to-set-return-primitive { substate_id
 # Use when you need to match a state so you can create a goal as a return value
 #
 proc ngs-match-to-create-return-goal { substate_id
-                                       goal_name 
+                                       goal_type 
                                        goal_id
                                        new_goal_type
                                        {params_id ""}
@@ -1267,11 +1286,11 @@ proc ngs-match-to-create-return-goal { substate_id
   set return_value_set [CORE_GenVarName "ret-vals"]
   set new_goal_id      [CORE_GenVarName "new-goal"]
 
-  set lhs_ret "[ngs-match-active-goal $substate_id $goal_name $goal_id $params_id $top_state_id $superstate_id]
+  set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES $return_value_set)
               -{
                   [ngs-is-return-val $return_value_set $NGS_GOAL_RETURN_VALUE $new_goal_id]
-                  [ngs-is-named $new_goal_id $new_goal_type]
+                  [ngs-is-my-type $new_goal_id $new_goal_type]
                }"
 
   return $lhs_ret

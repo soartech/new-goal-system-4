@@ -10,97 +10,97 @@
 # Usage: nps (print all goal stacks)
 # Usage: nps GoalName1 GoalName2 (print goal stacks rooted at GoalName1 and GoalName2)
 #
-# args - (Optional) Pass in space-separated list of goal names to only show goal stacks
-#          that are rooted at the given goal name.
+# args - (Optional) Pass in space-separated list of goal types to only show goal stacks
+#          that are rooted at the given goal type.
 #
 proc nps { args } {
 
 	if { $args != "" } {
-		set goal_constraint [ngs-is-named <top-goal> "<< $args >>"]
+		set goal_constraint [ngs-is-my-type <top-goal> "<< $args >>"]
 	} else {
 		set goal_constraint ""
 	}
 
 	# sp some productions
 	sp "debug*print-isolated-goals
-		[ngs-match-goal <s> <any-goal-name> <top-goal>]
+		[ngs-match-goal <s> <any-goal-type> <top-goal>]
 		[ngs-is-not-subgoal <top-goal> <subgoal>]
 		[ngs-is-not-supergoal <top-goal> <supergoal>]
 		$goal_constraint
 	-->
 		(write (crlf) |+---------------------------------------------------------------------------+|)
 		(write (crlf) |+ ISOLATED GOAL|)
-		(write (crlf) |+ | <any-goal-name> |: | <top-goal>)"
+		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)"
 
 	sp "debug*print-goal-stack*1
-		[ngs-match-goal <s> <any-goal-name> <top-goal>]
+		[ngs-match-goal <s> <any-goal-type> <top-goal>]
 		[ngs-is-not-supergoal <top-goal> <supergoal>]
 		[ngs-is-subgoal <top-goal> <sg1>]
-		[ngs-is-named <sg1> <sg1-name>]
+		[ngs-is-my-type <sg1> <sg1-type>]
 		[ngs-is-not-subgoal <sg1> <sg2>]
 		$goal_constraint
 	-->
 		(write (crlf) |+---------------------------------------------------------------------------+|)		
 		(write (crlf) |+ GOAL STACK|)
-		(write (crlf) |+ | <any-goal-name> |: | <top-goal>)
-		(write (crlf) |+   | <sg1-name> |: | <sg1>)"
+		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)
+		(write (crlf) |+   | <sg1-type> |: | <sg1>)"
 
 	sp "debug*print-goal-stack*2
-		[ngs-match-goal <s> <any-goal-name> <top-goal>]
+		[ngs-match-goal <s> <any-goal-type> <top-goal>]
 		[ngs-is-not-supergoal <top-goal> <supergoal>]
 		[ngs-is-subgoal <top-goal> <sg1>]
-		[ngs-is-named <sg1> <sg1-name>]
+		[ngs-is-my-type <sg1> <sg1-type>]
 		[ngs-is-subgoal <sg1> <sg2>]
-		[ngs-is-named <sg2> <sg2-name>]
+		[ngs-is-my-type <sg2> <sg2-type>]
 		[ngs-is-not-subgoal <sg2> <sg3>]
 		$goal_constraint
 	-->
 		(write (crlf) |+---------------------------------------------------------------------------+|)		
 		(write (crlf) |+ GOAL STACK|)
-		(write (crlf) |+ | <any-goal-name> |: | <top-goal>)
-		(write (crlf) |+   | <sg1-name> |: | <sg1>)
-		(write (crlf) |+     | <sg2-name> |: | <sg2>)"
+		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)
+		(write (crlf) |+   | <sg1-type> |: | <sg1>)
+		(write (crlf) |+     | <sg2-type> |: | <sg2>)"
 
 	sp "debug*print-goal-stack*3
-		[ngs-match-goal <s> <any-goal-name> <top-goal>]
+		[ngs-match-goal <s> <any-goal-type> <top-goal>]
 		[ngs-is-not-supergoal <top-goal> <supergoal>]
 		[ngs-is-subgoal <top-goal> <sg1>]
-		[ngs-is-named <sg1> <sg1-name>]
+		[ngs-is-my-type <sg1> <sg1-type>]
 		[ngs-is-subgoal <sg1> <sg2>]
-		[ngs-is-named <sg2> <sg2-name>]
+		[ngs-is-my-type <sg2> <sg2-type>]
 		[ngs-is-subgoal <sg2> <sg3>]
-		[ngs-is-named <sg3> <sg3-name>]
+		[ngs-is-my-type <sg3> <sg3-type>]
 		[ngs-is-not-subgoal <sg3> <sg4>]
 		$goal_constraint
 	-->
 		(write (crlf) |+---------------------------------------------------------------------------+|)		
 		(write (crlf) |+ GOAL STACK|)
-		(write (crlf) |+ | <any-goal-name> |: | <top-goal>)
-		(write (crlf) |+   | <sg1-name> |: | <sg1>)
-		(write (crlf) |+     | <sg2-name> |: | <sg2>)
-		(write (crlf) |+       | <sg3-name> |: | <sg3>)"
+		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)
+		(write (crlf) |+   | <sg1-type> |: | <sg1>)
+		(write (crlf) |+     | <sg2-type> |: | <sg2>)
+		(write (crlf) |+       | <sg3-type> |: | <sg3>)"
 
 	sp "debug*print-goal-stack*4
-		[ngs-match-goal <s> <any-goal-name> <top-goal>]
+		[ngs-match-goal <s> <any-goal-type> <top-goal>]
 		[ngs-is-not-supergoal <top-goal> <supergoal>]
 		[ngs-is-subgoal <top-goal> <sg1>]
-		[ngs-is-named <sg1> <sg1-name>]
+		[ngs-is-my-type <sg1> <sg1-type>]
 		[ngs-is-subgoal <sg1> <sg2>]
-		[ngs-is-named <sg2> <sg2-name>]
+		[ngs-is-my-type <sg2> <sg2-type>]
 		[ngs-is-subgoal <sg2> <sg3>]
-		[ngs-is-named <sg3> <sg3-name>]
+		[ngs-is-my-type <sg3> <sg3-type>]
 		[ngs-is-subgoal <sg3> <sg4>]
-		[ngs-is-named <sg4> <sg4-name>]
+		[ngs-is-my-type <sg4> <sg4-type>]
 		[ngs-is-not-subgoal <sg4> <sg5>]
 		$goal_constraint
 	-->
 		(write (crlf) |+---------------------------------------------------------------------------+|)		
 		(write (crlf) |+ GOAL STACK|)
-		(write (crlf) |+ | <any-goal-name> |: | <top-goal>)
-		(write (crlf) |+   | <sg1-name> |: | <sg1>)
-		(write (crlf) |+     | <sg2-name> |: | <sg2>)
-		(write (crlf) |+       | <sg3-name> |: | <sg3>)
-		(write (crlf) |+         | <sg4-name> |: | <sg4>)"
+		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)
+		(write (crlf) |+   | <sg1-type> |: | <sg1>)
+		(write (crlf) |+     | <sg2-type> |: | <sg2>)
+		(write (crlf) |+       | <sg3-type> |: | <sg3>)
+		(write (crlf) |+         | <sg4-type> |: | <sg4>)"
 
 	# run -e 1
 	run -e 1

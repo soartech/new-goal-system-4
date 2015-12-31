@@ -662,9 +662,9 @@ sp "ngs*core*apply*intelligent-construction*mark-objects-as-constructed*level-5
 sp "ngs*core*goal*elaborate-operator*$NGS_TAG_CREATE_GOAL
   (state <s> ^operator <o> +)
   [ngs-is-tagged <o> $NGS_TAG_CREATE_GOAL]
-  [ngs-match-goalpool <top-state> <goals> <gname>]
+  [ngs-match-goalpool <top-state> <goals> <gtype>]
   (<o> ^new-obj <g>)
-  [ngs-is-named <g> <gname>]
+  [ngs-is-my-type <g> <gtype>]
 -->
   (<o> ^dest-object <goals> +
        ^dest-attribute goal +
