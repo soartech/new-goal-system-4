@@ -2,14 +2,17 @@
 setup { 
   source "common.soar"
 
-  CORE_ActivateTraceCategory NGS_TRACE_TYPED_OBJECTS
-  CORE_ActivateTraceCategory NGS_TRACE_GOALS
-  CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
-  CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
-  CORE_ActivateTraceCategory NGS_TRACE_TAGS
-  CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES
-  CORE_ActivateTraceCategory NGS_TRACE_RETURN_VALUES
-  CORE_ActivateTraceCategory NGS_TRACE_DECISIONS
+  CORE_ActivateTraceCategory NGS_TRACE_I_TYPED_OBJECTS
+  CORE_ActivateTraceCategory NGS_TRACE_I_GOALS
+  CORE_ActivateTraceCategory NGS_TRACE_SIDE_EFFECTS
+  # CORE_ActivateTraceCategory NGS_TRACE_O_TYPED_OBJECTS
+  # CORE_ActivateTraceCategory NGS_TRACE_O_GOALS
+  # CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
+  # CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
+  # CORE_ActivateTraceCategory NGS_TRACE_TAGS
+  # CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES
+  # CORE_ActivateTraceCategory NGS_TRACE_RETURN_VALUES
+  # CORE_ActivateTraceCategory NGS_TRACE_DECISIONS
   CORE_ActivateTraceCategory NGS_TRACE_OUTPUT
 
   NGS_DeclareGoal TestAchievementGoal
@@ -822,3 +825,33 @@ sp "test
   (pass)"
 }
 
+test operator-side-effects {
+
+  NGS_DeclareType StructuredObject { value 1 collection-val ""}
+
+  sp* "test*create-typed-object-with-tag-primitive
+    [ngs-match-top-state <s>]
+    [ngs-is-not-tagged <s> first-tag]
+  -->
+    [ngs-create-typed-object-by-operator <s> <s> first-object ComplexObject2 <new-obj>]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
+    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeB <deep2>]
+    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeA <deep21>]
+    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeB <deep22>]
+    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeA <deep211>]
+    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeB <deep212>]
+    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeA <deep2111>]
+    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeB <deep2112>]"
+
+  sp "test*create-first-side-effect
+    [ngs-match-proposed-operator <s> <o>]
+  -->
+    [ngs-add-tag-side-effect <o> $NGS_SIDE_EFFECT_ADD <s> first-tag]"
+
+
+  sp "test
+    [ngs-match-top-state <s> first-object]
+    [ngs-is-tagged <s> first-tag]
+  -->
+    (pass)"
+}

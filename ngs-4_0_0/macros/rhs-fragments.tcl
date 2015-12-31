@@ -333,9 +333,9 @@ proc ngs-create-typed-object-by-operator { state_id
 	                                        attribute
 	                                        type
 	                                        new_obj_id
-											                   {attribute_list ""}
+											                    {attribute_list ""}
 	                                        {replacement_behavior ""} 
-                                            {add_prefs "="} } {
+                                          {add_prefs "="} } {
 
   CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
@@ -708,6 +708,7 @@ proc ngs-create-decide-operator { state_id
 #
 proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {replacement_behavior ""} } {
   
+  CORE_RefMacroVars
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
   set se_id [CORE_GenVarName "side-effect"]
@@ -727,8 +728,8 @@ proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {repl
     set val_text "$value"
   }
 
-  return "[ngs-icreate-typed-object-in-place $op_id side-effect NGS_OP_SIDE_EFFECT $se_id #attr_list]
-          [core-trace NGS_TRACE_SIDE_EFFECTS "O SIDE-EFFECT, (| $dest_obj |.$attr_text $val_text).]"
+  return "[ngs-ocreate-typed-object-in-place $op_id side-effect $NGS_OP_SIDE_EFFECT $se_id $attr_list]
+          [core-trace NGS_TRACE_SIDE_EFFECTS "O SIDE-EFFECT on | $op_id |, (| $dest_obj |.$attr_text $val_text)."]"
 }
 
 # Adds a side-effect to an operator
@@ -770,6 +771,7 @@ proc ngs-add-primitive-side-effect { op_id action dest_obj dest_attr value {repl
 #
 proc ngs-add-tag-side-effect { op_id action dest_obj tag_name {value ""} {replacement_behavior ""} } {
   
+  CORE_RefMacroVars
   CORE_SetIfEmpty value $NGS_YES
   return "[ngs-add-primitive-side-effect $op_id $action $dest_obj [ngs-tag-for-name $tag_name] $value $replacement_behavior]"
 }

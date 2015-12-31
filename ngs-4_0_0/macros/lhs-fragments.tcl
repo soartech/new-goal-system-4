@@ -687,6 +687,7 @@ proc ngs-conditions-false-for-all-other-choices { choice_id other_choice_id args
 proc ngs-has-side-effect { op_id 
                            {side_effect_id ""} } {
   
+  CORE_RefMacroVars
   CORE_SetIfEmpty side_effect_id "side-effect"
   
   if { $side_effect_id != ""} {
