@@ -28,6 +28,36 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# Creates a list of LHS tests checking for binary tags 
+#
+# This procedure is intended for use internally to the NGS.
+#
+# [ngs-create-tag-test-list obj_id tag_list]
+#
+# obj_id - variable bound to the object to test for tags
+# tag_list - A list of tags to test for on the object. Each of the listed tags must be present on 
+#            the object for it to match. You can prefix a tag with the "-" character
+#            to specify that the given tag should NOT be on the operator.
+#            E.g. ngs-create-tag-test-list <s> <obj> "$NGS_TAG_XYZ-my-tag" ...]
+#            where the object <obj> must be tagged with NGS_TAG_XYZ and not my-tag.
+# 
+proc ngs-create-tag-test-list { obj_id tag_list } {
+
+  set lhs_ret ""
+  foreach tag $tag_list {
+    # the '-' indicates negation
+    if { [string index $tag 0] != "-"} {
+       set lhs_ret "$lhs_ret
+                    [ngs-is-tagged $obj_id $tag]"
+    } else {
+       set lhs_ret "$lhs_ret
+                    [ngs-is-not-tagged $obj_id $tag]"
+    }
+  }
+  return $lhs_ret
+
+}
+
 ######## Basic left hand side condition test macros ###########
 # Basic comparisons
 #
@@ -162,13 +192,19 @@ proc ngs-nex { object_id attribute } {
 #  (<me>         ^location <location>)
 #  (<location>   ^type Location)
 #  
-# [ngs-bind obj_id attr1 attr2 ...]
+# [ngs-bind obj_id attr1 attr2 ...] OR
+# [ngs-bind obj_id "attr1 attr2 ..."]
 #
 # obj_id - variable bound to the object for which to bind attributes
 # attr_list - list of attributes to bind
 #
 proc ngs-bind { obj_id args } {
   set lhs_ret ""
+
+  # If the arguments are passed in as a list, then process them that way
+  if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
+    set args [lindex $args 0]
+  }
 
   foreach attr $args {
     set obj $obj_id
@@ -1396,46 +1432,299 @@ proc ngs-match-to-create-return-goal { substate_id
   return $lhs_ret
 }
 
+
+#############################################################################################
+# Macros for binding to proposed operators. Typically used to set preferences on operators.
+
 # Start a production to elaborate an operator or set operator preferences
 #
 # Use this macro when you want to elaborate an operator or set its preferences.
 #  This macro matches operator _preferences_, not applications. Anything on 
 #  the RHS of a production using this macro will get i-support.
 #
-# [ngs-match-proposed-operator state_id op_id op_name (goal_id) (op_type)]
+# [ngs-match-proposed-operator state_id op_id op_name (op_tags) (op_name)]
 #
 # state_id - variable to be bound to the state in which the operator is proposed 
 # op_id - variable to be bound to the proposed (but not selected) operator 
+# op_tags - (Optional) A list of tags on the operaotr. The list can be empty, in which case no
+#            operator tags are tested. Each of the listed tags must be present on 
+#            the operator for it to match. You can prefix a tag with the "-" character
+#            to specify that the given tag should NOT be on the operator.
+#            E.g. ngs-match-proposed-operator <s> <o> "$NGS_TAG_OP_CREATE_TAG -my-tag" ...]
+#            where the operator must be tagged with NGS_TAG_OP_CREATE_TAG and not my-tag.
 # op_name - (Optional) If provided, the name of the operator that is bound to op_id 
-# goal_id - (Optional) If provided, the goal bound to the operator. Not all operators are
-#            bound to goals. Decide operators are.
-# op_type - (Optional) If provided, a goal type to constrain the match - one of NGS_OP_ATOMIC 
-#            or NGS_OP_DECIDE
 #
 proc ngs-match-proposed-operator { state_id
 								                   op_id
-                                   {op_name ""}
-                				           {goal_id ""}
-                 				           {op_type ""} } {
+                                   {op_tags ""}
+                                   {op_name ""} } {
 
   set lhs_ret "(state $state_id ^operator $op_id +)"
+
+  if { $op_tags != "" } {
+    set lhs_ret "$lhs_ret
+                 [ngs-create-tag-test-list $op_id $op_tags]"
+  }
 
   if { $op_name != "" } {
      set lhs_ret "$lhs_ret
             	  ($op_id ^name $op_name)"
 	} 
 
-  if { $goal_id != ""} { 
-	    set lhs_ret "$lhs_ret
-               		($op_id ^goal $goal_id)" 
-  }
-
-  if { $op_type != ""} { 
-	     set lhs_ret "$lhs_ret
-                    ($op_id ^type $op_type)"
-  }
-
   return $lhs_ret
+}
+
+# Start a production to elaborate an atomic operator or set operator preferences
+#
+# Use this macro when you want to elaborate an ATOMIC operator or set its preferences.
+#  This macro matches operator _preferences_, not applications. Anything on 
+#  the RHS of a production using this macro will get i-support.
+#
+# [ngs-match-proposed-atomic-operator state_id op_id op_name (op_tags) (op_name)]
+#
+# state_id - variable to be bound to the state in which the operator is proposed 
+# op_id - variable to be bound to the proposed (but not selected) operator 
+# op_tags - (Optional) A list of tags on the operaotr. The list can be empty, in which case no
+#            operator tags are tested. Each of the listed tags must be present on 
+#            the operator for it to match. You can prefix a tag with the "-" character
+#            to specify that the given tag should NOT be on the operator.
+#            E.g. ngs-match-proposed-operator <s> <o> "$NGS_TAG_OP_CREATE_TAG -my-tag" ...]
+#            where the operator must be tagged with NGS_TAG_OP_CREATE_TAG and not my-tag.
+# op_name - (Optional) If provided, the name of the operator that is bound to op_id 
+#
+proc ngs-match-proposed-atomic-operator { state_id
+                                          op_id
+                                          {op_tags ""}
+                                          {op_name ""} } {
+
+  return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
+          [ngs-is-type $op_id $NGS_OP_ATOMIC]"                                      
+
+}
+
+# Start a production to elaborate an decide operator or set operator preferences
+#
+# Use this macro when you want to elaborate an DECIDE operator or set its preferences.
+#  This macro matches operator _preferences_, not applications. Anything on 
+#  the RHS of a production using this macro will get i-support.
+#
+# [ngs-match-proposed-atomic-operator state_id op_id op_name (op_tags) (op_name)]
+#
+# state_id - variable to be bound to the state in which the operator is proposed 
+# op_id - variable to be bound to the proposed (but not selected) operator 
+# goal_id - variable to be bound to the goal assigned to the decide operator
+# op_tags - (Optional) A list of tags on the operaotr. The list can be empty, in which case no
+#            operator tags are tested. Each of the listed tags must be present on 
+#            the operator for it to match. You can prefix a tag with the "-" character
+#            to specify that the given tag should NOT be on the operator.
+#            E.g. ngs-match-proposed-operator <s> <o> "$NGS_TAG_OP_CREATE_TAG -my-tag" ...]
+#            where the operator must be tagged with NGS_TAG_OP_CREATE_TAG and not my-tag.
+# op_name - (Optional) If provided, the name of the operator that is bound to op_id 
+#
+proc ngs-match-proposed-decide-operator { state_id
+                                          op_id
+                                          goal_id
+                                          {op_tags ""}
+                                          {op_name ""} } {
+
+  return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
+          [ngs-is-type $op_id $NGS_OP_ATOMIC]
+          [ngs-bind-decide-operator $op_id $goal_id]"                                      
+
+}
+
+# Bind to the parameters of a creation operator
+# 
+# The creation operators are tagged with one or more of the following:
+#   NGS_TAG_OP_CREATE_TYPED_OBJECT    
+#   NGS_TAG_OP_CREATE_PRIMITIVE       
+#   NGS_TAG_OP_CREATE_TAG         
+#   NGS_TAG_OP_CREATE_GOAL            
+#   NGS_TAG_OP_CREATE_OUTPUT_COMMAND  
+#   NGS_TAG_OP_DEEP_COPY              
+#
+# These tags are NOT tested for in the macro, however. Instead this macro 
+#  binds to the parameters of the operator used in creation. This way
+#  your production can test for the item that is being constructed.
+#
+# IMPORTANT NOTE: If the operator is creating a typed object, goal, or 
+#  deep copied object the "value" parameter will be bound to a temporary representation
+#  of the new object.  The actual new object will be a copy of what is stored on the 
+#  operator.
+# 
+# [ngs-bind-creation-operator op_id dest_obj dest_attr value replacement_behavior]
+#
+# op_id - Variable bound to the operator for which to bind the parameters
+# dest_obj - The object that will recieve the created value 
+# dest_attr - The attribute that will recieve the created value 
+# value - The value that will be set. See IMPORTANT NOTE above.
+# value_bind - (Optional) If provided, a string passed to ngs-bind as [ngs-bind $value $value_bind]. This only makes
+#                sense if the value is an object and not a primitive.
+# replacement_behavior - (Optional) a variable to bind to the replacement behavior for this decision object.attribute
+#
+proc ngs-bind-creation-operator { op_id
+                                  dest_obj
+                                  dest_attr 
+                                  value
+                                  {replacement_behavior ""} } {
+
+   set lhs_ret "($op_id ^dest-object $dest_obj
+                         ^dest-attribute $dest_attr
+                         ^new-obj $value)"
+   
+   if { $replacement_behavior != "" } {
+      set lhs_ret "lhs_ret
+                    ($op_id ^replacement-behavior $replacement_behavior)"
+   }
+
+   if { $value_bind != ""} {
+       set lhs_ret "$lhs_ret
+                    [ngs-bind $value $value_bind]"
+   }
+
+   return $lhs_ret
+}
+
+# Bind to the parameters of a return operator 
+# 
+# The return operators are tagged with one or more of the following:
+#   NGS_TAG_OP_RETURN_VALUE           
+#   NGS_TAG_OP_RETURN_NEW_GOAL        
+#   NGS_TAG_OP_RETURN_NEW_TYPED_OBJECT            
+#
+# These tags are NOT tested for in the macro, however. Instead this macro 
+#  binds to the parameters of the operator used in creation. This way
+#  your production can test for the item that is being constructed.
+#
+# IMPORTANT NOTE: If the operator is returning a newly constructed typed object, or goal
+#  the "value" parameter will be bound to a temporary representation
+#  of the new object.  The actual new object will be a copy of what is stored on the 
+#  operator.
+# 
+# [ngs-bind-return-operator op_id return_value_name dest_obj dest_attr value (value_bind) (replacement_behavior)]
+#
+# op_id - Variable bound to the operator for which to bind the  parameters
+# return_value_name - name of the return value that will have it's value set
+# dest_obj - The object that will recieve the created value 
+# dest_attr - The attribute that will recieve the created value 
+# value - The value that will be set. See IMPORTANT NOTE above.
+# value_bind - (Optional) If provided, a string passed to ngs-bind as [ngs-bind $value $value_bind]. This only makes
+#                sense if the value is an object and not a primitive.
+# replacement_behavior - (Optional) a variable to bind to the replacement behavior for this decision object.attribute
+#
+proc ngs-bind-return-operator { op_id
+                              return_value_name
+                              dest_obj
+                              dest_attr
+                              value
+                              {value_bind ""}
+                              {replacement_behavior ""} } {
+
+
+   set lhs_ret "[ngs-is-creation-operator $op_id $dest_obj $dest_attr $value $replacement_behavior]
+                 ($op_id ^ret-val-name $return_value_name)"
+
+   if { $value_bind != ""} {
+       set lhs_ret "$lhs_ret
+                    [ngs-bind $value $value_bind]"
+   }
+
+   return $lhs_ret
+}
+
+# Bind to the parameters of a choice operator (makes a choice between two or more decision goals)
+# 
+# The return operators are tagged with one or more of the following:
+#   NGS_TAG_OP_MAKE_CHOICE           
+#
+# These tags are NOT tested for in the macro, however. Instead this macro 
+#  binds to the parameters of the operator used in creation. This way
+#  your production can test for the item that is being constructed.
+#
+# Choice operators select between two or more decision choices in a sub-state. These operators 
+#  are specific to NGS's decision goal design pattern (see ngs-i/orequest-decision and ngs-assign-decision)
+# 
+# [ngs-bind-choice-operator op_id choice_id]
+#
+# op_id - Variable bound to the operator for which to bind the creation parameters
+# choice_id - variable to be bound to the goal representing the choice
+# choice_type - (Optional) If provided, the type (most derived) of the goal representing the choice
+# choice_bind - (Optional) If provided, a string passed to ngs-bind as [ngs-bind $choice_id $choice_bind]
+#
+proc ngs-bind-choice-operator { op_id
+                                choice_id 
+                                {choice_type ""}
+                                {choice_bind ""}} {
+
+   set dest_obj [CORE_GenVarName "dest-obj"]
+   set dest_attr [CORE_GenVarName "dest-attr"]
+
+   set lhs_ret "[ngs-is-creation-operator $op_id $dest_obj $dest_attr $NGS_YES]
+                 ($op_id ^choice $choice_id)"
+
+   if { $choice_type != "" } {
+      set lhs_ret "$lhs_ret
+                   [ngs-is-my-type $choice_id $choice_type]"
+   }
+
+   if { $choice_bind != ""} {
+       set lhs_ret "$lhs_ret
+                    [ngs-bind $choice_id $choice_bind]"
+   }
+
+   return $lhs_ret  
+}
+
+# Bind to the parameters of a choice operator (makes a choice between two or more decision goals)
+# 
+# The return operators are tagged with one or more of the following:
+#   NGS_TAG_OP_REMOVE_ATTRIBUTE    
+#   NGS_TAG_OP_REMOVE_TAG       
+#
+# These tags are NOT tested for in the macro, however. Instead this macro 
+#  binds to the parameters of the operator used in creation. This way
+#  your production can test for the item that is being constructed.
+#
+# [ngs-bind-removal-operator op_id dest_obj dest_attr value]
+#
+# op_id - Variable bound to the operator for which to bind the removal parameters
+# dest_obj  - name of the return value that will have it's value removed
+# dest_attr - The attribute that will be removed
+# value - The value that will be removed
+#
+proc ngs-bind-removal-operator { op_id 
+                               dest_obj 
+                               dest_attr
+                               value } {
+
+   return "($op_id ^dest-object $dest_obj
+                   ^dest-attribute $dest_attr
+                   ^value-to-remove $value)"
+}
+
+# Bind to the parameters of a DECIDE operator
+#
+# See ngs-create-decide-operator for details on DECIDE operators. All 
+#  decide operators have a "goal" parameter. Otherwise, decide operators
+#  are user constructed.
+#
+# [ngs-bind-decide-operator op_id goal_id (goal_bind)]
+#
+# op_id - Variable bound to the operator for which to bind the parameters
+# goal_id - variable to be bound to the goal assigned to the DECIDE operator
+# goal_bind - (Optional) If provided, one or more strings passed to ngs-bind as [ngs-bind $goal_id $goal_bind]
+#
+proc ngs-bind-decide-operator { op_id
+                                goal_id 
+                                {goal_bind ""}} {
+
+   if { $goal_bind == "" } {
+     return "($op_id ^goal $goal_id)"
+   } else {
+     return "($op_id ^goal $goal_id)
+             [ngs-bind $goal_id $goal_bind]" 
+   }
+
 }
 
 # Start a production to set pairwise operator preferences
@@ -1444,66 +1733,73 @@ proc ngs-match-proposed-operator { state_id
 #  This macro matches operator _preferences_, not applications. Anything on 
 #  the RHS of a production using this macro will get i-support.
 #
-# [ngs-match-two-proposed-operators state_id op1_id op2_id op1_name op2_name (goal1_id) (goal2_id) (op1_type) (op2_type)]
+# [ngs-match-two-proposed-operators state_id op1_id op2_id (op1_tags) (op2_tags) (op1_type) (op2_type) (op1_name) (op2_name)]
 #
 # state_id - variable to be bound to the state in which the operator is proposed 
 # op1_id - variable to be bound to the first proposed (but not selected) operator 
-# op1_id - variable to be bound to the second proposed (but not selected) operator 
-# op1_name - (Optional) If provided, the name of the first operator, bound to op1_id 
-# op1_name - (Optional) If provided, the name of the second operator, bound to op2_id 
-# goal1_id - (Optional) If provided, the goal bound to the first operator. Not all operators are
-#            bound to goals. Decide operators are.
-# goal2_id - (Optional) If provided, the goal bound to the second operator. Not all operators are
-#            bound to goals. Decide operators are.
-# op1_type - (Optional) If provided, a goal type to constrain the match of the first operator - 
-#            one of NGS_OP_ATOMIC or NGS_OP_DECIDE
-# op2_type - (Optional) If provided, a goal type to constrain the match of the second operator - 
-#            one of NGS_OP_ATOMIC or NGS_OP_DECIDE
+# op2_id - variable to be bound to the second proposed (but not selected) operator 
+# op1_tags - (Optional) A list of tags on the first operator. The list can be empty, in which case no
+#            operator tags are tested. Each of the listed tags must be present on 
+#            the operator for it to match. You can prefix a tag with the "-" character
+#            to specify that the given tag should NOT be on the operator.
+#            E.g. ngs-match-proposed-operator <s> <o> "$NGS_TAG_OP_CREATE_TAG -my-tag" ...]
+#            where the operator must be tagged with NGS_TAG_OP_CREATE_TAG and not my-tag.
+# op2_tags - (Optional) A list of tags on the second operator. 
+# op1_type - (Optional) If provided, the type of the operator that is bound to op1_id ($NGS_OP_ATOMIC or $NGS_OP_DECIDE)
+# op2_type - (Optional) If provided, the type of the operator that is bound to op2_id ($NGS_OP_ATOMIC or $NGS_OP_DECIDE)
+# op1_name - (Optional) If provided, the name of the operator that is bound to op1_id 
+# op2_name - (Optional) If provided, the name of the operator that is bound to op2_id 
 #
 proc ngs-match-two-proposed-operators { state_id
                                         op1_id 
                                         op2_id
-                                        {op1_name ""}
-                                        {op2_name ""} 
-                                        {goal1_id ""}
-                                        {goal2_id ""}
+                                        {op1_tags ""}
+                                        {op2_tags ""}
                                         {op1_type ""}
-                                        {op2_type ""} } {
+                                        {op2_type ""}
+                                        {op1_name ""}
+                                        {op2_name ""} } {
 
 
-   set lhs_ret "(state $state_id ^operator $op1_id +
-							                   ^operator $op2_id +)"
+  set lhs_ret "(state $state_id ^operator $op1_id +
+							                  ^operator { $op2_id <> $op1_id } +)"
 
-
-   if { $op1_name != "" } {
-     set lhs_ret "$lhs_ret
-            	  ($op1_id ^name $op1_name)"
-	} 
-   if { $op2_name != "" } {
-     set lhs_ret "$lhs_ret
-            	  ($op2_id ^name $op2_name)"
-	} 
-
-  if { $goal1_id != "" } { 
-	set lhs_ret "$lhs_ret
-           		($op1_id ^goal $goal1_id)" 
+  if { $op1_tags != "" } {
+    set lhs_ret "$lhs_ret
+                 [ngs-create-tag-test-list $op1_id $op1_tags]"
   }
-  if { $goal2_id != "" } { 
-	set lhs_ret "$lhs_ret
-           		($op2_id ^goal $goal2_id)" 
+  if { $op2_tags != "" } {
+    set lhs_ret "$lhs_ret
+                 [ngs-create-tag-test-list $op2_id $op2_tags]"
   }
 
   if { $op1_type != "" } {
-	set lhs_ret "$lhs_ret
-                 ($op1_id ^type $op1_type)"
+    set lhs_ret "$lhs_ret
+                 [ngs-is-type $op1_id $op1_type]"
   }
-  if { $op2_type != "" } { 
-	set lhs_ret "$lhs_ret
-                 ($op2_id ^type $op2_type)"
+  if { $op2_type != "" } {
+    set lhs_ret "$lhs_ret
+                 [ngs-is-type $op2_id $op2_type]"
   }
+
+  if { $op1_name != "" } {
+     set lhs_ret "$lhs_ret
+                  [ngs-is-named $op1_id $op1_name]"
+	} 
+  if { $op2_name != "" } {
+     set lhs_ret "$lhs_ret
+                  [ngs-is-named $op2_id $op2_name]"
+	} 
 
   return $lhs_ret
 }
+
+
+
+#######################################################################################################
+# MATCH AGAINST SELECTED OPERATORS
+#  It is assumed that non-NGS code doesn't need to do this. If it turns out not to be true, we'll need
+#  to update these macros to match the newer operator structure/process
 
 # Use start a production to apply an operator
 #

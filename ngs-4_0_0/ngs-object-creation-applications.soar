@@ -659,9 +659,9 @@ sp "ngs*core*apply*intelligent-construction*mark-objects-as-constructed*level-5
 
 # Augment a goal creation operator with the pieces that are missing
 #  from the default operator proposal (see rhs-fragments.tcl)
-sp "ngs*core*goal*elaborate-operator*$NGS_TAG_CREATE_GOAL
+sp "ngs*core*goal*elaborate-operator*$NGS_TAG_OP_CREATE_GOAL
   (state <s> ^operator <o> +)
-  [ngs-is-tagged <o> $NGS_TAG_CREATE_GOAL]
+  [ngs-is-tagged <o> $NGS_TAG_OP_CREATE_GOAL]
   [ngs-match-goalpool <top-state> <goals> <gtype>]
   (<o> ^new-obj <g>)
   [ngs-is-my-type <g> <gtype>]
@@ -676,7 +676,7 @@ sp "ngs*core*goal*elaborate-operator*$NGS_TAG_CREATE_GOAL
 # For shallow copies, copy-depth will be 0
 sp "ngs*core*apply*deep-copy-construction*not-exist-so-create
   (state <s> ^operator <o>)
-  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   (<o> ^dest-object <dest>
        ^dest-attribute <attr>
        ^new-obj <obj-0>
@@ -687,7 +687,7 @@ sp "ngs*core*apply*deep-copy-construction*not-exist-so-create
 
 sp "ngs*core*apply*deep-copy-construction*exist-so-replace
   (state <s> ^operator <o>)
-  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   (<o> ^dest-object <dest>
        ^dest-attribute <attr>
        ^new-obj <obj-0>
@@ -699,7 +699,7 @@ sp "ngs*core*apply*deep-copy-construction*exist-so-replace
 
 sp "ngs*core*apply*intelligent-construction*add-to-set
   (state <s> ^operator <o>)
-  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   (<o> ^dest-object <dest>
        ^dest-attribute <attr>
        ^new-obj <obj-0>

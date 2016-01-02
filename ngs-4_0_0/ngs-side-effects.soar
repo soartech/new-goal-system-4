@@ -97,7 +97,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep*exist-so-r
 
 sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*not-exist-so-create
   [ngs-match-selected-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
   (<destination-object> -^<destination-attribute>)
@@ -106,7 +106,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*not-e
 
 sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*exist-so-replace
   [ngs-match-selected-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
   (<destination-object> ^<destination-attribute> <old-val>)
@@ -116,7 +116,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*exist
 
 sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*add-to-set
   [ngs-match-selected-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_ADD_TO_SET]
 -->
@@ -124,7 +124,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*add-t
 
 sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*exist-so-remove
   [ngs-match-selected-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_DEEP_COPY]
+  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_REMOVE]
   (<destination-object> ^<destination-attribute> <value>)

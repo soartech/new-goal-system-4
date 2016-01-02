@@ -93,19 +93,31 @@ CORE_CreateMacroVar NGS_TAG_ONE_OPTION 				 "ngs*one-decision-option"
 CORE_CreateMacroVar NGS_TAG_STATUS_COMPLETE			 "ngs*status-complete"
 CORE_CreateMacroVar NGS_TAG_ERROR                    "ngs*ERROR"
 CORE_CreateMacroVar NGS_TAG_ERROR_STRING             "ngs*ERROR-string"
-CORE_CreateMacroVar NGS_TAG_DEEP_COPY                "ngs*deep-copy"
-CORE_CreateMacroVar NGS_TAG_CREATE_GOAL        		 "ngs*create-goal"
-CORE_CreateMacroVar NGS_TAG_CREATE_GOAL_RET    	     "ngs*create-goal-as-return-value"
-CORE_CreateMacroVar NGS_TAG_REMOVE_ATTRIBUTE         "ngs*remove-attribute"
 CORE_CreateMacroVar NGS_TAG_MARK_ACHIEVED            "ngs*mark-goal-achieved"
 CORE_CreateMacroVar NGS_TAG_REMOVE_ACHIEVED          "ngs*remove-achieved-goal"
-CORE_CreateMacroVar NGS_TAG_SET_RETURN_VALUE         "ngs*set-return-value"
 
+#######
+# List of all ngs operator purpose tags
+# You can use these in operator preferences to figure out what an operator is doing
+# You can also bind to the operator's parameters using ngs-op-is-xyz macros
+CORE_CreateMacroVar NGS_TAG_OP_CREATE_TYPED_OBJECT	    "ngs*op-create-typed-object"
+CORE_CreateMacroVar NGS_TAG_OP_CREATE_PRIMITIVE	        "ngs*op-create-primitive"
+CORE_CreateMacroVar NGS_TAG_OP_CREATE_TAG		        "ngs*op-create-tag"
+CORE_CreateMacroVar NGS_TAG_OP_CREATE_GOAL              "ngs*op-create-goal"
+CORE_CreateMacroVar NGS_TAG_OP_RETURN_VALUE             "ngs*op-set-return-value"
+CORE_CreateMacroVar NGS_TAG_OP_RETURN_NEW_GOAL          "ngs*op-return-new-goal"
+CORE_CreateMacroVar NGS_TAG_OP_REMOVE_ATTRIBUTE         "ngs*op-remove-attribute"
+CORE_CreateMacroVar NGS_TAG_OP_REMOVE_TAG               "ngs*op-remove-tag"
+CORE_CreateMacroVar NGS_TAG_OP_MAKE_CHOICE              "ngs*op-make-choice"
+CORE_CreateMacroVar NGS_TAG_OP_CREATE_OUTPUT_COMMAND    "ngs*op-output-command"
+CORE_CreateMacroVar NGS_TAG_OP_DEEP_COPY                "ngs*op-deep-copy"
+
+# The name of the return variable used to return goals (may be multiple such return variables)
 CORE_CreateMacroVar NGS_GOAL_RETURN_VALUE            "ngs*new-goal-to-return"
 
 # Standard operators
-CORE_CreateMacroVar NGS_OP_COPY_RETURN_VALUES "ngs-op-copy-return-values-to-destination"
-CORE_CreateMacroVar NGS_OP_DECIDE_GOAL        "ngs-op-decide-goal"
+CORE_CreateMacroVar NGS_OP_COPY_RETURN_VALUES   "ngs-op-copy-return-values-to-destination"
+CORE_CreateMacroVar NGS_OP_DECIDE_GOAL          "ngs-op-decide-goal"
 
 # Built-in Types
 CORE_CreateMacroVar NGS_TYPE_STATE_RETURN_VALUE "NGS_StateReturnValue"

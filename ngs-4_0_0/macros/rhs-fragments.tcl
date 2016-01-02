@@ -112,6 +112,28 @@ proc ngs-untag { obj_id tag_name {tag_value ""} } {
   return "($obj_id ^[ngs-tag-for-name $tag_name] $tag_value -)"
 }
 
+# Tags an operator that was constructed using one of the ngs macros
+#
+# There is no "untag-operator" because operator elaborations are
+#  always i-supported. 
+#
+# IMPORTANT: This macro assumes you are using the standard operator 
+#  variable - NGS_OP_ID. If you are creating a separate operator 
+#  elaboration production, you can use the usual ngs-tag macro and 
+#  pass in your operator variable from the LHS.
+#
+# [ngs-tag-operator tag_name tag_value]
+#
+# tag_name - your name for the tag
+# tag_value - (Optional) the tag's value. Many tags are boolean and take
+#              only the values $NGS_YES and $NGS_NO. If you don't specify
+#              a value, the value $NGS_YES is assumed and set.
+#
+proc ngs-tag-operator { tag_name {tag_value ""}} {
+  variable NGS_OP_ID
+  return "[ngs-tag $NGS_OP_ID $tag_name $tag_value]"
+}
+
 # Marks a goal as achieved (sets the NGS_GS_ACHIEVED attribute
 #  to NGS_YES)
 #
@@ -345,9 +367,10 @@ proc ngs-create-typed-object-by-operator { state_id
 
   return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
           ($op_id ^dest-object    $parent_obj_id
-               ^dest-attribute $attribute
-               ^replacement-behavior $replacement_behavior)
+                  ^dest-attribute $attribute
+                  ^replacement-behavior $replacement_behavior)
           [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
+          [ngs-tag $op_id $NGS_TAG_OP_CREATE_TYPED_OBJECT]
           [ngs-ocreate-typed-object-in-place $op_id new-obj $type $new_obj_id $attribute_list]
           [core-trace NGS_TRACE_O_TYPED_OBJECTS "O CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
 }
@@ -367,6 +390,7 @@ proc ngs-create-output-command-by-operator { state_id
 
   return "[ngs-create-typed-object-by-operator $state_id $output_link_id $NGS_OUTPUT_COMMAND_ATTRIBUTE \
                                              $command_type $cmd_id $attribute_list $NGS_ADD_TO_SET $add_prefs]
+          [ngs-tag-operator $NGS_TAG_OP_CREATE_OUTPUT_COMMAND]
           [core-trace NGS_TRACE_OUTPUT "O OUTPUT-COMMAND-ISSUED, $command_type, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $cmd_id |)."]"
 }
 
@@ -415,6 +439,7 @@ proc ngs-create-primitive-by-operator { state_id
                ^new-obj        $value
                ^replacement-behavior $replacement_behavior)
           [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
+          [ngs-tag $op_id $NGS_TAG_OP_CREATE_PRIMITIVE]
           [core-trace NGS_TRACE_PRIMITIVES "O CREATE-PRIMITIVE, (| $parent_obj_id |.$attribute $value)."]"
 
 }
@@ -456,7 +481,7 @@ proc ngs-deep-copy-by-operator { state_id
                ^dest-attribute $attribute
                ^new-obj        $value
                ^replacement-behavior $replacement_behavior)
-          [ngs-tag $op_id $NGS_TAG_DEEP_COPY]
+          [ngs-tag $op_id $NGS_TAG_OP_DEEP_COPY]
           [core-trace NGS_TRACE_O_TYPED_OBJECTS "O DEEP-COPY, (| $parent_obj_id |.$attribute $value)."]"
 }
 
@@ -492,7 +517,7 @@ proc ngs-remove-attribute-by-operator { state_id
 			    ($op_id ^dest-object    $parent_obj_id
        		     ^dest-attribute $attribute
      	         ^value-to-remove $value)
-          [ngs-tag $op_id $NGS_TAG_REMOVE_ATTRIBUTE]
+          [ngs-tag $op_id $NGS_TAG_OP_REMOVE_ATTRIBUTE]
           [core-trace NGS_TRACE_PRIMITIVES "O REMOVE-WME, (| $parent_obj_id |.$attribute $value)."]"
 }
 
@@ -519,6 +544,7 @@ proc ngs-remove-tag-by-operator { state_id
 	CORE_RefMacroVars
 	CORE_SetIfEmpty value $NGS_YES
 	return "[ngs-remove-attribute-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $value $add_prefs]
+          [ngs-tag-operator $NGS_TAG_OP_REMOVE_TAG]
           [core-trace NGS_TRACE_TAGS "O REMOVE-TAG, (| $parent_obj_id |.[ngs-tag-for-name $tag_name] $value)."]" 
 }
 
@@ -552,6 +578,7 @@ proc ngs-create-tag-by-operator { state_id
   CORE_SetIfEmpty tag_val $NGS_YES
 
   return "[ngs-create-primitive-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]
+          [ngs-tag-operator $NGS_TAG_OP_CREATE_TAG]
           [core-trace NGS_TRACE_TAGS "O CREATE-TAG, (| $parent_obj_id |.[ngs-tag-for-name $tag_name] $tag_val)."]"
 }
 
@@ -872,7 +899,7 @@ proc ngs-create-goal-by-operator { state_id
   set lhs_val "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
                [ngs-create-attribute $op_id new-obj $new_obj_id]
                [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
-               [ngs-tag $op_id $NGS_TAG_CREATE_GOAL]
+               [ngs-tag $op_id $NGS_TAG_OP_CREATE_GOAL]
                [ngs-construct $new_obj_id $goal_type $attribute_list]
                [core-trace NGS_TRACE_O_GOALS "O CREATE-GOAL, $goal_type, | $new_obj_id |, $basetype."]"
 
@@ -939,7 +966,7 @@ proc ngs-create-goal-as-return-value { state_id
                             ^value    $new_obj_id)
                [ngs-construct $new_obj_id $goal_type $attribute_list]
                [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
-               [ngs-tag $op_id $NGS_TAG_CREATE_GOAL_RET]
+               [ngs-tag $op_id $NGS_TAG_OP_RETURN_NEW_GOAL]
                [core-trace NGS_TRACE_RETURN_VALUES "O CREATE-GOAL-RETURN, $goal_type, | $new_obj_id |, $goal_type."]
                [core-trace NGS_TRACE_O_GOALS "O CREATE-GOAL, $goal_type, | $new_obj_id |, $basetype."]"
                    
@@ -1187,7 +1214,8 @@ proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
                           ^ret-val-name         $NGS_DECISION_RET_VAL_NAME
                           ^choice               $choice_id)
            [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
-           [ngs-tag $op_id $NGS_TAG_SET_RETURN_VALUE]
+           [ngs-tag $op_id $NGS_TAG_OP_RETURN_VALUE]
+           [ngs-tag $op_id $NGS_TAG_OP_MAKE_CHOICE]
            [core-trace NGS_TRACE_DECISIONS "O SELECTED-GOAL, | $choice_id | in state | $state_id |."]"
 }
 
@@ -1225,7 +1253,7 @@ proc ngs-set-ret-val-by-operator { state_id
                           ^new-obj              $value
                           ^ret-val-name         $ret_val_name)
             [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
-            [ngs-tag $op_id $NGS_TAG_SET_RETURN_VALUE]
+            [ngs-tag $op_id $NGS_TAG_OP_RETURN_VALUE]
             [core-trace NGS_TRACE_RETURN_VALUES "O SET-RETURN, $ret_val_name = $value."]"
 
 }
@@ -1260,7 +1288,8 @@ proc ngs-create-typed-object-for-ret-val { state_id
                           ^ret-val-name         $ret_val_name)
             [ngs-ocreate-typed-object-in-place $op_id new-obj $type_name $new_obj_id $attribute_list]
             [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
-            [ngs-tag $op_id $NGS_TAG_SET_RETURN_VALUE]
+            [ngs-tag $op_id $NGS_TAG_OP_RETURN_VALUE]
+            [ngs-tag $op_id $NGS_TAG_OP_CREATE_TYPED_OBJECT]
             [core-trace NGS_TRACE_RETURN_VALUES "O CREATE-RETURN, $ret_val_name = $type_name, | $new_obj_id |."]"
 
 }

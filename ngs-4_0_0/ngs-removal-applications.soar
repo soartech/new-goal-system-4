@@ -1,7 +1,7 @@
 # Apply operator to mark goal achieved
 sp "ngs*core*goal*apply*remove-attribute
   (state <s> ^operator <o>)
-  [ngs-is-tagged <o> $NGS_TAG_REMOVE_ATTRIBUTE]
+  [ngs-is-tagged <o> $NGS_TAG_OP_REMOVE_ATTRIBUTE]
   (<o> ^dest-object     <dest>
        ^dest-attribute  <attr>
        ^value-to-remove <val>)

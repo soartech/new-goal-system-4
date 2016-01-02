@@ -56,7 +56,7 @@ sp "ngs*core*substate*create-decision-return-structure
 # Copies the destination-object to the return value when returning a choice
 sp "ngs*core*substate*apply*set-return-value*fill-in-dest-object-for-choice
   [ngs-match-selected-operator-in-substate <ss> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_SET_RETURN_VALUE]
+  [ngs-is-tagged <o> $NGS_TAG_OP_RETURN_VALUE]
   (<o>           ^ret-val-name       $NGS_DECISION_RET_VAL_NAME
   	             ^choice             <choice>)
   (<ss>          ^$NGS_RETURN_VALUES <ret-val-set>)
@@ -93,7 +93,7 @@ sp "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*mark-no-choice
 ## Augments operator to set a return value with the destination object (the ret-val-set)
 sp "ngs*core*ret-vals*elaborate-operator*set-return-value*fill-in-missing-values
   [ngs-match-proposed-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_SET_RETURN_VALUE]
+  [ngs-is-tagged <o> $NGS_TAG_OP_RETURN_VALUE]
   (<o>           ^ret-val-name       <ret-val-name>)
   (<s>           ^$NGS_RETURN_VALUES <ret-val-set>)
   (<ret-val-set> ^value-description  <v-desc>)
@@ -103,9 +103,9 @@ sp "ngs*core*ret-vals*elaborate-operator*set-return-value*fill-in-missing-values
   (<o> ^dest-attribute value +)"
 
 # Augments operator to create a goal as a return value
-sp "ngs*core*ret-vals*elaborate-operator*$NGS_TAG_CREATE_GOAL_RET*fill-in-return-val-set
+sp "ngs*core*ret-vals*elaborate-operator*$NGS_TAG_OP_RETURN_NEW_GOAL*fill-in-return-val-set
   (state <s> ^operator <o> +)
-  [ngs-is-tagged <o> $NGS_TAG_CREATE_GOAL_RET]
+  [ngs-is-tagged <o> $NGS_TAG_OP_RETURN_NEW_GOAL]
   [ngs-match-goalpool <top-state> <goals> <goal-type>] 
   (<s> ^$NGS_RETURN_VALUES <ret-val-set>)
   (<o> ^new-obj            <new-ret-val>)
