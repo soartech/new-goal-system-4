@@ -13,7 +13,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*shallow*not-exi
   [ngs-eq <o> copy-depth 0]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
-  (<destination-object> -^<destination-attribute>)
+  [ngs-nex <destination-object> <destination-attribute>]
 -->
   (<destination-object> ^<destination-attribute> <value> +)"
 
@@ -23,7 +23,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*shallow*exist-s
   [ngs-eq <o> copy-depth 0]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
-  (<destination-object> ^<destination-attribute> <old-val>)
+  [ngs-bind <destination-object> <destination-attribute>:<old-val>]
 -->
   (<destination-object> ^<destination-attribute> <old-val> -)
   (<destination-object> ^<destination-attribute> <value> +)"
@@ -43,7 +43,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*shallow*exist-s
   [ngs-eq <o> copy-depth 0]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_REMOVE]
-  (<destination-object> ^<destination-attribute> <value>)
+  [ngs-bind <destination-object> <destination-attribute>:<value>]
 -->
   (<destination-object> ^<destination-attribute> <value> -)"
 
@@ -56,7 +56,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep*not-exist-
   [ngs-gt <o> copy-depth 0]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
-  (<destination-object> -^<destination-attribute>)
+  [ngs-nex <destination-object> <destination-attribute>]
 -->
   (<destination-object> ^<destination-attribute> <value> +)"
 
@@ -67,7 +67,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep*exist-so-r
   [ngs-gt <o> copy-depth 0]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
-  (<destination-object> ^<destination-attribute> <old-val>)
+  [ngs-bind <destination-object> <destination-attribute>:<old-val>]
 -->
   (<destination-object> ^<destination-attribute> <old-val> -)
   (<destination-object> ^<destination-attribute> <value> +)"
@@ -89,7 +89,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep*exist-so-r
   [ngs-gt <o> copy-depth 0]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_REMOVE]
-  (<destination-object> ^<destination-attribute> <value>)
+  [ngs-bind <destination-object> <destination-attribute>:<value>]
 -->
   (<destination-object> ^<destination-attribute> <value> -)"
 
@@ -100,7 +100,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*not-e
   [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
-  (<destination-object> -^<destination-attribute>)
+  [ngs-nex <destination-object> <destination-attribute>]
 -->
   (<destination-object> ^<destination-attribute> <value> +)"
 
@@ -109,7 +109,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*exist
   [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
-  (<destination-object> ^<destination-attribute> <old-val>)
+  [ngs-bind <destination-object> <destination-attribute>:<old-val>]
 -->
   (<destination-object> ^<destination-attribute> <old-val> -)
   (<destination-object> ^<destination-attribute> <value> +)"
@@ -127,7 +127,7 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*exist
   [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_REMOVE]
-  (<destination-object> ^<destination-attribute> <value>)
+  [ngs-bind <destination-object> <destination-attribute>:<value>]
 -->
   (<destination-object> ^<destination-attribute> <value> -)"
 
