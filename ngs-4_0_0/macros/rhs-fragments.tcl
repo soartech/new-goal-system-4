@@ -180,16 +180,16 @@ proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 # Note: User code does not typically need to call this direction.
 #  Marking the the goal as decided is done by NGS library code.
 #
-# [ngs-tag-goal-as-decided goal_id (decided_value)]
+# [ngs-tag-goal-with-selection-status goal_id (decided_value)]
 #
 # goal_id - variable bound to the goal to mark as decided
 # decided_value - (Optional) A boolean flag indicating whether
 #   the goal was decided for (NGS_YES) or against (NGS_NO)
 #
-proc ngs-tag-goal-as-decided { goal_id { decided_value ""} } {
+proc ngs-tag-goal-with-selection-status { goal_id { decided_value ""} } {
   CORE_RefMacroVars
   CORE_SetIfEmpty decided_value $NGS_YES
-  return [ngs-tag $goal_id "$NGS_TAG_DECIDED" $decided_value]
+  return [ngs-tag $goal_id "$NGS_TAG_SELECTION_STATUS" $decided_value]
 }
 
 # Create working memory element, i.e. an object "attribute"
@@ -263,7 +263,7 @@ proc ngs-remove-attribute { parent_obj_id
 #
 # NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
 #
-# [ngs-icreate-typed-object-in-place <parrent> attribute-name MyType <new-obj> { attr1 val1 attr2 val2 attr3-set {set1 set2 set3} }]
+# [ngs-icreate-typed-object-in-place parent_obj_id attribute type new_obj_id (attr_list)]
 #
 # parent_obj_id - Variable bound to the object that will link to the newly constructed object
 # attribute - Name of the attribute that should hold the new object
@@ -301,7 +301,7 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 #
 # NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
 #
-# E.g. [ngs-icreate-typed-object-in-place <parrent> attribute-name MyType <new-obj> { attr1 val1 attr2 val2 attr3-set {set1 set2 set3} }]
+# E.g. [ngs-ocreate-typed-object-in-place parent_obj_id attribute type new_obj_id (attr_list)]
 #
 # parent_obj_id - Variable bound to the object that will link to the newly constructed object
 # attribute - Name of the attribute that should hold the new object
@@ -377,7 +377,18 @@ proc ngs-create-typed-object-by-operator { state_id
 
 # Create an output link command
 #
+# Output is always created via an operator.
+#
 # [ngs-create-output-command-by-operator state_id output_link_id command_type cmd_id (attribute_list) (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# output_link_id - variable boudn to the output link
+# command_type - type of the output command 
+# cmd_id - variable to be bound to the newly constructed output command 
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                  (i.e. a multi-valued attribute), put the set values in a list (see example above).
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-create-output-command-by-operator { state_id
                                              output_link_id 
@@ -396,14 +407,14 @@ proc ngs-create-output-command-by-operator { state_id
 
 # Creates a primitive working memory element using an atomic operator.
 #
-# Use this method to create o-supported working memory elements. Primitives
+# Use this method to create o-supported working memory elements. Attributes
 #  can include any of the symbol types exclusing ids (i.e. strings, integers, floating point values).
 #  To create identifiers, use other macros such as ngs-create-typed-object-by-operator or any of the
 #  various methods to create goals.
 #
 # NOTE: you can also use this macro to "shallow copy" a link to an existing identifer.
 # 
-# [ngs-create-primitive-by-operator state_id parent_obj_id attribute value (replacement_behavior) (add_prefs)]
+# [ngs-create-attribute-by-operator state_id parent_obj_id attribute value (replacement_behavior) (add_prefs)]
 #
 # state_id - variable bound the state in which to propose the operator
 # parent_obj_id - variable bound to the id of the parent of the primitive being created
@@ -415,7 +426,7 @@ proc ngs-create-output-command-by-operator { state_id
 #                        The latter will leave any existing values for the same attribute in place.
 # add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
 #  the indifferent preference is given but you can override using this argument.
-proc ngs-create-primitive-by-operator { state_id
+proc ngs-create-attribute-by-operator { state_id
                                         parent_obj_id 
                                         attribute
                                         value
@@ -449,7 +460,7 @@ proc ngs-create-primitive-by-operator { state_id
 # Use this macro when you wish to completely copy a deep structure, 
 #  usually from the input link. You cannot create objects using deep
 #  copy any other way in NGS as if you use other methods 
-#  create-primitive-by-operator) the deep copied structure will get 
+#  create-attribute-by-operator) the deep copied structure will get 
 #  i-support.
 #
 # [ngs-deep-copy-by-operator state_id parent_obj_id attribute value (replacement_behavior) (add_prefs)]
@@ -577,7 +588,7 @@ proc ngs-create-tag-by-operator { state_id
   CORE_RefMacroVars
   CORE_SetIfEmpty tag_val $NGS_YES
 
-  return "[ngs-create-primitive-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]
+  return "[ngs-create-attribute-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]
           [ngs-tag-operator $NGS_TAG_OP_CREATE_TAG]
           [core-trace NGS_TRACE_TAGS "O CREATE-TAG, (| $parent_obj_id |.[ngs-tag-for-name $tag_name] $tag_val)."]"
 }
@@ -710,7 +721,7 @@ proc ngs-create-decide-operator { state_id
 #  * ngs-create-typed-object-by-operator
 #  * ngs-create-goal-by-operator
 #  * ngs-create-goal-as-return-value
-#  * ngs-create-primitive-by-operator
+#  * ngs-create-attribute-by-operator
 #  * ngs-create-tag-by-operator
 #  * ngs-create-typed-object-for-ret-val
 #  * ngs-set-ret-val-by-operator
@@ -777,7 +788,7 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
 #  * ngs-create-typed-object-by-operator
 #  * ngs-create-goal-by-operator
 #  * ngs-create-goal-as-return-value
-#  * ngs-create-primitive-by-operator
+#  * ngs-create-attribute-by-operator
 #  * ngs-create-tag-by-operator
 #  * ngs-create-typed-object-for-ret-val
 #  * ngs-set-ret-val-by-operator

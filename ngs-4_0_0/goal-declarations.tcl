@@ -151,7 +151,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
     [ngs-is-tagged <decision-info> $NGS_TAG_ONE_OPTION]
   -->
-    [ngs-create-tag-by-operator <s> <sub-goal> $NGS_TAG_DECIDED]"
+    [ngs-create-tag-by-operator <s> <sub-goal> $NGS_TAG_SELECTION_STATUS]"
 
   # Operator proposal to make a decision if there are multiple options
   sp "ngs*core*goal*propose-to-create-substate-if-more-than-one-choice*$goal_type
@@ -166,7 +166,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
 
   # Automatically activate a goal after selection if it is flagged for auto-activation
   sp "ngs*core*goal*activate-goal-after-selection*$goal_type
-    [ngs-match-decided-goal <s> $goal_type <g> <obj> <attr> <behavior>]
+    [ngs-match-selected-goal <s> $goal_type <g> <obj> <attr> <behavior>]
     [ngs-is-tagged <g> $NGS_TAG_ACTIVATE_ON_DECISION]
     [ngs-is-not-tagged <g> $NGS_TAG_ALREADY_ACTIVATED]
   -->

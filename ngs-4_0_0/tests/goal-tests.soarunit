@@ -77,19 +77,19 @@ sp "test*create-primitive-object
    (state <s> ^superstate nil
              -^primitive)
 -->
-    [ngs-create-primitive-by-operator <s> <s> primitive 5 $NGS_REPLACE_IF_EXISTS]"
+    [ngs-create-attribute-by-operator <s> <s> primitive 5 $NGS_REPLACE_IF_EXISTS]"
 
 sp "test*create-primitive-object*2
     (state <s> ^superstate nil
                ^primitive  5)
 -->
-    [ngs-create-primitive-by-operator <s> <s> primitive 6 $NGS_REPLACE_IF_EXISTS]"
+    [ngs-create-attribute-by-operator <s> <s> primitive 6 $NGS_REPLACE_IF_EXISTS]"
 
 sp "test*create-primitive-object*3
     (state <s> ^superstate nil
                ^primitive  6)
 -->
-    [ngs-create-primitive-by-operator <s> <s> primitive 7 $NGS_ADD_TO_SET]"
+    [ngs-create-attribute-by-operator <s> <s> primitive 7 $NGS_ADD_TO_SET]"
 
 sp "test
     (state <s> ^primitive 7 ^primitive 6 -^primitive 5)
@@ -122,7 +122,7 @@ sp "test*step1*done
      (<s> ^complex <complex>)
      (<complex> -^primitive1 bar)
 -->
-     [ngs-create-primitive-by-operator <s> <s> step 2]"
+     [ngs-create-attribute-by-operator <s> <s> step 2]"
     
 
 sp "test*create-new-object-2
@@ -148,7 +148,7 @@ sp "test*step2*done
         (<complex2> -^primitive1 bar)
      }
 -->
-     [ngs-create-primitive-by-operator <s> <s> step 3]"
+     [ngs-create-attribute-by-operator <s> <s> step 3]"
 
 sp "test*create-new-object-3
     (state <s> ^superstate nil
@@ -519,14 +519,14 @@ sp "test*decide-create-subgoal-in-middle-of-substate*initialize-counter
     [ngs-is-tagged <top-state> started-counting]
     (<s> -^counter)
 -->
-    [ngs-create-primitive-by-operator <s> <s> counter 0]"
+    [ngs-create-attribute-by-operator <s> <s> counter 0]"
 
 
 sp "test*decide-create-subgoal-in-middle-of-substate*count
     [ngs-match-active-goal <s> TestAchievementSubGoal <g>]
     (<s> ^counter <cur-val>)
 -->
-    [ngs-create-primitive-by-operator <s> <s> counter {(+ <cur-val> 1)}]"
+    [ngs-create-attribute-by-operator <s> <s> counter {(+ <cur-val> 1)}]"
 
 sp "test*mark-supergoal-achieved
     [ngs-match-active-goal <s> TestAchievementSubGoal <g>]
@@ -752,11 +752,11 @@ sp "test*create-decision-goal*11
   [ngs-assign-decision <new-goal> i-decision]"
 
 sp "test*apply-decision-goal*12 
-  [ngs-match-decided-goal <s> DecisionGoal <g> <obj> <attr>]
+  [ngs-match-selected-goal <s> DecisionGoal <g> <obj> <attr>]
   [ngs-is-assigned-decision <g> i-decision]
   (<obj> -^<attr>)
 -->
-  [ngs-create-primitive-by-operator <s> <obj> <attr> |SimpleDecision|]"
+  [ngs-create-attribute-by-operator <s> <obj> <attr> |SimpleDecision|]"
 
 sp "test*create-decision-goal*21
   [ngs-match-goal-to-create-subgoal <s> TopLevelGoal2 <supergoal> DecisionGoal <subgoals> $NGS_GB_MAINT]
@@ -855,7 +855,7 @@ test operator-side-effects {
     [ngs-nex <s> second-object]
     [ngs-is-not-tagged <s> second-tag]
   -->
-    [ngs-create-primitive-by-operator <s> <s> second-object <first-object>]
+    [ngs-create-attribute-by-operator <s> <s> second-object <first-object>]
     [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> second-tag]
     [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_REMOVE <s> first-tag]"
 

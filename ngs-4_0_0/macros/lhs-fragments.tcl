@@ -127,19 +127,43 @@ proc ngs-gte { obj_id attr val { val_id ""} } {
 # Negated versions of the inequality comparisons (useful for input-link testing)
 proc ngs-nlt { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
-  return "-{[ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $val $val_id]}"
+  # If not binding is provided, we use the more comprehensive
+  #  negation that will match even if the attribute doesn't exist
+  if {$val_id == ""} {
+    return "-{[ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $val $val_id]}"
+  } else {
+    return [ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]
+  }
 }
 proc ngs-nlte { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
-  return "-{[ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $val $val_id]}"
+  # If not binding is provided, we use the more comprehensive
+  #  negation that will match even if the attribute doesn't exist
+  if {$val_id == ""} {
+    return "-{[ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $val $val_id]}"
+  } else {
+    return [ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $val $val_id]
+  }
 }
 proc ngs-ngt { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
-  return "-{[ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $val $val_id]}"
+  # If not binding is provided, we use the more comprehensive
+  #  negation that will match even if the attribute doesn't exist
+  if {$val_id == ""} {
+    return "-{[ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $val $val_id]}"
+  } else {
+    return [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $val $val_id]
+  }
 }
 proc ngs-ngte { obj_id attr val { val_id ""} } {
   CORE_RefMacroVars
-  return "-{[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]}"
+  # If not binding is provided, we use the more comprehensive
+  #  negation that will match even if the attribute doesn't exist
+  if {$val_id == ""} {
+    return "-{[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]}"
+  } else {
+    return [ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $val $val_id]
+  }
 }
 
 # Range versions of the inequality comparisons
@@ -420,7 +444,7 @@ proc ngs-is-tagged { object_id tag_name {tag_val "" } } {
 #
 # A list of the NGS built-in tags can be found in ngs-variables.tcl
 # 
-# [ngs-is-not-tagged object_id typename]
+# [ngs-is-not-tagged object_id tag_name (tag_val)]
 #
 proc ngs-is-not-tagged { object_id tag_name {tag_val "" } } {
   CORE_RefMacroVars
@@ -513,7 +537,7 @@ proc ngs-is-not-achieved { goal_id } {
 proc ngs-has-decided { goal_id { decision_value "" } } {
   CORE_RefMacroVars
   CORE_GenVarIfEmpty decision_value "decision-value"
-  return "[ngs-is-tagged $goal_id $NGS_TAG_DECIDED $decision_value]"
+  return "[ngs-is-tagged $goal_id $NGS_TAG_SELECTION_STATUS $decision_value]"
 }
 
 # Evaluates to true if a decision has NOT been made on this goal
@@ -530,7 +554,7 @@ proc ngs-has-decided { goal_id { decision_value "" } } {
 proc ngs-has-not-decided { goal_id { decision_value "" } } {
   CORE_RefMacroVars
   CORE_GenVarIfEmpty decision_value "__decision-value"
-  return "[ngs-is-not-tagged $goal_id $NGS_TAG_DECIDED $decision_value]"
+  return "[ngs-is-not-tagged $goal_id $NGS_TAG_SELECTION_STATUS $decision_value]"
 }
 
 # Evaluates to true if the given goal has been assigned a given decision
@@ -538,11 +562,23 @@ proc ngs-has-not-decided { goal_id { decision_value "" } } {
 # [ngs-is-assigned-decision goal_id decision_name]
 #
 # goal_id - goal to test for whether it has been assigned a decision
-# decision_name - name of the decision to test foreach 
+# decision_name - name of the decision to test for 
 #
 proc ngs-is-assigned-decision { goal_id decision_name } {
   CORE_RefMacroVars
   return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)"
+}
+
+# Evaluates to true if the given goal has NOT been assigned a given decision
+#
+# [ngs-is-not-assigned-decision goal_id decision_name]
+#
+# goal_id - goal to test for whether it has NOT been assigned a decision
+# decision_name - name of the decision to test for 
+#
+proc ngs-is-not-assigned-decision { goal_id decision_name } {
+  CORE_RefMacroVars
+  return "-{ ($goal_id ^$NGS_DECIDES_ATTR $decision_name) }"
 }
 
 # Evaluates to true and binds to the decision information if the given
@@ -620,6 +656,8 @@ proc ngs-is-decision-choice { state_id choice_id { choice_type ""} } {
 }
 
 # Evaluates to true if the given choice is NOT valid for the given sub-state
+#
+# [ngs-is-not-decision-choice state_id choice_id (choice_type)]
 #
 # state_id - variable bound to a substate within which to check for a choice
 # choice_id - variable bound to the choice. Choices are
@@ -703,7 +741,7 @@ proc ngs-conditions-false-for-all-other-choices { choice_id other_choice_id args
 #  * ngs-create-typed-object-by-operator
 #  * ngs-create-goal-by-operator
 #  * ngs-create-goal-as-return-value
-#  * ngs-create-primitive-by-operator
+#  * ngs-create-attribute-by-operator
 #  * ngs-create-tag-by-operator
 #  * ngs-create-typed-object-for-ret-val
 #  * ngs-set-ret-val-by-operator
@@ -742,7 +780,7 @@ proc ngs-has-side-effect { op_id
 #  * ngs-create-typed-object-by-operator
 #  * ngs-create-goal-by-operator
 #  * ngs-create-goal-as-return-value
-#  * ngs-create-primitive-by-operator
+#  * ngs-create-attribute-by-operator
 #  * ngs-create-tag-by-operator
 #  * ngs-create-typed-object-for-ret-val
 #  * ngs-set-ret-val-by-operator
@@ -1007,7 +1045,7 @@ proc ngs-match-top-state { state_id {bindings ""} {input_link ""} {output_link "
 # Typically you would use this in your input handling macros, not often
 #  in your productions directly.
 #
-# [ngs-input-link state_id input_link_id]
+# [ngs-input-link state_id input_link_id (bindings)]
 #
 # state_id - variable bound to the state (should be bound with a match production)
 # input_link_id - variable that will be bound to the root of the input link
@@ -1028,7 +1066,7 @@ proc ngs-input-link { state_id input_link_id {bindings ""} } {
 # Typically you would use this in your output handling macros, not often
 #  in your productions directly.
 #
-# [ngs-output-link state_id input_link_id]
+# [ngs-output-link state_id input_link_id (bindings)]
 #
 # state_id - variable bound to the state (should be bound with a match production)
 # output_link_id - variable that will be bound to the root of the input link
@@ -1130,7 +1168,7 @@ proc ngs-match-goal { state_id
 #
 # This macro will only bind goals for which [ngs-has-decided <goal> $NGS_YES] evaluates to true.
 #
-# [ngs-match-decided-goal state_id goal_type goal_id  decision_obj decision_attr (replacement_behavior) (decision_name) (basetype) (goal_pool_id)]
+# [ngs-match-selected-goal state_id goal_type goal_id  decision_obj decision_attr (replacement_behavior) (decision_name) (basetype) (goal_pool_id)]
 #
 # state_id - variable that will be bound to the top state.
 # goal_type - type of the goal to be bound
@@ -1146,7 +1184,7 @@ proc ngs-match-goal { state_id
 # goal_pool_id - (Optional) If provided, this is a variable that will be bound to the
 #     goal pool for goals of the given goal_type
 #
-proc ngs-match-decided-goal { state_id
+proc ngs-match-selected-goal { state_id
                               goal_type
                               goal_id
                               decision_obj
