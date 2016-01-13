@@ -172,9 +172,9 @@ proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
     		  ($operator_id ^goal $goal_id)"
 }
 
-# Tags a goal as having been decided
+# Tags a goal as having been selected for execution
 # 
-# A goal that was assigned a decision is decided when
+# A goal that was assigned a decision is selected when
 #  code executes that selects that goal. 
 #
 # Note: User code does not typically need to call this direction.
@@ -854,7 +854,7 @@ proc ngs-create-goal-in-place { goal_set_id
   CORE_RefMacroVars
   variable lhs_val
 
-  lappend attribute_list type $basetype
+  lappend attribute_list type "$basetype $goal_type"
   if { $supergoal_id != "" } {
     lappend attribute_list supergoal $supergoal_id
   }
@@ -899,7 +899,7 @@ proc ngs-create-goal-by-operator { state_id
   CORE_RefMacroVars
   variable lhs_val
 
-  lappend attribute_list type $basetype
+  lappend attribute_list type "$basetype $goal_type"
   if { $supergoal_id != "" } {
     lappend attribute_list supergoal $supergoal_id
   }
@@ -958,7 +958,7 @@ proc ngs-create-goal-as-return-value { state_id
   CORE_RefMacroVars
   variable rhs_val
 
-  lappend attribute_list type $basetype
+  lappend attribute_list type "$basetype $goal_type"
   if { $supergoal_id != "" } {
     lappend attribute_list supergoal $supergoal_id
   }

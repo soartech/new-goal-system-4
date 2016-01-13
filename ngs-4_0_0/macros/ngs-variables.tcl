@@ -95,6 +95,8 @@ CORE_CreateMacroVar NGS_TAG_ERROR                    "ngs*ERROR"
 CORE_CreateMacroVar NGS_TAG_ERROR_STRING             "ngs*ERROR-string"
 CORE_CreateMacroVar NGS_TAG_MARK_ACHIEVED            "ngs*mark-goal-achieved"
 CORE_CreateMacroVar NGS_TAG_REMOVE_ACHIEVED          "ngs*remove-achieved-goal"
+CORE_CreateMacroVar NGS_TAG_TYPE_POOL	             "ngs*goal-type-pool"
+CORE_CreateMacroVar NGS_TAG_DECISION_POOL	         "ngs*goal-decision-pool"
 
 #######
 # List of all ngs operator purpose tags

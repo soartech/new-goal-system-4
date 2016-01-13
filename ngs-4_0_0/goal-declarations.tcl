@@ -26,7 +26,8 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-match-goalpool <s> <goals>]
   -->
     (<goals> ^$goal_type <g>)
-    [ngs-tag <g> $NGS_TAG_CONSTRUCTED]"
+    [ngs-tag <g> $NGS_TAG_CONSTRUCTED]
+    [ngs-tag <g> $NGS_TAG_TYPE_POOL]"
   
   # Adds the sub-goal attribute to a supergoal
   sp "ngs*core*goals*link-subgoal*$goal_type
@@ -83,6 +84,37 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-create-atomic-operator <s> "(concat |remove-achieved-goal--| <g>)" <o>]
     [ngs-tag <o> $NGS_TAG_REMOVE_ACHIEVED]
     (<o> ^goal-set <goals> ^goal <g>)"
+
+  #############################################################
+  ## Productions that support alternate goal pooling
+
+  # Pool based on sub-types
+  sp "ngs*core*goals*copy-goal-to-supergoal-pool*$goal_type
+    [ngs-match-goal <s> $goal_type <g>]
+    [ngs-match-goalpool <s> <other-pool> <other-type>]
+    [ngs-neq <g> type $goal_type <other-type>]
+  -->
+    [ngs-create-attribute <other-pool> goal <g>]"
+
+    # Set of productions to pool based on requested decisions
+
+    # Step one, indicate that a pool is needed (allows multiple firings)
+    sp "ngs*core*goal*create-tag-need-decision-pool$goal_type
+      [ngs-match-goal <s> $goal_type <g>]
+      [ngs-match-goalpool <s> <master-pool>]
+      [ngs-has-requested-decision <g> <decision-name>]
+    -->
+      [ngs-tag <master-pool> need-pool-for-decision <decision-name>]"
+
+    # Step two is separate (below the macro). It creates a decision goal pool
+    
+    # Step three, copy goals that request the given decision to the pool
+    sp "ngs*core*goal*copy-goal-to-decision-pool$goal_type
+      [ngs-match-goal <s> $goal_type <g>]
+      [ngs-has-requested-decision <g> <decision-name>]
+      [ngs-match-goalpool <s> <decision-pool> <decision-name>]
+    -->
+      (<decision-pool> ^goal <g>)"
 
   #############################################################
   ## Productions that support goal-based decision making
@@ -175,3 +207,15 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-create-ret-tag-in-place $NGS_ACTIVATION_STATUS_RET_VAL <ret-vals> <g> $NGS_TAG_ALREADY_ACTIVATED]"
 
 }
+
+## Additional productions that are not goal-type specific
+# Create a goal pool for goals that request decisions
+sp "ngs*core*goal*create-decision-based-goal-pool
+  [ngs-match-goalpool <s> <master-pool>]
+  [ngs-is-tagged <master-pool> need-pool-for-decision <decision-name>]
+-->
+  (<master-pool> ^<decision-name> <new-pool>)
+  [ngs-tag <new-pool> $NGS_TAG_CONSTRUCTED]
+  [ngs-tag <new-pool> $NGS_TAG_DECISION_POOL]"
+
+
