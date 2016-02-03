@@ -893,7 +893,7 @@ test operator-side-effects {
      [ngs-deep-copy-by-operator <s> <s> fifth-object <second-object>]
      [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> fifth-tag]"
   
-  sp* "test
+  sp "test
     [ngs-match-top-state <s>]
     [ngs-bind <s> first-object:<so3> "second-object:{<so1> <> <so5>}" second-object:5 third-object:<so3> fifth-object:<so5>.val:<val5>]
     [ngs-eq <so1> val <val5>]

@@ -1343,7 +1343,7 @@ proc ngs-match-active-goal { substate_id
 #
 proc ngs-match-top-state-active-goal { state_id
                                        goal_type 
-                                     goal_id } {
+                                       goal_id } {
   CORE_RefMacroVars
 
   set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_type $goal_id)

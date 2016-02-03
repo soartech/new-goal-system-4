@@ -182,6 +182,7 @@ proc CORE_GenVarIfEmpty { var base } {
 
 # Source the global macro variables
 source _CORE_MacroVariables.tcl
+source _CORE_Math.tcl
 
 ##
 # Use this the way you would use bash's pushd
