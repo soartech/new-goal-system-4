@@ -405,30 +405,14 @@ proc ngs-create-output-command-by-operator { state_id
           [core-trace NGS_TRACE_OUTPUT "O OUTPUT-COMMAND-PROPOSED, $command_type, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $cmd_id |)."]"
 }
 
-proc ngs-create-latent-output-command-by-operator { state_id
-                                                    parent_obj_id 
-                                                    attribute 
-                                                    command_type
-                                                    cmd_id
-                                                    {attribute_list ""}
-                                                    {replacement_behavior ""}
-                                                    {add_prefs "="} } {
-
-  CORE_RefMacroVars
-
-  return "[ngs-create-typed-object-by-operator $state_id $parent_obj_id $attribute \
-                                               $command_type $cmd_id $attribute_list $replacement_behavior $add_prefs]
-          [ngs-tag-operator $NGS_TAG_OP_CREATE_OUTPUT_COMMAND]
-          [core-trace NGS_TRACE_OUTPUT "O LATENT-OUTPUT-COMMAND-PROPOSED, $command_type, (| $parent_obj_id |.$attribute | $cmd_id |)."]"
-}
-
-proc ngs-execute-latent-output-command-by-operator { state_id
-                                                     output_link_id
-                                                     command_id 
-                                                     {add_prefs "="} } {
+proc ngs-execute-existing-object-as-output-command-by-operator { state_id
+                                                              output_link_id
+                                                              command_id 
+                                                              {add_prefs "="} } {
   CORE_RefMacroVars
 
   return "[ngs-create-attribute-by-operator <s> $output_link_id $NGS_OUTPUT_COMMAND_ATTRIBUTE $command_id $NGS_ADD_TO_SET $add_prefs]
+          [ngs-tag-operator $NGS_TAG_OP_CREATE_OUTPUT_COMMAND]
           [core-trace NGS_TRACE_OUTPUT "O LATENT-OUTPUT-COMMAND-EXECUTED, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $command_id |)."]"
 }
 
