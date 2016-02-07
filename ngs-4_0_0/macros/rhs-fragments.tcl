@@ -165,11 +165,11 @@ proc ngs-tag-goal-achieved { goal_id } {
 #                                                                                            
 proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 	CORE_RefMacroVars
-	CORE_GenVarIfEmpty operator_id "o"
+	CORE_SetIfEmpty operator_id $NGS_OP_ID
   set op_name [ngs-create-op-name mark-achieved goal $goal_id]
-	return "[ngs-create-atomic-operator <s> $op_name $operator_id]
-          [ngs-tag $operator_id $NGS_TAG_MARK_ACHIEVED]
-    		  ($operator_id ^goal $goal_id)"
+
+  return "[ngs-create-tag-by-operator $state_id $goal_id $NGS_GS_ACHIEVED]
+          [ngs-tag $operator_id $NGS_TAG_MARK_ACHIEVED]"
 }
 
 # Tags a goal as having been selected for execution
