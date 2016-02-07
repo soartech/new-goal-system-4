@@ -191,6 +191,93 @@ proc ngs-nex { object_id attribute } {
   return "($object_id -^$attribute)"
 }
 
+# Constructs a list of constants in Soar's disjunction format
+#
+# Use this macro to construct a list of options that you can pass
+#  as values to other macros (e.g. ngs-is-my-type, etc)
+# 
+# This macro does not handle general "or" conditions. It only handles
+#  disjunctions of constant values
+#
+# For more complex predicate logic "or" use ngs-or and ngs-and
+#
+# args - a list of constants to turn into a disjunction. Args can be
+#          variable arguments or a single list.
+proc ngs-anyof { args } {
+
+  # Check to see if the arguments were passed in as a variable parameter list
+  #  or as a single list
+  if {[llength args] == 1} {
+    set $args [lindex args 0]
+  }
+
+  set lhs_ret "<< "
+  foreach item $args {
+    set lhs_ret "$lhs_ret $item"
+  }
+
+  set lhs_ret "$lhs_ret >>"
+  return $lhs_ret
+}
+
+# Use to construct a predicate logic "or" for a list of (possibly complex) conditions
+#
+# Use this macro for general disjunction tests. If you disjunction is between constant
+#  values of a single attribute, use ngs-anyof instead.
+#
+# Use ngs-and to construct the conditions to pass to ngs-or, if they take  multiple lines.
+#  ngs-and combines the multiple lines so that ngs-or gets the correct condition statements.
+#
+# This macro applies DeMorgan's law - A | B | C | ... = NOT ( NOT(A) ^ NOT(B) ^ NOT(C) ^ ... )
+#
+# args - A list of conditions to "OR." You can pass as multiple arguments or as a single
+#         list argument.
+#
+proc ngs-or { args } {
+
+  # Check to see if the arguments were passed in as a variable parameter list
+  #  or as a single list
+  if {[llength args] == 1} {
+    set $args [lindex args 0]
+  }
+
+  set lhs_ret "-{"
+
+  foreach item $args {
+    set lhs_ret "$lhs_ret
+                -{ $item }"
+  }
+
+  set lhs_ret "$lhs_ret
+              }"
+  return $lhs_ret
+}
+
+# Use to construct a single condition that is the predicate logic AND of all of the given conditions
+#
+# Since "AND" is the default in Soar, you rarely need to use this macro. It is mainly useful
+#  for creating conditions to pass to macros that require conditions as parameters (e.g. ngs-or)
+#
+# args - A list of conditions to "AND." You can pass as m ultiple arguments or as a single list argument
+#
+proc ngs-and { args } {
+
+  # Check to see if the arguments were passed in as a variable parameter list
+  #  or as a single list
+  if {[llength args] == 1} {
+    set $args [lindex args 0]
+  }
+
+  set lhs_ret ""
+
+  foreach item $args {
+    set lhs_ret "$lhs_ret
+                 $item"
+  }
+
+  return $lhs_ret
+}
+
 # Bind variables to an object's attributes
 # 
 # Use this macro to quickly and easily bind variables to an object's
