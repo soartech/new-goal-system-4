@@ -97,6 +97,7 @@ CORE_CreateMacroVar NGS_TAG_MARK_ACHIEVED            "ngs*mark-goal-achieved"
 CORE_CreateMacroVar NGS_TAG_REMOVE_ACHIEVED          "ngs*remove-achieved-goal"
 CORE_CreateMacroVar NGS_TAG_TYPE_POOL	             "ngs*goal-type-pool"
 CORE_CreateMacroVar NGS_TAG_DECISION_POOL	         "ngs*goal-decision-pool"
+CORE_CreateMacroVar GOAL_TAG_STACK_SELECTED			 "ngs*goal-stack-selected"
 
 #######
 # List of all ngs operator purpose tags

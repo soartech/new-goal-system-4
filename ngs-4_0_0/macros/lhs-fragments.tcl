@@ -191,6 +191,19 @@ proc ngs-nex { object_id attribute } {
   return "($object_id -^$attribute)"
 }
 
+# Evaluates to true when a tag does NOT exist 
+#
+# This macro is needed only for non-boolean tags. For
+#  example, you might want to check whether a time has
+#  been tagged on an object or not.
+#
+# object_id - variable bound to the object to test
+# tag_name  - name of the tag to check for
+#
+proc ngs-tag-nex { object_id tag_name } {
+  return "($object_id -^[ngs-tag-for-name $tag_name])"
+}
+
 # Constructs a list of constants in Soar's disjunction format
 #
 # Use this macro to construct a list of options that you can pass
@@ -642,6 +655,36 @@ proc ngs-has-not-decided { goal_id { decision_value "" } } {
   CORE_RefMacroVars
   CORE_GenVarIfEmpty decision_value "__decision-value"
   return "[ngs-is-not-tagged $goal_id $NGS_TAG_SELECTION_STATUS $decision_value]"
+}
+
+# Evaluates to true if the entire stack of decision goals of which this goal 
+#  is a part, is selected (i.e. [ngs-has-decided $goal_id $NGS_YES] is true)
+# 
+# This macro can be used when you only want some code to get executed when 
+#  the goal-stack has a stable decision (i.e. the hierarcy above a goal
+#  remains selected). This might be true, for example, of code that outputs
+#  commands.
+#
+# [ngs-is-goal-stack-selected goal_id]
+#
+# goal_id - variable bound to the goal that is part of the stack being tested
+#
+proc ngs-is-goal-stack-selected { goal_id } {
+  CORE_RefMacroVars
+  return "[ngs-is-tagged $goal_id $GOAL_TAG_STACK_SELECTED]"
+}
+
+# Evaluates to true if the given goal is part of a goal stack where some
+#  part of the stack is not selected (i.e. [ngs-has-decided $goal_id $NGS_YES] 
+#  is not true somewhere in the goal stack at or above the given goal) 
+#
+# [ngs-is-not-goal-stack-selected goal_id]
+#
+# goal_id - variable bound to the goal that is part of the stack being tested
+#
+proc ngs-is-not-goal-stack-selected { goal_id } {
+  CORE_RefMacroVars
+  return "[ngs-is-not-tagged $goal_id $GOAL_TAG_STACK_SELECTED]"  
 }
 
 # Evaluates to true if the given goal has been assigned a given decision
@@ -1236,8 +1279,7 @@ proc ngs-match-goal { state_id
   CORE_GenVarIfEmpty goal_pool_id "goal-pool"
 
   set lhs_ret "[ngs-match-goalpool $state_id $goal_pool_id $goal_type]
-               ($goal_pool_id ^goal $goal_id)
-               [ngs-is-tagged $goal_id $NGS_TAG_CONSTRUCTED]"
+               ($goal_pool_id ^goal $goal_id)"
 
   if { $basetype != "" } {
     set lhs_ret "$lhs_ret
@@ -1632,6 +1674,7 @@ proc ngs-match-proposed-atomic-operator { state_id
                                           {op_tags ""}
                                           {op_name ""} } {
 
+  CORE_RefMacroVars
   return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
           [ngs-is-type $op_id $NGS_OP_ATOMIC]"                                      
 
@@ -1661,7 +1704,7 @@ proc ngs-match-proposed-decide-operator { state_id
                                           goal_id
                                           {op_tags ""}
                                           {op_name ""} } {
-
+  CORE_RefMacroVars
   return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
           [ngs-is-type $op_id $NGS_OP_ATOMIC]
           [ngs-bind-decide-operator $op_id $goal_id]"                                      
@@ -1701,6 +1744,7 @@ proc ngs-bind-creation-operator { op_id
                                   dest_obj
                                   dest_attr 
                                   value
+                                  {value_bind ""}
                                   {replacement_behavior ""} } {
 
    set lhs_ret "($op_id ^dest-object $dest_obj
@@ -1790,6 +1834,8 @@ proc ngs-bind-choice-operator { op_id
                                 choice_id 
                                 {choice_type ""}
                                 {choice_bind ""}} {
+
+   CORE_RefMacroVars
 
    set dest_obj [CORE_GenVarName "dest-obj"]
    set dest_attr [CORE_GenVarName "dest-attr"]

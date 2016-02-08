@@ -32,7 +32,8 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Adds the sub-goal attribute to a supergoal
   sp "ngs*core*goals*link-subgoal*$goal_type
 	[ngs-match-goal <s> $goal_type <g>]
- 	[ngs-is-supergoal <g> <supergoal>]
+  [ngs-is-my-type <g> $goal_type]
+	[ngs-is-supergoal <g> <supergoal>]
   -->
 	(<supergoal> ^subgoal <g>)"
 
@@ -40,6 +41,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # The -^my-type check is a check for existance
   sp "ngs*core*goals*mark-goal-achieved-if-supergoal-removed-by-i-support*$goal_type
     [ngs-match-goal <s> $goal_type <g> $NGS_GB_ACHIEVE]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-is-supergoal <g> <supergoal>]
    -(<supergoal> ^my-type <supergoal-type>)
   -->
@@ -49,6 +51,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # The -^my-type check is a check for existance
   sp "ngs*core*goals*mark-goal-achieved-if-supergoal-removed-by-o-support*$goal_type
     [ngs-match-goal <s> $goal_type <g> $NGS_GB_ACHIEVE]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-is-supergoal <g> <supergoal> <supergoal-type>]
    -{
        [ngs-match-goal <s> <supergoal-type> <supergoal>]
@@ -60,6 +63,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # The -^my-type check is a check for existance
   sp "ngs*core*goals*mark-goal-achieved-if-supergoal-achieved*$goal_type
     [ngs-match-goal <s> $goal_type <g> $NGS_GB_ACHIEVE]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-is-supergoal <g> <supergoal>]
     [ngs-is-tagged <supergoal> $NGS_GS_ACHIEVED]
   -->
@@ -69,6 +73,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Mark a goal active if its subgoal is active
   sp "ngs*core*goals*mark-goal-active-if-subgoal-active*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-is-supergoal <g> <supergoal>]
     [ngs-is-active <g>]
   -->
@@ -78,6 +83,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   #  if the goal is o-supported.
   sp "ngs*core*goals*propose-to-remove-achieved-goals*$goal_type
     [ngs-match-goal <s> $goal_type <g> $NGS_GB_ACHIEVE <goals>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-is-tagged <g> $NGS_GS_ACHIEVED]
     [ngs-is-not-tagged <g> $NGS_TAG_I_SUPPORTED]
   -->
@@ -91,6 +97,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Pool based on sub-types
   sp "ngs*core*goals*copy-goal-to-supergoal-pool*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-match-goalpool <s> <other-pool> <other-type>]
     [ngs-neq <g> type $goal_type <other-type>]
   -->
@@ -101,6 +108,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     # Step one, indicate that a pool is needed (allows multiple firings)
     sp "ngs*core*goal*create-tag-need-decision-pool$goal_type
       [ngs-match-goal <s> $goal_type <g>]
+      [ngs-is-my-type <g> $goal_type]
       [ngs-match-goalpool <s> <master-pool>]
       [ngs-has-requested-decision <g> <decision-name>]
     -->
@@ -111,6 +119,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     # Step three, copy goals that request the given decision to the pool
     sp "ngs*core*goal*copy-goal-to-decision-pool$goal_type
       [ngs-match-goal <s> $goal_type <g>]
+      [ngs-is-my-type <g> $goal_type]
       [ngs-has-requested-decision <g> <decision-name>]
       [ngs-match-goalpool <s> <decision-pool> <decision-name>]
     -->
@@ -119,9 +128,26 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   #############################################################
   ## Productions that support goal-based decision making
 
+  # i-supported production to mark a goal as "goal-stack-selected" meaning that this goal
+  #  and all other decision goals above it on the stack are selected.
+  # JC: A selected goal stack just means that the goals were selected, not that
+  #     their actions occured.
+  sp "ngs*core*goal*elaborate-goal-stack-selected*parent-is-selected*$goal_type
+    [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
+    [ngs-or \
+      [ngs-and [ngs-has-requested-decision <g> <any-decision>] \
+               [ngs-is-not-supergoal <g> <sg2>]] \
+      [ngs-and [ngs-has-decided <g> $NGS_YES] \
+               [ngs-is-supergoal <g> <sg>] \
+               [ngs-is-tagged <sg> $GOAL_TAG_STACK_SELECTED]]]
+  -->
+    [ngs-tag <g> $GOAL_TAG_STACK_SELECTED]"
+
   # i-supported production to mark a decision on this goal as being required
   sp "ngs*core*goal*elaborate-decision-is-required*undecided-exists*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-subgoal <g> <sub-goal>]
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
@@ -132,6 +158,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Same as above, but looks for lack of a decided *yes*
   sp "ngs*core*goal*elaborate-decision-is-required*yes-does-not-exist*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
    -{
       [ngs-is-subgoal <g> <sub-goal>]
@@ -145,6 +172,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   #  if there is no sub-goal that can make the decision
   sp "ngs*core*goal*elaborate-decision-no-decision-options*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
    -{
       [ngs-is-subgoal <g> <sub-goal>]
@@ -156,8 +184,8 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # i-supported production to mark a decision as having exactly one current
   #  option. These decision are made by default.
   sp "ngs*core*goal*elaborate-decision-one-decision-option*$goal_type
-    
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
    
@@ -174,8 +202,8 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
 
   # Operator proposal to make a decision if there is only one option
   sp "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_type
-    
     [ngs-match-goal <s> $goal_type <sub-goal>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
 
     [ngs-is-supergoal <sub-goal> <supergoal>]
@@ -188,6 +216,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Operator proposal to make a decision if there are multiple options
   sp "ngs*core*goal*propose-to-create-substate-if-more-than-one-choice*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
     [ngs-is-not-tagged <decision-info> $NGS_TAG_ONE_OPTION]
@@ -199,6 +228,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Automatically activate a goal after selection if it is flagged for auto-activation
   sp "ngs*core*goal*activate-goal-after-selection*$goal_type
     [ngs-match-selected-goal <s> $goal_type <g> <obj> <attr> <behavior>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-is-tagged <g> $NGS_TAG_ACTIVATE_ON_DECISION]
     [ngs-is-not-tagged <g> $NGS_TAG_ALREADY_ACTIVATED]
   -->
