@@ -183,7 +183,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
 
   # i-supported production to mark a decision as having exactly one current
   #  option. These decision are made by default.
-  sp* "ngs*core*goal*elaborate-decision-one-decision-option*$goal_type
+  sp "ngs*core*goal*elaborate-decision-one-decision-option*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
     [ngs-is-my-type <g> $goal_type]
     [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
@@ -192,19 +192,17 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
    
    -{
-      [ngs-is-subgoal <g> "\{ <sub-goal2> <> <sub-goal> \}"]
+      [ngs-is-subgoal <g> [ngs-this-not-that <sub-goal2> <sub-goal>]]
       [ngs-is-assigned-decision <sub-goal2> <decision-name>]
     }
   -->
     [ngs-tag <decision-info> $NGS_TAG_ONE_OPTION]"
 
-#    [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
-#    [ngs-has-not-decided <sub-goal>]
 
   # Operator proposal to make a decision if there is only one option
   sp "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_type
     [ngs-match-goal <s> $goal_type <sub-goal>]
-    [ngs-is-my-type <g> $goal_type]
+    [ngs-is-my-type <sub-goal> $goal_type]
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
 
     [ngs-is-supergoal <sub-goal> <supergoal>]

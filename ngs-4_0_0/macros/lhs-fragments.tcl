@@ -233,6 +233,18 @@ proc ngs-anyof { args } {
   return $lhs_ret
 }
 
+# Use this to construct a Soar test that binds a variable not equal to another variable.
+#
+# Use where you would normally use { <this> <> <that> }. Using this macro is safer than
+#  trying to get the right TCL escaping code in the production itself
+#
+# this_id - variable that you want to bind to an attribute
+# that_id - variable bound to another object that you do NOT want this bound to.
+#
+proc ngs-this-not-that { this_id that_id } {
+  return "\{ $this_id <> $that_id \}"
+}
+
 # Use to construct a predicate logic "or" for a list of (possibly complex) conditions
 #
 # Use this macro for general disjunction tests. If you disjunction is between constant
