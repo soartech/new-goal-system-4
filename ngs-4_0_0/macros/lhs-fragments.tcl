@@ -1742,7 +1742,7 @@ proc ngs-match-proposed-decide-operator { state_id
 #  of the new object.  The actual new object will be a copy of what is stored on the 
 #  operator.
 # 
-# [ngs-bind-creation-operator op_id dest_obj dest_attr value replacement_behavior]
+# [ngs-bind-creation-operator op_id dest_obj dest_attr value (value_bind) (replacement_behavior)]
 #
 # op_id - Variable bound to the operator for which to bind the parameters
 # dest_obj - The object that will recieve the created value 
