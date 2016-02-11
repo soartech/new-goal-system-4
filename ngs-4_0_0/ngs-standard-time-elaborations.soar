@@ -26,5 +26,5 @@ sp "ngs*input-link*elaborate*time*soar-unit
     [ngs-nex <system> sim-time]
     [ngs-nex <system> wall-time]
 -->
-	[ngs-create-attribute <system> time <sys-time>]
+	[ngs-create-attribute <system> time "(* <sys-time> 50)"]
 	[ngs-tag <system> running-in soar-unit]"

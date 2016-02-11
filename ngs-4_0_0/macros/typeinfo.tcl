@@ -158,7 +158,9 @@ proc ngs-construct { object_id typename { attribute_list "" } } {
 		}
 
 	} else {
-		echo "WARNING: Type $typename was not declared. Did you type the right name?"		
+		if { [string index $typename 0] != "<"} {
+			echo "WARNING: Type $typename was not declared. Did you type the right name?"		
+		}
 	}	
 
 
