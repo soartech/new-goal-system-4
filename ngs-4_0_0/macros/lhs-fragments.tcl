@@ -178,6 +178,35 @@ proc ngs-gte-lte { obj_id attr low_val high_val { val_id ""} } {
           [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $high_val]"
 }
 
+
+######################################################################################
+#
+# The "stable" versions of inequalities will not "blink" when a value change. These
+#  are best to use when testing values on the input link which can change rapidly.
+#  Because the implementations of these macros use negated blocks, you cannot bind
+#  any variables internally (thous they do not have val_id parameters)
+#
+proc ngs-stable-lt { obj_id attr val } {
+  return [ngs-not [ngs-gte $obj_id $attr $val]]
+}
+proc ngs-stable-lte { obj_id attr val } {
+  return [ngs-not [ngs-gt $obj_id $attr $val]]
+}
+proc ngs-stable-gt { obj_id attr val } {
+  return [ngs-not [ngs-lte $obj_id $attr $val]]
+}
+proc ngs-stable-gte { obj_id attr val } {
+  return [ngs-not [ngs-lt $obj_id $attr $val]]
+}
+proc ngs-stable-gte-lt { obj_id attr low_val high_val } {
+  return [ngs-not [ngs-or [ngs-lt $obj_id $attr $low_val] \
+                          [ngs-gte $obj_id $attr $high_val]]]
+}
+proc ngs-stable-gte-lte { obj_id attr low_val high_val } {
+  return [ngs-not [ngs-or [ngs-lt $obj_id $attr $low_val] \
+                          [ngs-gt $obj_id $attr $high_val]]]
+}
+
 # Evaluates to true when an attribute does NOT exist
 #
 # This is equivilent to -^attribute sytax in Soar, but is
@@ -255,16 +284,9 @@ proc ngs-this-not-that { this_id that_id } {
 #
 # This macro applies DeMorgan's law - A | B | C | ... = NOT ( NOT(A) ^ NOT(B) ^ NOT(C) ^ ... )
 #
-# args - A list of conditions to "OR." You can pass as multiple arguments or as a single
-#         list argument.
+# args - A list of conditions to "OR." 
 #
 proc ngs-or { args } {
-
-  # Check to see if the arguments were passed in as a variable parameter list
-  #  or as a single list
-  if {[llength args] == 1} {
-    set $args [lindex args 0]
-  }
 
   set lhs_ret "-{"
 
@@ -283,15 +305,9 @@ proc ngs-or { args } {
 # Since "AND" is the default in Soar, you rarely need to use this macro. It is mainly useful
 #  for creating conditions to pass to macros that require conditions as parameters (e.g. ngs-or)
 #
-# args - A list of conditions to "AND." You can pass as m ultiple arguments or as a single list argument
+# args - A list of conditions to "AND." 
 #
 proc ngs-and { args } {
-
-  # Check to see if the arguments were passed in as a variable parameter list
-  #  or as a single list
-  if {[llength args] == 1} {
-    set $args [lindex args 0]
-  }
 
   set lhs_ret ""
 
@@ -301,6 +317,26 @@ proc ngs-and { args } {
   }
 
   return $lhs_ret
+}
+
+# Use to negate a block of conditions (or one condition). 
+#
+# Note that many of the simple tests have "not" versions (e.g. ngs-is-not-tagged)
+#  so you mainly  need this macro for more complex tests.
+#
+# args - A list of conditions that will be nested within the "not" block. Note that
+#          the conditions inside will be "anded" forming a not-and block
+proc ngs-not { args } {
+
+  set lhs_ret "-{ "
+
+  foreach item $args {
+    set lhs_ret "$lhs_ret
+                 $item"
+  }
+
+  return "$lhs_ret }"
+
 }
 
 # Bind variables to an object's attributes
