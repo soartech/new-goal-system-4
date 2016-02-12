@@ -810,7 +810,7 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
 # Side effects can be difficult to debug, so use wisely. 
 # You can trace side effects using NGS_TRACE_SIDE_EFFECTS.
 #
-# [ngs-add-tag-side-effect op_id action dest_obj tag_name (value) (replacement_behavior)]
+# [ngs-add-tag-side-effect action dest_obj tag_name (value) (replacement_behavior)]
 #
 # action - one of NGS_SIDE_EFFECT_REMOVE or NGS_SIDE_EFFECT_ADD indicating whether the side 
 #           effect is to add or remove the given WME
