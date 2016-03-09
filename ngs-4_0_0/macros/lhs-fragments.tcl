@@ -1949,9 +1949,9 @@ proc ngs-bind-decide-operator { op_id
                                 {goal_bind ""}} {
 
    if { $goal_bind == "" } {
-     return "($op_id ^goal $goal_id)"
+     return "($op_id ^choice $goal_id)"
    } else {
-     return "($op_id ^goal $goal_id)
+     return "($op_id ^choice $goal_id)
              [ngs-bind $goal_id $goal_bind]" 
    }
 
