@@ -1377,8 +1377,9 @@ proc ngs-match-selected-goal { state_id
   CORE_GenVarIfEmpty decision_name "decision-name"
 
   set lhs_ret "[ngs-match-goal $state_id $goal_type $goal_id $basetype $goal_pool_id]
-               [ngs-has-decided $goal_id $NGS_YES]
-               [ngs-is-assigned-decision $goal_id $decision_name]"
+               [ngs-has-decided $goal_id $NGS_YES]"
+               
+# JC: believe this is not needed any more [ngs-is-assigned-decision $goal_id $decision_name]"
 
   if { $decision_obj != "" || $decision_attr != "" } {
     CORE_GenVarIfEmpty decision_obj  "decision-object"

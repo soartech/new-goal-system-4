@@ -210,7 +210,17 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
     [ngs-is-tagged <decision-info> $NGS_TAG_ONE_OPTION]
   -->
-    [ngs-create-tag-by-operator <s> <sub-goal> $NGS_TAG_SELECTION_STATUS]"
+    [ngs-create-tag-by-operator <s> <sub-goal> $NGS_TAG_DECISION_STATUS]"
+
+
+  # This marks the goal as selected only if it both has the "pre" selection flag and
+  #  it is decided
+  sp "ngs*core*goal*elaborate*selection-status$goal_type
+    [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-assigned-decision <g> <any-decision>]
+    [ngs-is-tagged <g> $NGS_TAG_DECISION_STATUS <decision-value>]
+  -->
+    [ngs-tag <g> $NGS_TAG_SELECTION_STATUS <decision-value>]"
 
   # Operator proposal to make a decision if there are multiple options
   sp "ngs*core*goal*propose-to-create-substate-if-more-than-one-choice*$goal_type

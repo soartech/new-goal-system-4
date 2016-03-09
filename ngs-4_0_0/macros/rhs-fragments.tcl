@@ -189,7 +189,7 @@ proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 proc ngs-tag-goal-with-selection-status { goal_id { decided_value ""} } {
   CORE_RefMacroVars
   CORE_SetIfEmpty decided_value $NGS_YES
-  return [ngs-tag $goal_id "$NGS_TAG_SELECTION_STATUS" $decided_value]
+  return [ngs-tag $goal_id "$NGS_TAG_DECISION_STATUS" $decided_value]
 }
 
 # Create working memory element, i.e. an object "attribute"
