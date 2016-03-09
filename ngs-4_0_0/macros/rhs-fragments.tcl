@@ -405,6 +405,19 @@ proc ngs-create-output-command-by-operator { state_id
           [core-trace NGS_TRACE_OUTPUT "O OUTPUT-COMMAND-PROPOSED, $command_type, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $cmd_id |)."]"
 }
 
+# Takes an existing typed object and makes it an o utput command
+#
+# Use this macro when you want to pre-create your output objects, and then copy them to the 
+#  output link using an operator.
+#
+# [ngs-execute-existing-object-as-output-command-by-operator state_id output_link_id command_id (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# output_link_id - variable boudn to the output link
+# cmd_id - variable bound to the object that represents the output command
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
 proc ngs-execute-existing-object-as-output-command-by-operator { state_id
                                                               output_link_id
                                                               command_id 
@@ -600,7 +613,7 @@ proc ngs-create-tag-by-operator { state_id
   CORE_SetIfEmpty tag_val $NGS_YES
 
   return "[ngs-create-attribute-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]
-          [ngs-tag-operator $NGS_TAG_OP_CREATE_TAG]
+          [ngs-tag-operator $NGS_TAG_OP_CREATE_PRIMITIVE]
           [core-trace NGS_TRACE_TAGS "O CREATE-TAG, (| $parent_obj_id |.[ngs-tag-for-name $tag_name] $tag_val)."]"
 }
 
@@ -1238,6 +1251,7 @@ proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
            [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
            [ngs-tag $op_id $NGS_TAG_OP_RETURN_VALUE]
            [ngs-tag $op_id $NGS_TAG_OP_MAKE_CHOICE]
+           [ngs-tag $op_id $NGS_TAG_OP_CREATE_PRIMITIVE]
            [core-trace NGS_TRACE_DECISIONS "O SELECTED-GOAL, | $choice_id | in state | $state_id |."]"
 }
 
@@ -1276,6 +1290,7 @@ proc ngs-set-ret-val-by-operator { state_id
                           ^ret-val-name         $ret_val_name)
             [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
             [ngs-tag $op_id $NGS_TAG_OP_RETURN_VALUE]
+            [ngs-tag $op_id $NGS_TAG_OP_CREATE_PRIMITIVE]
             [core-trace NGS_TRACE_RETURN_VALUES "O SET-RETURN, $ret_val_name = $value."]"
 
 }

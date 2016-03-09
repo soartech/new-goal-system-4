@@ -97,6 +97,30 @@ sp "test
     (pass)"
 }
 
+test shallow-copy-non-ngs-objects {
+
+  sp "test*setup*non-ngs-object 
+    (state <s> ^superstate nil)
+  -->
+    (<s> ^non-ngs-object <obj>)
+    (<obj> ^element a 
+           ^sub-structure <s-struct>)
+    (<s-struct> ^sub-element b)"
+
+  sp "test*try-shallow-copy
+    (state <s> ^non-ngs-object <obj>
+              -^copy-of-non-ngs-object)
+  -->
+    [ngs-create-attribute-by-operator <s> <s> copy-of-non-ngs-object <obj>]"
+
+
+  sp "test
+    (state <s> ^copy-of-non-ngs-object <obj>
+               ^non-ngs-object <obj>)
+  -->
+    (pass)"
+}
+
 test create-layered-value {
 
 sp "test*setup-shallow-copy-object
