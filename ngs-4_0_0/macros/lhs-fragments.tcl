@@ -455,7 +455,8 @@ proc ngs-test { test_type obj_id attr val { val_id ""} } {
 
 # Binds to the time variables on the input link 
 #
-# Use to get the time for use in an agent
+# Use to get the time for use in an agent. Note that this will rebind every time
+#  the clock ticks (depending on the time_test)
 #
 # [ngs-time state_id time (time_id) (time_test) (input_link_id)]
 #
@@ -486,6 +487,9 @@ proc ngs-time { state_id time {time_id ""} {time_test ""} {input_link_id ""}} {
 
 # Same as ngs-time, but tests for time being between two values (using ngs-gte-lt)
 #
+# Note that if you don't want this to rebind every time the clock ticks, don't bind to the
+#   actual time (i.e. leave the default value for time_id)
+#
 # [ngs-time-range state_id start_time end_time (time_id) (input_link_id)]
 #
 proc ngs-time-range { state_id start_time end_time { time_id "" } { input_link_id "" }} {
@@ -495,8 +499,14 @@ proc ngs-time-range { state_id start_time end_time { time_id "" } { input_link_i
   set lhs_ret "[ngs-input-link $state_id $input_link_id]
                ($input_link_id ^system $system_id)"
 
-  return "$lhs_ret
-          [ngs-gte-lt $system_id time $start_time $end_time $time_id]"  
+  if { $time_id != "" } {
+    return "$lhs_ret
+            [ngs-gte-lt $system_id time $start_time $end_time $time_id]" 
+  } else {
+    return "$lhs_ret
+            [ngs-stable-gte-lt $system_id time $start_time $end_time]" 
+  }
+
 }
 
 # Same as ngs-time, except for the cycle cycle-count
@@ -1378,8 +1388,6 @@ proc ngs-match-selected-goal { state_id
 
   set lhs_ret "[ngs-match-goal $state_id $goal_type $goal_id $basetype $goal_pool_id]
                [ngs-has-decided $goal_id $NGS_YES]"
-               
-# JC: believe this is not needed any more [ngs-is-assigned-decision $goal_id $decision_name]"
 
   if { $decision_obj != "" || $decision_attr != "" } {
     CORE_GenVarIfEmpty decision_obj  "decision-object"
@@ -1388,7 +1396,8 @@ proc ngs-match-selected-goal { state_id
     set lhs_ret "$lhs_ret
                 [ngs-is-supergoal $goal_id $supergoal_id]
                 [ngs-has-requested-decision $supergoal_id $decision_name $decision_obj \
-                                            $decision_attr $replacement_behavior]"
+                                            $decision_attr $replacement_behavior]
+                [ngs-is-assigned-decision $goal_id $decision_name ]" 
   }
 
   return $lhs_ret
@@ -1756,7 +1765,7 @@ proc ngs-match-proposed-decide-operator { state_id
   CORE_RefMacroVars
   return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
           [ngs-is-type $op_id $NGS_OP_ATOMIC]
-          [ngs-bind-decide-operator $op_id $goal_id]"                                      
+          [pro $op_id $goal_id]"                                      
 
 }
 
@@ -1945,8 +1954,8 @@ proc ngs-bind-removal-operator { op_id
 # goal_bind - (Optional) If provided, one or more strings passed to ngs-bind as [ngs-bind $goal_id $goal_bind]
 #
 proc ngs-bind-decide-operator { op_id
-                                goal_id 
-                                {goal_bind ""}} {
+                                     goal_id 
+                                    {goal_bind ""}} {
 
    if { $goal_bind == "" } {
      return "($op_id ^goal $goal_id)"
