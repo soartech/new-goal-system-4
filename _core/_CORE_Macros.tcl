@@ -213,7 +213,7 @@ proc CORE_Source { file } {
 # popd
 #
 proc CORE_LoadDir { directory } {
-  CORE_RefMacroVars
+  #CORE_RefMacroVars
   CORE_Pushd $directory
     source "load.soar" 
   popd
