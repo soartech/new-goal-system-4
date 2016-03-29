@@ -93,20 +93,20 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep*exist-so-r
 -->
   (<destination-object> ^<destination-attribute> <value> -)"
 
-################## SOAR DEEP COPY
+################## SOAR DEEP COPY and ATTRIBUTE REMOVAL
 
-sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*not-exist-so-create
+sp "ngs*core*apply*side-effects*intelligent-construction*removal-or-deep-copy*not-exist-so-create
   [ngs-match-selected-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
+  [ngs-or [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY] [ngs-is-tagged <o> $NGS_TAG_OP_REMOVE_ATTRIBUTE]]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
   [ngs-nex <destination-object> <destination-attribute>]
 -->
   (<destination-object> ^<destination-attribute> <value> +)"
 
-sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*exist-so-replace
+sp "ngs*core*apply*side-effects*intelligent-construction*removal-or-deep-copy*exist-so-replace
   [ngs-match-selected-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
+  [ngs-or [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY] [ngs-is-tagged <o> $NGS_TAG_OP_REMOVE_ATTRIBUTE]]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_REPLACE_IF_EXISTS]
   [ngs-bind <destination-object> <destination-attribute>:<old-val>]
@@ -114,21 +114,20 @@ sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*exist
   (<destination-object> ^<destination-attribute> <old-val> -)
   (<destination-object> ^<destination-attribute> <value> +)"
 
-sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*add-to-set
+sp "ngs*core*apply*side-effects*intelligent-construction*removal-or-deep-copy*add-to-set
   [ngs-match-selected-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
+  [ngs-or [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY] [ngs-is-tagged <o> $NGS_TAG_OP_REMOVE_ATTRIBUTE]]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_ADD replacement-behavior:$NGS_ADD_TO_SET]
 -->
   (<destination-object> ^<destination-attribute> <value> +)"
 
-sp "ngs*core*apply*side-effects*intelligent-construction*level-0*deep-copy*exist-so-remove
+sp "ngs*core*apply*side-effects*intelligent-construction*removal-or-deep-copy*exist-so-remove
   [ngs-match-selected-operator <s> <o>]
-  [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY]
+  [ngs-or [ngs-is-tagged <o> $NGS_TAG_OP_DEEP_COPY] [ngs-is-tagged <o> $NGS_TAG_OP_REMOVE_ATTRIBUTE]]
   [ngs-has-side-effect <o> <se>]
   [ngs-bind <se> destination-object destination-attribute value action:$NGS_SIDE_EFFECT_REMOVE]
   [ngs-bind <destination-object> <destination-attribute>:<value>]
 -->
   (<destination-object> ^<destination-attribute> <value> -)"
-
 

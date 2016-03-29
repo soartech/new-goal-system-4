@@ -6,7 +6,7 @@ sp "ngs*output-link*propose*remove-completed-command
 	[ngs-is-my-type <command> <my-type>]
 	[ngs-is-tagged <command> $NGS_TAG_STATUS_COMPLETE]
 -->
-	[ngs-remove-attribute-by-operator <s> <ol> $NGS_OUTPUT_COMMAND_ATTRIBUTE <command> ">"]
+	[ngs-remove-attribute-by-operator <s> <ol> $NGS_OUTPUT_COMMAND_ATTRIBUTE <command> "> ="]
 	[core-trace NGS_TRACE_OUTPUT "O OUTPUT-COMMAND-EXECUTED, (| <my-type> |, | <ol> |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | <command> |)."]"
 
 # The old version of marking status complete. This makes NGS 4.0 backward compatable with

@@ -752,6 +752,8 @@ proc ngs-create-decide-operator { state_id
 #  * ngs-make-choice-by-operator
 #  * ngs-deep-copy-by-operator
 #  * ngs-create-output-command-by-operator
+#  * ngs-remove-attribute-by-operator
+#  * ngs-remove-tag-by-operator
 #
 # Side effects can be difficult to debug, so use wisely. 
 # You can trace side effects using NGS_TRACE_SIDE_EFFECTS.
@@ -819,6 +821,8 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
 #  * ngs-make-choice-by-operator
 #  * ngs-deep-copy-by-operator
 #  * ngs-create-output-command-by-operator
+#  * ngs-remove-attribute-by-operator
+#  * ngs-remove-tag-by-operator
 #
 # Side effects can be difficult to debug, so use wisely. 
 # You can trace side effects using NGS_TRACE_SIDE_EFFECTS.
