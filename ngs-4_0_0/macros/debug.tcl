@@ -107,13 +107,11 @@ proc nps { args } {
 	echo +---------------------------------------------------------------------------+
 
 	# excise some productions
-	watch 0
 	excise debug*print-isolated-goals
 	excise debug*print-goal-stack*1
 	excise debug*print-goal-stack*2	
 	excise debug*print-goal-stack*3
 	excise debug*print-goal-stack*4
-	watch 1
 }
 
 # NGS Print 
