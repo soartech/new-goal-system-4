@@ -524,6 +524,41 @@ proc ngs-cycle { state_id cycle {cycle_id ""} {cycle_test ""} {input_link_id ""}
           [ngs-test $cycle_test $system_id cycle-count $cycle $cycle_id]"
 }
 
+# Stable test for cycle being greater than a value
+#
+# [ngs-cycle-gt state_id cycle (input_link_id)]
+#
+# state_id - Variable bound to the top state
+# cycle - the cycle count to check for greater than
+# input_link_id - (Optional) variable to be bound to the input link
+#                              
+proc ngs-cycle-gt { state_id cycle {input_link_id ""}} {
+  set system_id [CORE_GenVarName "system"]
+  CORE_GenVarIfEmpty input_link_id "input-link"
+  
+  return "[ngs-input-link $state_id $input_link_id]
+          ($input_link_id ^system $system_id)
+          [ngs-stable-gt $system_id cycle-count $cycle]"
+}
+
+# Stable test for cycle being less than a value
+#
+# [ngs-cycle-lt state_id cycle (input_link_id)]
+#
+# state_id - Variable bound to the top state
+# cycle - the cycle count to check for less than
+# input_link_id - (Optional) variable to be bound to the input link
+#                              
+proc ngs-cycle-lt { state_id cycle {input_link_id ""}} {
+  set system_id [CORE_GenVarName "system"]
+  CORE_GenVarIfEmpty input_link_id "input-link"
+  
+  return "[ngs-input-link $state_id $input_link_id]
+          ($input_link_id ^system $system_id)
+          [ngs-stable-lt $system_id cycle-count $cycle]"
+}
+
+
 # Binds to an object's type, if it has a type attribute
 #
 # [ngs-is-type object_id type_name]
