@@ -781,7 +781,7 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
 
   set se_id [CORE_GenVarName "side-effect"]
   set attr_list "action $action destination-object $dest_obj destination-attribute $dest_attr \
-                 value  $value replacement-behavior $replacement_behavior"
+                 value  \"$value\" replacement-behavior $replacement_behavior"
 
 
   if {[string index $dest_attr 0] == "<"} {

@@ -1289,7 +1289,7 @@ proc ngs-input-link { state_id input_link_id {bindings ""} } {
 # Typically you would use this in your output handling macros, not often
 #  in your productions directly.
 #
-# [ngs-output-link state_id input_link_id (bindings)]
+# [ngs-output-link state_id output_link_id (bindings)]
 #
 # state_id - variable bound to the state (should be bound with a match production)
 # output_link_id - variable that will be bound to the root of the input link
@@ -1750,7 +1750,7 @@ proc ngs-match-proposed-operator { state_id
 #  This macro matches operator _preferences_, not applications. Anything on 
 #  the RHS of a production using this macro will get i-support.
 #
-# [ngs-match-proposed-atomic-operator state_id op_id op_name (op_tags) (op_name)]
+# [ngs-match-proposed-atomic-operator state_id op_id (op_tags) (op_name)]
 #
 # state_id - variable to be bound to the state in which the operator is proposed 
 # op_id - variable to be bound to the proposed (but not selected) operator 
@@ -1799,8 +1799,8 @@ proc ngs-match-proposed-decide-operator { state_id
                                           {op_name ""} } {
   CORE_RefMacroVars
   return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
-          [ngs-is-type $op_id $NGS_OP_ATOMIC]
-          [pro $op_id $goal_id]"                                      
+          [ngs-is-type $op_id $NGS_OP_DECIDE]
+          [ngs-bind $op_id goal:$goal_id]"                                      
 
 }
 
