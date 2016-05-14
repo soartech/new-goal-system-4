@@ -1796,11 +1796,19 @@ proc ngs-match-proposed-decide-operator { state_id
                                           op_id
                                           goal_id
                                           {op_tags ""}
-                                          {op_name ""} } {
+                                          {op_name ""}
+                                          {ret_val_id ""} } {
   CORE_RefMacroVars
+
+  if { $ret_val_id != "" } {
+      set ret_val_bind "return-values:$ret_val_id"
+  } else {
+      set ret_val_bind ""
+  }
+  
   return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
           [ngs-is-type $op_id $NGS_OP_DECIDE]
-          [ngs-bind $op_id goal:$goal_id]"                                      
+          [ngs-bind $op_id goal:$goal_id $ret_val_bind]"                                      
 
 }
 

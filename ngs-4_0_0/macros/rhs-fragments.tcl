@@ -707,7 +707,7 @@ proc ngs-create-decide-operator { state_id
                                   new_obj_id
                                   ret_val_set_id
                                   goal_id
- 								                 {completion_tag ""}
+ 								 {completion_tag ""}
                                  {add_prefs "="} } {
 
    CORE_RefMacroVars
@@ -1199,7 +1199,7 @@ proc ngs-create-ret-val-in-place { ret_val_name
 #  not likely that you will need to use this macro often. However, if sub-state code creates tags as part
 #  if its return value set, you will need to macro to tell the sub-state where to put the tag.
 #
-# [ngs-create-ret-tag-in-place ret_val_name ret_val_set_id dest_obj_id tag_name tag_val replacement_behavior]
+# [ngs-create-ret-tag-in-place ret_val_name ret_val_set_id dest_obj_id tag_name (tag_val) (replacement_behavior)]
 #
 # ret_val_name - Name of the return value. The decide operator should document the return values it constructs such
 #  that when you create this operator you know which return values to create. Note that you can create additional 
