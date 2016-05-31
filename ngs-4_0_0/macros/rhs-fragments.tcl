@@ -257,7 +257,7 @@ proc ngs-remove-attribute { parent_obj_id
 }
 # Creates an object in a form appropriate for i-support
 #
-# Use this on the righ-hand side of a production to create a typed object
+# Use this on the right-hand side of a production to create a typed object
 #  using i-support. If you need to construct an object in-place on an operator, 
 #  then use ngs-ocreate-typed-object-in-place.
 #
@@ -295,7 +295,7 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 
 # Creates an object in a form appropriate for o-support
 #
-# Use this on the righ-hand side of a production to create a typed object
+# Use this on the right-hand side of a production to create a typed object
 #  that you want to elaborate onto an operator. If you need to construct an  
 #  i-supported object, then use ngs-icreate-typed-object-in-place.
 #
@@ -739,7 +739,7 @@ proc ngs-create-decide-operator { state_id
 # A side effect is an additional action that can be taken for most operators.
 # The action must be a primitive action (creation or removal of a wme). So you can
 #  use side effects to set tags, add a primitive attribute, or create an alias/link 
-#  to an objects. Multipe side effects are allowed per operator.
+#  to an object. Multipe side effects are allowed per operator.
 # 
 # NOTE: Side effects cannot use the identifier generated through a create-X macro
 #  in the same productions. The reason for this limitation is the fact that any
@@ -814,7 +814,7 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
 # A side effect is an additional action that can be taken for most operators.
 # The action must be a primitive action (creation or removal of a wme). So you can
 #  use side effects to set tags, add a primitive attribute, or create an alias/link 
-#  to an objects. Multipe side effects are allowed per operator.
+#  to an object. Multipe side effects are allowed per operator.
 # 
 # NOTE: Side effects cannot use the identifier generated through a create-X macro
 #  in the same productions. The reason for this limitation is the fact that any
