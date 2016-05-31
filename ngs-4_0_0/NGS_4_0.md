@@ -228,7 +228,7 @@ NGS macros manipulates and binds Soar's working memory using three abstractions:
 
 1. **Atomic Values**: Atomic values are the values supported by Soar - integers, floats, strings, and ids.
 1. **Typed Objects**: Typed objects are collections of WMEs that share the same left-most identifier. They are identical to "plain old data structures" in object oriented programming.
-1. **Tags**: Tags are WMEs that follow a standard naming convention for the attribute. All tag names in NGS 4 are prefixed with __tagged*ngs*. NGS provides many macro specializations for working with tags.
+1. **Tags**: Tags are WMEs that follow a standard naming convention for the attribute. All tag names in NGS 4 are prefixed with __tagged\*ngs\*. NGS provides many macro specializations for working with tags.
 
 Goals (discussed in ###) are a form of typed object.
 
@@ -603,9 +603,10 @@ Goal subgoal/supergoal links are automatically created and maintained by the NGS
 
 ### Creating and Removing Goals
 
-Goals can be created in three different ways depending on how you intend to build and maintain your goal hierarchy
+Goals can be created in three different ways depending on how you intend to build and maintain your goal hierarchy.
 
 **Creating I-Supported Goal**
+
 
 **Creating O-Supported Goals**
 

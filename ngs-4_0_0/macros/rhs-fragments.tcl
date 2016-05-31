@@ -741,6 +741,12 @@ proc ngs-create-decide-operator { state_id
 #  use side effects to set tags, add a primitive attribute, or create an alias/link 
 #  to an objects. Multipe side effects are allowed per operator.
 # 
+# NOTE: Side effects cannot use the identifier generated through a create-X macro
+#  in the same productions. The reason for this limitation is the fact that any
+#  identifier linked to an object being created in the same production is temporary.
+#  The final identifier for the object will not be created until the last phase
+#  of the construction process and is not accessible to a variable in the production.
+# 
 # The following macros can be combined with side effects (others cannot):
 #  * ngs-create-typed-object-by-operator
 #  * ngs-create-goal-by-operator
@@ -809,6 +815,12 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
 # The action must be a primitive action (creation or removal of a wme). So you can
 #  use side effects to set tags, add a primitive attribute, or create an alias/link 
 #  to an objects. Multipe side effects are allowed per operator.
+# 
+# NOTE: Side effects cannot use the identifier generated through a create-X macro
+#  in the same productions. The reason for this limitation is the fact that any
+#  identifier linked to an object being created in the same production is temporary.
+#  The final identifier for the object will not be created until the last phase
+#  of the construction process and is not accessible to a variable in the production.
 # 
 # The following macros can be combined with side effects (others cannot):
 #  * ngs-create-typed-object-by-operator
