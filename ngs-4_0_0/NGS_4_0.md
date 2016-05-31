@@ -281,11 +281,9 @@ NGS typed objects are created using NGS macros. Several macros exist to support 
 NGS provides a number of macros for creating LHS conditions in rules. With these, you should never have to write raw Soar code. The macros generate straightforward code, but do so in a way that tends to be more compact and is easier to read, in part because the macros give a name to the function being performed by the block of conditions they generate. This section will give an overview of the available macros, but for the full set and description, see [macros/lhs-fragments.tcl](macros/lhs-fragments.tcl)
  
 ### ngs-match-* <a id="ngs-match"></a>
-The `ngs-match-*` macros generate productions for matching on specific parts of working memory. Many of them take optional arguments that allow you to specify Soar variables that should be bound to these things. Some examples:
+The `ngs-match-*` macros generate productions for matching on specific parts of working memory. All macros include state testing already; the first argument is always the state. Thus, you probably always want to start a rule with an `ngs-match-*` macro of some kind. For example, `ngs-match-top-state` or `ngs-match-substate`. 
 
-All macros include state testing already; the first argument is always the state. Thus, you probably always want to start a rule with an `ngs-match-*` macro of some kind. For example, `ngs-match-top-state` or `ngs-match-substate`. 
-
-`ngs-match-top-state` matches on the top state, binding it to a specified Soar variable. It can optionally also bind on the input-link, output-link, and other bindings. This kind of pattern (some required parameters, and some optional) is common throughout the NGS macros.
+`ngs-match-top-state` matches on the top state, binding it to a specified Soar variable. It can optionally also bind on the input-link, output-link, and other bindings. This kind of pattern (some required parameters, and some optional) is common throughout the NGS macros. Some examples:
 
 ```tcl
 sp "example
@@ -312,7 +310,7 @@ Several macros provide support for matching goals:
 * `ngs-match-selected-goal`
 * `ngs-match-top-state-active-goal`
 
-See ??? for more information about how to use NGS goals.
+See [here](#goals) for more information about how to use NGS goals.
 
 ```tcl
 sp "example
@@ -524,6 +522,226 @@ NGS includes a couple macros for easily binding to the I/O links. Note that thes
 * `ngs-input-link`
 * `ngs-output-link`
 
+## Common actions <a id="actions"></a>
+
+An NGS typed object is a set of WMEs that share the same root id (i.e. left hand id in the WME structure). They are conceptually identical to plain old data structures in object-oriented languages. Each WME can point to either the root of another typed object, or to an atomic value (a number or a string).
+
+```
+<root-id>
+  ^__tagged*ngs*constructed *yes*
+  ^__tagged*ngs*i-supported *yes*   # If i-supported only
+  ^my-type 							# Most Derived Type (always only one)
+  ^type 						    # Most Derived Type
+  ^type 							# Base Type(s), if any
+  ^<user-defined-attribute-1>       # Any of these you create
+```
+
+### Typed Objects
+
+NGS typed objects are created using one of the following macros:
+* `ngs-create-typed-object-by-operator`: Used to create a new, o-supported, typed object.
+* `ngs-icreate-typed-object-in-place`: Used to create a new i-supported typed object and any sub-structure under that object.
+* `ngs-ocreate-typed-object-in-place`: Used to create sub-structure under objects that you create using ngs-create-typed-object-by-operator.
+
+Here's an example of creating an o-supported typed object. Note you don't have to write the apply rule (application is handled for you internally). Note that by default, this will replace any existing object. If you wish to add to a multi-attribute set, pass `NGS_ADD_TO_SET` as the last parameter to `ngs-create-typed-object-by-operator`. By default the operator preferences are `+ =`, but this can also be overridden.
+```tcl
+# When creating a typed object, you must first declare the object type
+# This specifies an (optional) list of attribute/values to create by default when creating an object of this type
+# The specific values can be overridden in ngs-create-typed-object-by-operator if desired 
+NGS_DeclareType MyObjectType {my-string foo my-number 12}
+
+# This is an operator proposal for creating a typed object
+# Here we use the default attribute/values specified by the object declaration, and add another attribute value
+sp "example
+   [ngs-match-top-state <s>]
+   [ngs-nex <s> my-object] # so the operator proposal goes away after the object is created
+-->
+   # note the first <s> is the state to propose the operator on, and the second is the parent id of the object
+   # in this simple example, they just happen to be the same thing
+   [ngs-create-typed-object-by-operator <s> <s> my-object MyObjectType <myobj> { another-attr another-val }]
+"
+
+# In the Soar debugger trace, you will see something like this when the operator is selected:
+#     1:    O: O1 (create-MyObjectType--S1--my-object--M1)
+
+# This will create an object in working memory that looks like this:
+
+(S1 ^__tagged*ngs*constructed *yes*
+    ^my-object T1)
+  (T1 ^__tagged*ngs*constructed *yes*)
+  (T1 ^another-attr another-val)
+  (T1 ^my-number 12)
+  (T1 ^my-string foo)
+  (T1 ^my-type MyObjectType)
+  (T1 ^type MyObjectType)
+```
+
+If you wish to create an i-supported typed object, the process is similar:
+```tcl
+NGS_DeclareType MyObjectType {my-string foo my-number 12}
+
+# This is an elaboration rule
+# Here we use the default attribute/values specified by the object declaration, and add another attribute value
+sp "example
+   [ngs-match-top-state <s>]
+-->
+   [ngs-icreate-typed-object-in-place <s> my-object MyObjectType <myobj> { another-attr another-val }]
+"
+
+# This will create an object in working memory that looks like this:
+(S1 ^__tagged*ngs*constructed *yes*
+    ^my-object M1)
+  (M1 ^__tagged*ngs*constructed *yes*)
+  (M1 ^__tagged*ngs*i-supported *yes*)
+  (M1 ^another-attr another-val)
+  (M1 ^my-number 12)
+  (M1 ^my-string foo)
+  (M1 ^my-type MyObjectType)
+  (M1 ^type MyObjectType)
+```
+
+### Atomic Values and Shallow Links
+
+`ngs-create-attribute-by-operator` is used to atomically add attribute/value pairs to existing objects. This can also be used to create a shallow link from one object to another. Note there is a `ngs-create-attribute` macro, but users should rarely need to use it.
+
+As with object creation, optional arguments allow the creation of multi-valued attributes and control over the operator preferences.
+```tcl
+sp "example
+   [ngs-match-top-state <s>]
+   [ngs-nex <s> foo]
+-->
+   [ngs-create-attribute-by-operator <s> <s> foo bar]
+"
+
+# Working memory will then look like this:
+(S1 ^__tagged*ngs*constructed *yes*
+    ^foo bar)
+```
+
+## Deep copy
+If you wish to create a complete o-supported copy of an object (typically something off the input-link), you must use `ngs-deep-copy-by-operator`. Any other method will result in i-supported objects.
+
+```tcl
+sp "example
+   [ngs-match-top-state <s> "" <il>]
+   [ngs-bind <il> some.object]
+-->
+   [ngs-deep-copy-by-operator <s> <s> my-copy <object> ]
+"
+```
+
+### Tags
+Tags are typically used to create simple flags. Internally, NGS uses them to track the state of goals and objects, but you can also use your own tags for tracking whatever you like. By default, tags get the value `$NGS_YES`, but you can override this if desired. Available macros include:
+
+* `ngs-tag`: Creates an i-supported tag.
+* `ngs-create-tag-by-operator`: Creates an i-supported tag.
+* `ngs-remove-tag-by-operator`: Removes an o-supported tag.
+
+Example:
+```tcl
+sp "example
+   [ngs-match-top-state <s> "some-object"]
+   [ngs-lt <some-object> number 0]
+-->
+   [ngs-tag <some-object> is-negative]
+"
+
+# This expands to:
+sp {example
+   (state <s> ^superstate nil)
+                  (<s> ^some-object <some-object>)
+   (<some-object> ^number < 0)
+-->
+   (<some-object> ^__tagged*is-negative *yes* +)
+}
+```
+ 
+### Removing attributes and objects
+If you wish to remove an attribute or object, you can use one of these macros:
+* `ngs-remove-attribute`: i-supported attribute removal.
+* `ngs-remove-attribute-by-operator`: o-supported attribute removal.
+
+Note: if you wish to remove a tag, do not use these; use `ngs-remove-tag-by-operator`.
+Note: if you wish to remove a goal, do not use these; see [NGS Goals](#goals).
+
+At the moment, `ngs-remove-attribute` is actually more verbose than raw Soar code. However, in the future, it may perform type-checking or other processing, so using it over raw Soar code is still recommended.
+
+Example:
+```tcl
+sp "example
+   [ngs-match-top-state <s> my-object]
+-->
+   [ngs-remove-attribute-by-operator <s> <s> my-object <my-object>]
+"
+```
+
+You can actually combine this with the example of typed object creation above to create an agent that just adds and removes this object forever (this probably isn't directly, but just demonstrates how easy it is):
+
+```tcl
+NGS_DeclareType MyObjectType {my-string foo my-number 12}
+
+sp "example
+   [ngs-match-top-state <s>]
+   [ngs-nex <s> my-object] # so the operator proposal goes away after the object is created
+-->
+   [ngs-create-typed-object-by-operator <s> <s> my-object MyObjectType <myobj> { another-attr another-val }]
+"
+
+sp "example2
+   [ngs-match-top-state <s> my-object]
+-->
+   [ngs-remove-attribute-by-operator <s> <s> my-object <my-object>]
+"
+```
+
+### Operator side effects
+A side effect is an additional primitive action that can be taken for most operators (i.e., creation or removal of a wme). They are typically used to set tags, add an attribute, or create links to objects. Note there is a separate macro for creating tag side effects:
+
+* `ngs-add-primitive-side-effect`
+* `ngs-add-tag-side-effect`
+
+Side effects can be difficult to debug, so use wisely.
+
+Side effects can be combined with the following other macros:
+* `ngs-create-typed-object-by-operator`
+* `ngs-create-goal-by-operator`
+* `ngs-create-goal-as-return-value`
+* `ngs-create-attribute-by-operator`
+* `ngs-create-tag-by-operator`
+* `ngs-create-typed-object-for-ret-val`
+* `ngs-set-ret-val-by-operator`
+* `ngs-make-choice-by-operator`
+* `ngs-deep-copy-by-operator`
+* `ngs-create-output-command-by-operator`
+* `ngs-remove-attribute-by-operator`
+* `ngs-remove-tag-by-operator`
+
+Example:
+```tcl
+NGS_DeclareType MyObjectType {my-string foo my-number 12}
+
+sp "example
+   [ngs-match-top-state <s>]
+   [ngs-nex <s> my-object]
+-->
+   [ngs-create-typed-object-by-operator <s> <s> my-object MyObjectType <myobj> { another-attr another-val }]
+   [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> created-my-object]
+"
+
+# Assuming there was already a "links" object on the top-state, working memory would look like this:
+(S1 ^__tagged*ngs*constructed *yes*
+    ^__tagged*created-my-object *yes*
+    ^my-object T1)
+  (T1 ^__tagged*ngs*constructed *yes*)
+  (T1 ^another-attr another-val)
+  (T1 ^my-number 12)
+  (T1 ^my-string foo)
+  (T1 ^my-type MyObjectType)
+  (T1 ^type MyObjectType)
+```
+
+Note that you cannot reference an object that you're creating in the side effect action. If you want to do something like create another link to the object you are creating, you'll need to write a separate rule.
+
 ## NGS Goals <a id="goals"></a>
 
 NGS stands for "New Goal System." Earlier versions of the NGS were primarily libraries for creating and managing goals on the top-state. NGS 4 retains and expands on these goal management capabilities.
@@ -622,13 +840,6 @@ ___
 
 
 
-
-* BM (I've started it already): Common actions (atomic operators)
- * Typed Objects
- * Atomic Values and Shallow Links
- * Tags
- * Removing objects
- * Operator side effects
 * JC: Goal basics
  * The goal pool and indexing
  * Default goal behaviors (e.g achievement)
