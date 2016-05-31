@@ -60,12 +60,12 @@ There are many other differences, mainly due to the large number of additional m
 ## Installing and Usage <a id="installation"></a>
 ### Creating an agent that uses NGS 4.0
 1. Download the latest NGS 4.0 from [here](https://github.com/soartech/new-goal-system).
-2. Unzip and put files into your project. We recommend putting the NGS and _core directories at the top level of your agent (as siblings to the agent's root Soar file).
+2. Unzip and put files into your project. We recommend putting the NGS directory at the top level of your agent (as siblings to the agent's root Soar file).
 	* The easiest way to do this is to simply add NGS 4.0 to your project's repository. It's not large and probably won't update often. If an update is released, you can simply replace the entire NGS directory with the new version.
 3. Source NGS from your root Soar file before any other commands that use NGS or source files that use NGS (in practice, this typically is at the top of the file):
 
-```
-source ngs-4_0_0/load.soar
+```tcl
+source "ngs-4_0_0/load.soar"
 ```
  
 ### Running the NGS unit tests <a id="unittests"></a>
