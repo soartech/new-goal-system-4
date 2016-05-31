@@ -6,6 +6,7 @@
 1. [The Basic Structure of NGS Code](#structure)
 1. [The Structure of Working Memory](#workingmemory)
 1. [Production Left Hand Sides](#lhs)
+1. [Common actions](#actions)
 1. [NGS Goals](#goals)
 
 ## Introduction <a id="introduction"></a>
@@ -538,7 +539,7 @@ An NGS typed object is a set of WMEs that share the same root id (i.e. left hand
 
 ### Typed Objects
 
-NGS typed objects are created using one of the following macros:
+Typed objects are collections of WMEs that share the same left-most identifier. They are identical to "plain old data structures" in object oriented programming. NGS typed objects are created using one of the following macros:
 * `ngs-create-typed-object-by-operator`: Used to create a new, o-supported, typed object.
 * `ngs-icreate-typed-object-in-place`: Used to create a new i-supported typed object and any sub-structure under that object.
 * `ngs-ocreate-typed-object-in-place`: Used to create sub-structure under objects that you create using ngs-create-typed-object-by-operator.
@@ -602,7 +603,7 @@ sp "example
 
 ### Atomic Values and Shallow Links
 
-`ngs-create-attribute-by-operator` is used to atomically add attribute/value pairs to existing objects. This can also be used to create a shallow link from one object to another. Note there is a `ngs-create-attribute` macro, but users should rarely need to use it.
+Atomic values are the values supported by Soar - integers, floats, strings, and ids. These are created via `ngs-create-attribute-by-operator`. This can be used to add simple attribute/values to existing objects, and also to create a shallow link from one object to another. Note there is a `ngs-create-attribute` macro, but users should rarely need to use it.
 
 As with object creation, optional arguments allow the creation of multi-valued attributes and control over the operator preferences.
 ```tcl
@@ -631,7 +632,8 @@ sp "example
 ```
 
 ### Tags
-Tags are typically used to create simple flags. Internally, NGS uses them to track the state of goals and objects, but you can also use your own tags for tracking whatever you like. By default, tags get the value `$NGS_YES`, but you can override this if desired. Available macros include:
+
+Object tagging provides a way to annotate objects with information about how that object is being processed, without polluting the object's attribute name space. Tags are WMEs that follow a standard naming convention for the attribute; namely, they are prefixed with `__tagged*ngs*`. Internally, NGS uses them to track the state of goals and objects, but you can also use your own tags for tracking whatever you like. By default, tags get the value `$NGS_YES`, but you can override this if desired. Available macros include:
 
 * `ngs-tag`: Creates an i-supported tag.
 * `ngs-create-tag-by-operator`: Creates an i-supported tag.
