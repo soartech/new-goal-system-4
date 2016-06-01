@@ -1,5 +1,4 @@
-source "../../_core/_CORE_Macros.tcl"
-CORE_LoadDir ".."
+source "../load.soar"
 CORE_Source helpers.tcl
 
 watch 1
