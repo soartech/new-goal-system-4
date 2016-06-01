@@ -410,6 +410,46 @@ sp "example
 "
 ```
 
+You can also specify multiple paths from the same root in one line by separating them with whitespace, like this:
+
+```tcl
+sp "example
+   [ngs-match-top-state <s> "" <il>]
+   [ngs-bind <il> a.b c.d]
+-->
+"
+
+# Expanded form:
+sp {example
+   (state <s> ^superstate nil
+              ^io.input-link <il>)
+   (<il> ^a <a>
+         ^c <c>)
+   (<a> ^b <b>)
+   (<c> ^d <d>)
+-->
+}
+```
+
+Note you can also use `ngs-bind` syntax in some other macros; for example, the optional second parameter to `ngs-match-top-state`:
+
+```tcl
+sp "example
+   [ngs-match-top-state <s> "a.b c.d"]
+-->
+"
+
+Expanded form:
+sp {example
+   (state <s> ^superstate nil
+              ^a <a>
+              ^c <c>)
+   (<a> ^b <b>)
+   (<c> ^d <d>)
+-->
+}
+```
+ 
 ### ngs-is-\*, ngs-is-not-\* <a id="ngs-is"></a>
 NGS includes a family of macros for checking if a specified object meets some condition or not.
 
@@ -517,6 +557,44 @@ sp {example
 }
 ```
 
+Here's an example showing how you can use `ngs-and` and `ngs-not` nested inside an `ngs-or`:
+
+```tcl
+sp "example
+   [ngs-match-top-state <s>]
+   [ngs-bind <s> value]
+   [ngs-or [ngs-and [ngs-bind <s> object1.id:<value>]  \
+                    [ngs-bind <s> object2.id:<value>]] \
+           [ngs-not [ngs-bind <s> object3.id:<value>]  \
+                    [ngs-bind <s> object4.id:<value>]]]
+                 
+-->
+"
+
+# Expanded form:
+sp {example
+   (state <s> ^superstate nil)
+   (<s> ^value <value>)
+  -{
+    -{ 
+       (<s> ^object1 <object1>)
+       (<object1> ^id <value>)
+       (<s> ^object2 <object2>)
+       (<object2> ^id <value>)
+     }
+    -{
+      -{ 
+         (<s> ^object3 <object3>)
+         (<object3> ^id <value>)
+         (<s> ^object4 <object4>)
+         (<object4> ^id <value>)
+       }
+     }
+   }              
+-->
+}
+```
+
 ### Standard binding macros (e.g. ngs-input-link) <a id="standard binding macros"></a>
 NGS includes a couple macros for easily binding to the I/O links. Note that these need to be used in conjunction with an `ngs-match-*` macro, as they do not bind to the state using the `state` keyword. Also note that `ngs-match-top-state` provides a means to match the I/O links directly, so you should not need to use these macros if you are already using `ngs-match-top-state`.
 
@@ -569,12 +647,41 @@ sp "example
 
 (S1 ^__tagged*ngs*constructed *yes*
     ^my-object T1)
-  (T1 ^__tagged*ngs*constructed *yes*)
-  (T1 ^another-attr another-val)
-  (T1 ^my-number 12)
-  (T1 ^my-string foo)
-  (T1 ^my-type MyObjectType)
-  (T1 ^type MyObjectType)
+  (T1 ^__tagged*ngs*constructed *yes*
+      ^another-attr another-val
+      ^my-number 12
+      ^my-string foo
+      ^my-type MyObjectType
+      ^type MyObjectType)
+```
+
+If you wish to create deeper objects, you can combine `ngs-create-typed-object-by-operator` with `ngs-ocreate-typed-object-in-place`. However, note that currently this is limited to 5 levels deep (you will get a warning if you try to go deeper):
+```tcl
+NGS_DeclareType MyObjectType {my-string foo my-number 12}
+NGS_DeclareType MyObjectType2 {}
+sp "example
+   [ngs-match-top-state <s>]
+   [ngs-nex <s> my-object] # so the operator proposal goes away after the object is created
+-->
+   [ngs-create-typed-object-by-operator <s> <s> my-object MyObjectType <myobj> { another-attr another-val }]
+   [ngs-ocreate-typed-object-in-place <myobj> next-level MyObjectType2 <myobj2> { deeper-attr deeper-val }]
+"
+
+# This will create an object in working memory that looks like this:
+(S1 ^__tagged*ngs*constructed *yes*
+    ^my-object T1)
+  (T1 ^__tagged*ngs*constructed *yes*
+      ^another-attr another-val
+      ^my-number 12
+      ^my-string foo
+      ^my-type MyObjectType
+      ^type MyObjectType
+      ^next-level N1)
+    (N1 ^__tagged*ngs*constructed *yes*
+        ^deeper-attr deeper-val
+        ^my-type MyObjectType2
+        ^type MyObjectType2
+  
 ```
 
 If you wish to create an i-supported typed object, the process is similar:
@@ -592,13 +699,13 @@ sp "example
 # This will create an object in working memory that looks like this:
 (S1 ^__tagged*ngs*constructed *yes*
     ^my-object M1)
-  (M1 ^__tagged*ngs*constructed *yes*)
-  (M1 ^__tagged*ngs*i-supported *yes*)
-  (M1 ^another-attr another-val)
-  (M1 ^my-number 12)
-  (M1 ^my-string foo)
-  (M1 ^my-type MyObjectType)
-  (M1 ^type MyObjectType)
+  (M1 ^__tagged*ngs*constructed *yes*
+      ^__tagged*ngs*i-supported *yes*
+      ^another-attr another-val
+      ^my-number 12
+      ^my-string foo
+      ^my-type MyObjectType
+      ^type MyObjectType)
 ```
 
 ### Atomic Values and Shallow Links
@@ -734,12 +841,12 @@ sp "example
 (S1 ^__tagged*ngs*constructed *yes*
     ^__tagged*created-my-object *yes*
     ^my-object T1)
-  (T1 ^__tagged*ngs*constructed *yes*)
-  (T1 ^another-attr another-val)
-  (T1 ^my-number 12)
-  (T1 ^my-string foo)
-  (T1 ^my-type MyObjectType)
-  (T1 ^type MyObjectType)
+  (T1 ^__tagged*ngs*constructed *yes*
+      ^another-attr another-val
+      ^my-number 12
+      ^my-string foo
+      ^my-type MyObjectType
+      ^type MyObjectType)
 ```
 
 Note that you cannot reference an object that you're creating in the side effect action. If you want to do something like create another link to the object you are creating, you'll need to write a separate rule.
