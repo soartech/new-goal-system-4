@@ -1,8 +1,8 @@
 # load the CORE_* macros
 pushd _core
 source _CORE_Macros.tcl
-source _CORE_MacroVariables.tcl
-source _CORE_Math.tcl
+#source _CORE_MacroVariables.tcl
+#source _CORE_Math.tcl
 popd
 
 CORE_LoadDir macros
