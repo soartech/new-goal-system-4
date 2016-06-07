@@ -7,3 +7,4 @@ CORE_Source lhs-fragments.tcl
 CORE_Source rhs-fragments.tcl
 
 CORE_Source debug.tcl
+CORE_Source ngs-production-template.tcl
