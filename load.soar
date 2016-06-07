@@ -1,1 +1,4 @@
-CORE_LoadDir "ngs-4_0_0"
+# load the CORE_* macros
+source ngs-4_0_0/_core/_CORE_Macros.tcl
+
+CORE_LoadDir ngs-4_0_0
