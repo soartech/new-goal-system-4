@@ -934,6 +934,18 @@ Goals can be created in three different ways depending on how you intend to buil
 
 **Creating I-Supported Goal**
 
+An I-supported goal is instantiated when the goal is not achieved and retracts (using Soar's i-support mechanism) when the goal is achieved. I-supported goals provide a very powerful way to maintain a reactive behavior model with relatively little code. I-supported goals are recommended, but not required when using NGS 4.
+
+To create an i-supported goal, using the following macro on the right hand side of an i-supported production:
+
+```
+[ngs-create-goal-in-place <goal-pool> MyGoalType $NGS_GB_ACHIEVE <new-goal> <supergoal> { goal-attr-1 val1 goal-attr-2 val2 ... }]
+```
+Goal creation macros require a variable bound to the goal pool. This variavle can be bound using the following match macros:
+
+* ngs-match-goalpool
+* ngs-match-goal-to-create-subgoal
+
 
 **Creating O-Supported Goals**
 
