@@ -359,10 +359,10 @@ sp "example
 
 # Expanded form:
 sp "example
-   (state <s>  ^superstate nil)
-   (<s>        ^io.input-link <il>)
-   (<il> ^system <system>)
-   (<system> ^time <time>)
+   (state <s> ^superstate nil)
+   (<s>       ^io.input-link <il>)
+   (<il>      ^system <system>)
+   (<system>  ^time <time>)
 -->
 "
 ```
@@ -380,10 +380,10 @@ sp "example
 
 # Expanded form:
 sp "example
-   (state <s>  ^superstate nil)
-   (<s>        ^io.input-link <il>)
+   (state <s> ^superstate nil)
+   (<s>       ^io.input-link <il>)
    (<il>      ^system <sys>)
-   (<system>  ^time <my-time>)
+   (<sys>     ^time <my-time>)
 -->
 "
 ```
