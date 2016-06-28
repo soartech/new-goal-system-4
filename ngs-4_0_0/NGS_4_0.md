@@ -941,17 +941,36 @@ To create an i-supported goal, using the following macro on the right hand side 
 ```
 [ngs-create-goal-in-place <goal-pool> MyGoalType $NGS_GB_ACHIEVE <new-goal> <supergoal> { goal-attr-1 val1 goal-attr-2 val2 ... }]
 ```
-Goal creation macros require a variable bound to the goal pool. This variavle can be bound using the following match macros:
+Goal creation macros require a variable bound to the goal pool (here shown as <goal-pool>). This variable can be bound using the following match macros:
 
 * ngs-match-goalpool
 * ngs-match-goal-to-create-subgoal
 
+The version you use depends on whether you are creating a stand-alone goal (ngs-match-goalpool) or a sub-goal of another goal (ngs-match-goal-to-create-subgoal). The following is an example of each case:
 
-**Creating O-Supported Goals**
+```
+# Standalone goal construction
+sp "achieve-message-handled*trigger*any-message
+	[ngs-match-goalpool <s> <goals> AchieveMessageHandled]
+	[ngs-input-link <s> <il> message-queue.message]
+-->
+	[ngs-create-goal-in-place <goals> AchieveMessageHandled $NGS_GB_ACHIEVE <goal> {} { message <message> }]"
+
+# Subgoal construction example
+sp "achieve-modified-wedge-formation*trigger*for-maneuver-task
+	[ngs-match-goal-to-create-subgoal <s> AchieveManeuverTask <sg> AchieveModifiedWedgeFormation <goals>]
+	... (additional bindings)
+-->
+	[ngs-create-goal-in-place <goals> AchieveModifiedWedgeFormation $NGS_GB_ACHIEVE <g> <sg>]
+	... (additional construction code)"
+``` 
+
+Notice in the second example that two goal types are provided. The first goal type is the type of the _supergoal_ while the second goal type is the type of the goal you want to create. Because the production itself is constructing the goal, the last parameter of ngs-match-goal-to-create-subgoal is an identifier to the goalpool for this second goal type. This goal pool identifier (here, \<goals>) is used in the right hand side to construct the goal.
+
+**Creating and Removing O-Supported Goals**
+
 
 **Creating and Returning Goals in Substates**
-
-**Removing O-Supported Goals**
 
 
 ### Matching and Binding to Goals
