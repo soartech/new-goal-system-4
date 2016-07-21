@@ -42,3 +42,18 @@ proc MATH_Rad_to_Deg { radians } {
 proc MATH_Distance2d { x1 y1 x2 y2 } {
     return "(sqrt (+ (* (- $x1 $x2) (- $x1 $x2)) (* (- $y1 $y2) (- $y1 $y2)) ))"
 }
+
+#
+# p_x, p_y are the x and y coordinates of the point off of the line
+#
+# p1_x, p1_y are one point on the line
+# p2_x, p2_y are the other point on the line
+#
+# A Soar-compliant mathematical expression is returned that can be used on the right hand
+#  side of a Soar production. The value returned by the expression is the shortest distance
+#  between the point (p_x, p_y) and the line defined by p1 and p2.
+#
+proc MATH_DistanceToLine2d { p_x p_y p1_x p1_y p2_x p2_y } {
+    return "(/ (abs (+ (* (- $p2_y $p1_y) $p_x) (* (- $p1_x $p2_x) $p_y) (* $p2_x $p1_y) (* -1.0 (* $p2_y $p1_x)) )) [MATH_Distance2d $p1_x $p1_y $p2_x $p2_y])"
+
+}
