@@ -359,10 +359,10 @@ sp "example
 
 # Expanded form:
 sp "example
-   (state <s>  ^superstate nil)
-   (<s>        ^io.input-link <il>)
-   (<il> ^system <system>)
-   (<system> ^time <time>)
+   (state <s> ^superstate nil)
+   (<s>       ^io.input-link <il>)
+   (<il>      ^system <system>)
+   (<system>  ^time <time>)
 -->
 "
 ```
@@ -380,10 +380,10 @@ sp "example
 
 # Expanded form:
 sp "example
-   (state <s>  ^superstate nil)
-   (<s>        ^io.input-link <il>)
+   (state <s> ^superstate nil)
+   (<s>       ^io.input-link <il>)
    (<il>      ^system <sys>)
-   (<system>  ^time <my-time>)
+   (<sys>     ^time <my-time>)
 -->
 "
 ```
@@ -934,12 +934,43 @@ Goals can be created in three different ways depending on how you intend to buil
 
 **Creating I-Supported Goal**
 
+An I-supported goal is instantiated when the goal is not achieved and retracts (using Soar's i-support mechanism) when the goal is achieved. I-supported goals provide a very powerful way to maintain a reactive behavior model with relatively little code. I-supported goals are recommended, but not required when using NGS 4.
 
-**Creating O-Supported Goals**
+To create an i-supported goal, using the following macro on the right hand side of an i-supported production:
+
+```
+[ngs-create-goal-in-place <goal-pool> MyGoalType $NGS_GB_ACHIEVE <new-goal> <supergoal> { goal-attr-1 val1 goal-attr-2 val2 ... }]
+```
+Goal creation macros require a variable bound to the goal pool (here shown as <goal-pool>). This variable can be bound using the following match macros:
+
+* ngs-match-goalpool
+* ngs-match-goal-to-create-subgoal
+
+The version you use depends on whether you are creating a stand-alone goal (ngs-match-goalpool) or a sub-goal of another goal (ngs-match-goal-to-create-subgoal). The following is an example of each case:
+
+```
+# Standalone goal construction
+sp "achieve-message-handled*trigger*any-message
+	[ngs-match-goalpool <s> <goals> AchieveMessageHandled]
+	[ngs-input-link <s> <il> message-queue.message]
+-->
+	[ngs-create-goal-in-place <goals> AchieveMessageHandled $NGS_GB_ACHIEVE <goal> {} { message <message> }]"
+
+# Subgoal construction example
+sp "achieve-modified-wedge-formation*trigger*for-maneuver-task
+	[ngs-match-goal-to-create-subgoal <s> AchieveManeuverTask <sg> AchieveModifiedWedgeFormation <goals>]
+	... (additional bindings)
+-->
+	[ngs-create-goal-in-place <goals> AchieveModifiedWedgeFormation $NGS_GB_ACHIEVE <g> <sg>]
+	... (additional construction code)"
+``` 
+
+Notice in the second example that two goal types are provided. The first goal type is the type of the _supergoal_ while the second goal type is the type of the goal you want to create. Because the production itself is constructing the goal, the last parameter of ngs-match-goal-to-create-subgoal is an identifier to the goalpool for this second goal type. This goal pool identifier (here, \<goals>) is used in the right hand side to construct the goal.
+
+**Creating and Removing O-Supported Goals**
+
 
 **Creating and Returning Goals in Substates**
-
-**Removing O-Supported Goals**
 
 
 ### Matching and Binding to Goals
