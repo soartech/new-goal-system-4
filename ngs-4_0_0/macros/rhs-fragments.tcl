@@ -255,6 +255,7 @@ proc ngs-remove-attribute { parent_obj_id
   return "($parent_obj_id ^$attribute $value -)"
           
 }
+
 # Creates an object in a form appropriate for i-support
 #
 # Use this on the right-hand side of a production to create a typed object
@@ -267,6 +268,7 @@ proc ngs-remove-attribute { parent_obj_id
 #
 # parent_obj_id - Variable bound to the object that will link to the newly constructed object
 # attribute - Name of the attribute that should hold the new object
+# type - type of the object (declare first with NGS_DeclareType)
 # new_obj_id - Variable that will beind to the new object's identifier
 # attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
 #                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
@@ -293,6 +295,34 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 
 }
 
+# Creates an i-supported tag as a new object
+#
+# Use this on the right-hand side of a production to create a typed object as a tag
+#  using i-support. If you need to construct an object tag in-place on an operator, 
+#  then use ngs-ocreate-typed-tag-in-place.
+#
+# NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
+#
+# [ngs-icreate-typed-tag-in-place parent_obj_id tag_name type new_obj_id (attr_list)]
+#
+# parent_obj_id - Variable bound to the object that will link to the newly constructed object
+# tag_name - Name of the tag that will link to the object
+# type - type of the object (declare first with NGS_DeclareType)
+# new_obj_id - Variable that will beind to the new object's identifier
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
+proc ngs-icreate-typed-tag-in-place { parent_obj_id
+                                      tag_name
+                                      type
+                                      new_obj_id
+                                      {attribute_list ""} } {
+    
+  CORE_RefMacroVars
+
+  return [ngs-icreate-typed-object-in-place $parent_obj_id [ngs-tag-for-name $tag_name] \
+                 $type $new_obj_id $attribute_list]
+}
+
 # Creates an object in a form appropriate for o-support
 #
 # Use this on the right-hand side of a production to create a typed object
@@ -305,6 +335,7 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 #
 # parent_obj_id - Variable bound to the object that will link to the newly constructed object
 # attribute - Name of the attribute that should hold the new object
+# type - type of the object (declare first with NGS_DeclareType)
 # new_obj_id - Variable that will beind to the new object's identifier
 # attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
 #                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
@@ -324,6 +355,32 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
 
   return "$rhs_val
           [core-trace NGS_TRACE_O_TYPED_OBJECTS "o CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
+
+}
+
+# Creates an object tag in a form appropriate for o-support
+#
+# Use this on the right-hand side of a production to create a typed object tag
+#  that you want to elaborate onto an operator. If you need to construct an  
+#  i-supported tag object, then use ngs-icreate-typed-tag-in-place.
+#
+# NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
+#
+# E.g. [ngs-ocreate-typed-tag-in-place parent_obj_id tag_name type new_obj_id (attr_list)]
+#
+# parent_obj_id - Variable bound to the object that will link to the newly constructed object
+# tag_name - Name of the tag that should hold the new object
+# type - type of the object (declare first with NGS_DeclareType)
+# new_obj_id - Variable that will beind to the new object's identifier
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
+proc ngs-ocreate-typed-tag-in-place { parent_obj_id
+                                         tag_name
+                                         type
+                                         new_obj_id
+                                         {attribute_list ""} } {
+   return [ngs-ocreate-typed-object-in-place $parent_obj_id [ngs-tag-for-name $tag_name] \
+                                             $type $new_obj_id $attribute_list]
 
 }
 
@@ -718,7 +775,7 @@ proc ngs-create-decide-operator { state_id
 
    if { $completion_tag != "" } {
       set rhs_val "$rhs_val
-           	       [ngs-create-ret-tag-in-place $NGS_TAG_DECISION_COMPLETE $ret_val_set_id $goal_id $completion_tag]"
+           	       [ngs-create-ret-tag-in-place $NGS_TAG_DECISION_COMPLETE $ret_val_set_id $goal_id $completion_tag $NGS_YES]"
    }
 
    if { [string first "(concat" $op_name] == 0 } {
@@ -1222,7 +1279,7 @@ proc ngs-create-ret-val-in-place { ret_val_name
 # dest_obj_id - Variable bound to the id of the object that should recieve the return value. If you pass in
 #                    an empty string (or leave out), the destination object remains unset (used internally by NGS)
 # tag_name - Name of the tag to construct in the return set.                  
-# tag_val - (Optional) The value of the tag. By default this will be NGS_YES
+# tag_val - (Optional) The value of the tag. By default this will be empty, to be set by the sub-state
 # replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
 #                        will remove any existing values for the given attribute while creating the new one. 
 #                        The latter will leave any existing values for the same attribute in place.
@@ -1235,7 +1292,6 @@ proc ngs-create-ret-tag-in-place { ret_val_name
                                    {replacement_behavior ""} } {
 
   CORE_RefMacroVars
-  CORE_SetIfEmpty tag_val $NGS_YES
 
 	return "[ngs-create-ret-val-in-place $ret_val_name $ret_val_set_id $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior]"
 }

@@ -371,6 +371,9 @@ proc ngs-not { args } {
 # attr_list - list of attributes to bind
 #
 proc ngs-bind { obj_id args } {
+   
+  variable NGS_TAG_PREFIX
+
   set lhs_ret ""
 
   # If the arguments are passed in as a list, then process them that way
@@ -384,6 +387,15 @@ proc ngs-bind { obj_id args } {
     # Handles dot notation
     set segments [split $attr "."]
     foreach segment $segments {
+ 
+      set attr_var ""
+
+      # Handle tags (prefixed with @)
+      set tag_length 0
+      if { [string index $segment 0] == "@" } {
+        set segment [ngs-tag-for-name [string range $segment 1 end]]
+        set tag_length [string length $NGS_TAG_PREFIX]
+      } 
 
       # Handle renaming the attributes in variable names
       set names [split $segment ":"]
@@ -392,7 +404,6 @@ proc ngs-bind { obj_id args } {
         set attr_var  [lindex $names 1]
       } else {
         set attr_name $segment
-        set attr_var  "<$segment>"
       }
 
       # Handle case of testing the type
@@ -400,15 +411,20 @@ proc ngs-bind { obj_id args } {
       if { [llength $attr_type_pair] > 1} {
         set attr_name [lindex $attr_type_pair 0]
         set attr_type [lindex $attr_type_pair 1]
-
-        if { [llength $names] < 2 } {
-          set attr_var "<$attr_name>"
-        }
-
       } else {
         set attr_type ""
       }
 
+      # Set a default attribute variable name if one was not provided
+      if { $attr_var == "" } {
+        if { $attr_var == "" && $tag_length > 0 } { 
+          set attr_var  "<[string range $attr_name $tag_length end]>" 
+        } { 
+          set attr_var "<$attr_name>" 
+        }
+      }
+
+      # Add the given attribute test to the Soar code
       if { $lhs_ret == "" } {
         set lhs_ret "($obj ^$attr_name $attr_var)"
       } else {
@@ -416,6 +432,7 @@ proc ngs-bind { obj_id args } {
                      ($obj ^$attr_name $attr_var)"        
       }
 
+      # Add a type test (if one was provided)
       if { $attr_type != "" } {
         set lhs_ret "$lhs_ret
                      [ngs-is-type $attr_var $attr_type]"

@@ -441,7 +441,7 @@ sp "test*create-decide-operator
     [ngs-is-not-tagged <g> executed]
 -->
     [ngs-create-decide-operator <s> test-decide <o> <ret-vals> <g>]
-    [ngs-create-ret-tag-in-place end-tag <ret-vals> <g> executed]
+    [ngs-create-ret-tag-in-place end-tag <ret-vals> <g> executed $NGS_YES]
     [ngs-create-ret-val-in-place replacement-value <ret-vals> <s> value-to-replace]
     [ngs-create-ret-val-in-place planning-result <ret-vals> <s> updated-plan]"
 

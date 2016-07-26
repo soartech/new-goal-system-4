@@ -243,7 +243,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   -->
     [ngs-create-decide-operator <s> [ngs-create-op-name execute-choice $goal_type <g>] <o> <ret-vals> <g>]
     [ngs-create-ret-val-in-place $NGS_DECISION_ITEM_RET_VAL_NAME <ret-vals> <obj> <attr> {} <behavior>]
-    [ngs-create-ret-tag-in-place $NGS_ACTIVATION_STATUS_RET_VAL <ret-vals> <g> $NGS_TAG_ALREADY_ACTIVATED]"
+    [ngs-create-ret-tag-in-place $NGS_ACTIVATION_STATUS_RET_VAL <ret-vals> <g> $NGS_TAG_ALREADY_ACTIVATED $NGS_YES]"
 
 }
 
