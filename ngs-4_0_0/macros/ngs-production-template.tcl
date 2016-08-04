@@ -78,6 +78,9 @@ proc ngs-expand-tsp { template_name expansion_lists } {
             set production_name "$production_name*$val"
         }
 
+        # Clean out "." characters (which sometimes happen if the template parameters
+        #  are float values)
+        set production_name [string map { "." "-" } $production_name]
         echo "Expanding template: $production_name"
         sp "$production_name
             $production_body"
