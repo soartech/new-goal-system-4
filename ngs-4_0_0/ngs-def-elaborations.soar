@@ -1,3 +1,7 @@
+variable NGS_TAG_SELECTED_GOAL
+variable NGS_GS_ACTIVE
+variable NGS_TAG_CONSTRUCTED
+
 # Create the top level goal set for all NGS goals
 sp {ngs*core*goals*elaborate-goal-set-on-top-state
   (state <s> ^superstate nil)

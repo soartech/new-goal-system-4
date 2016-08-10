@@ -1,3 +1,11 @@
+variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+variable NGS_SIDE_EFFECT_ADD
+variable NGS_REPLACE_IF_EXISTS
+variable NGS_ADD_TO_SET
+variable NGS_SIDE_EFFECT_REMOVE
+variable NGS_TAG_OP_DEEP_COPY
+variable NGS_TAG_OP_REMOVE_ATTRIBUTE
+
 # Execute side-effects on selected operators
 #
 # Note these productions are carefully constructed to fire only in the last wave

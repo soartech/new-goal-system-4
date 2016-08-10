@@ -1,12 +1,12 @@
 CORE_LoadDir macros
 
-CORE_Source ngs-def-elaborations.soar
-CORE_Source ngs-def-preferences.soar
-CORE_Source ngs-achieved-goal-applications.soar
-CORE_Source ngs-object-creation-applications.soar
-CORE_Source ngs-side-effects.soar
-CORE_Source ngs-sub-state-management.soar
-CORE_Source ngs-goal-declarations.tcl
-CORE_Source ngs-removal-applications.soar
-CORE_Source ngs-standard-time-elaborations.soar
-CORE_Source ngs-output-handling.soar
+CORE_InternalSource ngs-def-elaborations.soar
+CORE_InternalSource ngs-def-preferences.soar
+CORE_InternalSource ngs-achieved-goal-applications.soar
+CORE_InternalSource ngs-object-creation-applications.soar
+CORE_InternalSource ngs-side-effects.soar
+CORE_InternalSource ngs-sub-state-management.soar
+CORE_InternalSource ngs-goal-declarations.tcl
+CORE_InternalSource ngs-removal-applications.soar
+CORE_InternalSource ngs-standard-time-elaborations.soar
+CORE_InternalSource ngs-output-handling.soar

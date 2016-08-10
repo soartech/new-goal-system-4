@@ -190,7 +190,7 @@ source _CORE_Math.tcl
 # It will print out the usual "Loading files for,..." message
 #
 proc CORE_Pushd { directory } {
-  CORE_RefMacroVars
+  variable CORE_DLVL_NO_DBG
   CORE_IfGT CORE_DEBUG_OUTPUT_LEVEL $CORE_DLVL_NO_DBG "echo \"Loading files for [pwd]/$directory \""
   pushd $directory
 }
@@ -201,7 +201,21 @@ proc CORE_Pushd { directory } {
 # It will print out the usual " ... Loading file, ..." message if debugging
 #
 proc CORE_Source { file } {
+  # This appears to be necessary so that variables at the top levels of files can be referenced.
+  # Taking it out will force these variables to be referenced with "variable NAME" at the top of 
+  # each file that uses them.
   CORE_RefMacroVars
+  CORE_IfGT CORE_DEBUG_OUTPUT_LEVEL $CORE_DLVL_NO_DBG  "echo \" ... Loading file: [pwd]/$file \""
+  source $file
+}
+
+##
+# Used internally by NGS to reduce the overhead of loading ngs files
+# 
+# This is the same as CORE_Source except it doesn't call CORE_RefMacroVars
+#
+proc CORE_InternalSource { file } {
+  variable CORE_DLVL_NO_DBG
   CORE_IfGT CORE_DEBUG_OUTPUT_LEVEL $CORE_DLVL_NO_DBG  "echo \" ... Loading file: [pwd]/$file \""
   source $file
 }
@@ -221,13 +235,13 @@ proc CORE_LoadDir { directory } {
 
 # Use to activate a trace (make it print)
 proc CORE_ActivateTraceCategory { trace_category } {
-  CORE_RefMacroVars
+  variable CORE_trace_categories
   dict set CORE_trace_categories $trace_category 1
 }
 
 # Use to de-activate a trace category (make it not print)
 proc CORE_DeactivateTraceCategory { trace_category } {
-  CORE_RefMacroVars
+  variable CORE_trace_categories
   dict set CORE_trace_categories $trace_category 0
 }
 
@@ -238,7 +252,7 @@ proc CORE_DeactivateTraceCategory { trace_category } {
 # 
 # 
 proc core-trace { trace_category trace_text } {
-  CORE_RefMacroVars
+  variable CORE_trace_categories
   if { [dict exists $CORE_trace_categories $trace_category] == 1 } {
     if { [dict get $CORE_trace_categories $trace_category] == 1 } {
       return "(write (crlf) |                    $trace_text|)"

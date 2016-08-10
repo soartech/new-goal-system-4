@@ -66,7 +66,7 @@ proc ngs-create-op-name { description attribute value {object_id ""} }  {
 # returns - NGS fully qualified tag name
 #
 proc ngs-tag-for-name { tag_name } {
-  CORE_RefMacroVars
+  variable NGS_TAG_PREFIX
   return $NGS_TAG_PREFIX$tag_name
 }
 
@@ -147,7 +147,7 @@ proc ngs-tag-operator { tag_name {tag_value ""}} {
 # goal_id - variable bound to the identifier of the goal to mark as achieved.                           
 #
 proc ngs-tag-goal-achieved { goal_id } {
-  CORE_RefMacroVars
+  variable NGS_GS_ACHIEVED
   return "[ngs-tag $goal_id $NGS_GS_ACHIEVED]"
 }
 
@@ -164,8 +164,11 @@ proc ngs-tag-goal-achieved { goal_id } {
 #  the variable passed in to this argument.
 #                                                                                            
 proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
-	CORE_RefMacroVars
-	CORE_SetIfEmpty operator_id $NGS_OP_ID
+  variable NGS_OP_ID
+  variable NGS_GS_ACHIEVED
+  variable NGS_TAG_MARK_ACHIEVED
+
+  CORE_SetIfEmpty operator_id $NGS_OP_ID
   set op_name [ngs-create-op-name mark-achieved goal $goal_id]
 
   return "[ngs-create-tag-by-operator $state_id $goal_id $NGS_GS_ACHIEVED]
@@ -187,7 +190,9 @@ proc ngs-tag-goal-achieved-by-operator { state_id goal_id { operator_id "" } } {
 #   the goal was decided for (NGS_YES) or against (NGS_NO)
 #
 proc ngs-tag-goal-with-selection-status { goal_id { decided_value ""} } {
-  CORE_RefMacroVars
+  variable NGS_YES
+  variable NGS_TAG_DECISION_STATUS
+
   CORE_SetIfEmpty decided_value $NGS_YES
   return [ngs-tag $goal_id "$NGS_TAG_DECISION_STATUS" $decided_value]
 }
@@ -223,10 +228,7 @@ proc ngs-create-attribute { parent_obj_id
                             value
                             {prefs "+"} } {
 
-  CORE_RefMacroVars
-    
-  return "($parent_obj_id ^$attribute $value $prefs)"
- 	        
+  return "($parent_obj_id ^$attribute $value $prefs)"        
 }
 
 # Remove a working memory element, i.e. an object "attribute"
@@ -250,10 +252,7 @@ proc ngs-remove-attribute { parent_obj_id
                             attribute
                             value } {
 
-  CORE_RefMacroVars
-    
   return "($parent_obj_id ^$attribute $value -)"
-          
 }
 
 # Creates an object in a form appropriate for i-support
@@ -278,7 +277,8 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 										 new_obj_id
 										 {attribute_list ""} } {
 	
-  CORE_RefMacroVars
+  variable NGS_TAG_CONSTRUCTED
+  variable NGS_TAG_I_SUPPORTED
 
   set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]"
 
@@ -317,8 +317,6 @@ proc ngs-icreate-typed-tag-in-place { parent_obj_id
                                       new_obj_id
                                       {attribute_list ""} } {
     
-  CORE_RefMacroVars
-
   return [ngs-icreate-typed-object-in-place $parent_obj_id [ngs-tag-for-name $tag_name] \
                  $type $new_obj_id $attribute_list]
 }
@@ -345,8 +343,6 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
 										 new_obj_id
 										 {attribute_list ""} } {
 	
-  CORE_RefMacroVars
-
   set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]"
 
   # Set all of the non-tag attributes
@@ -416,7 +412,11 @@ proc ngs-create-typed-object-by-operator { state_id
 	                                        {replacement_behavior ""} 
                                           {add_prefs "="} } {
 
-  CORE_RefMacroVars
+  variable NGS_OP_ID
+  variable NGS_REPLACE_IF_EXISTS
+  variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+  variable NGS_TAG_OP_CREATE_TYPED_OBJECT
+
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
   set op_id $NGS_OP_ID
@@ -454,7 +454,9 @@ proc ngs-create-output-command-by-operator { state_id
                                             {attribute_list ""}
                                             {add_prefs "="} } {
 
-  CORE_RefMacroVars
+  variable NGS_OUTPUT_COMMAND_ATTRIBUTE
+  variable NGS_ADD_TO_SET
+  variable NGS_TAG_OP_CREATE_OUTPUT_COMMAND
 
   return "[ngs-create-typed-object-by-operator $state_id $output_link_id $NGS_OUTPUT_COMMAND_ATTRIBUTE \
                                              $command_type $cmd_id $attribute_list $NGS_ADD_TO_SET $add_prefs]
@@ -479,7 +481,9 @@ proc ngs-execute-existing-object-as-output-command-by-operator { state_id
                                                               output_link_id
                                                               command_id 
                                                               {add_prefs "="} } {
-  CORE_RefMacroVars
+  variable NGS_OUTPUT_COMMAND_ATTRIBUTE
+  variable NGS_ADD_TO_SET
+  variable NGS_TAG_OP_CREATE_OUTPUT_COMMAND
 
   return "[ngs-create-attribute-by-operator <s> $output_link_id $NGS_OUTPUT_COMMAND_ATTRIBUTE $command_id $NGS_ADD_TO_SET $add_prefs]
           [ngs-tag-operator $NGS_TAG_OP_CREATE_OUTPUT_COMMAND]
@@ -514,7 +518,12 @@ proc ngs-create-attribute-by-operator { state_id
                                        {replacement_behavior ""} 
                                        {add_prefs "="} } {
 
-  CORE_RefMacroVars
+  variable NGS_OP_ID
+  variable NGS_REPLACE_IF_EXISTS
+  variable NGS_TAG_PREFIX
+  variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+  variable NGS_TAG_OP_CREATE_PRIMITIVE
+
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
   if { [string first $NGS_TAG_PREFIX $attribute] == 0 } {
@@ -562,7 +571,10 @@ proc ngs-deep-copy-by-operator { state_id
                                  {replacement_behavior ""} 
                                  {add_prefs "="} } {
 
-  CORE_RefMacroVars
+  variable NGS_REPLACE_IF_EXISTS
+  variable NGS_OP_ID
+  variable NGS_TAG_OP_DEEP_COPY
+
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
   set op_id $NGS_OP_ID
@@ -600,10 +612,11 @@ proc ngs-remove-attribute-by-operator { state_id
 										  value
 									    {add_prefs "="} } {
 
-	CORE_RefMacroVars
+	variable NGS_OP_ID
+    variable NGS_TAG_OP_REMOVE_ATTRIBUTE
 
-  set op_id $NGS_OP_ID
-  set op_name [ngs-create-op-name remove-wme $attribute $value $parent_obj_id]
+    set op_id $NGS_OP_ID
+    set op_name [ngs-create-op-name remove-wme $attribute $value $parent_obj_id]
 
 	return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
 			    ($op_id ^dest-object    $parent_obj_id
@@ -633,7 +646,8 @@ proc ngs-remove-tag-by-operator { state_id
 								  tag_name
 								 {value ""}
 								 {add_prefs "="} } {
-	CORE_RefMacroVars
+	variable NGS_YES
+    variable NGS_TAG_OP_REMOVE_TAG
 	CORE_SetIfEmpty value $NGS_YES
 	return "[ngs-remove-attribute-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $value $add_prefs]
           [ngs-tag-operator $NGS_TAG_OP_REMOVE_TAG]
@@ -666,7 +680,9 @@ proc ngs-create-tag-by-operator { state_id
 								  {replacement_behavior ""}
                                   {add_prefs "="} } {
 
-  CORE_RefMacroVars
+  variable NGS_YES
+  variable NGS_TAG_OP_CREATE_PRIMITIVE
+
   CORE_SetIfEmpty tag_val $NGS_YES
 
   return "[ngs-create-attribute-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior $add_prefs]
@@ -696,7 +712,9 @@ proc ngs-create-operator { state_id
                            new_obj_id
                            {add_prefs "="} } {
 
-  CORE_RefMacroVars
+  variable NGS_OP_ATTRIBUTE
+  variable NGS_TAG_I_SUPPORTED
+
   CORE_GenVarIfEmpty state_id "s"
     
   return "[ngs-create-attribute $state_id $NGS_OP_ATTRIBUTE $new_obj_id "+ $add_prefs"]
@@ -728,7 +746,7 @@ proc ngs-create-atomic-operator { state_id
                                   op_name
                                   new_obj_id
                                  {add_prefs "="} } {
-  CORE_RefMacroVars
+  variable NGS_OP_ATOMIC
   return "[ngs-create-operator $state_id $op_name $NGS_OP_ATOMIC $new_obj_id $add_prefs]
           [core-trace NGS_TRACE_ATOMIC_OPERATORS "I PROPOSE-ATOMIC, | $state_id |.operator | $new_obj_id |)."]"                                 
 }
@@ -767,7 +785,9 @@ proc ngs-create-decide-operator { state_id
  								 {completion_tag ""}
                                  {add_prefs "="} } {
 
-   CORE_RefMacroVars
+   variable NGS_OP_DECIDE
+   variable NGS_TAG_DECISION_COMPLETE
+   variable NGS_YES
     
    set rhs_val  "[ngs-create-operator $state_id $op_name $NGS_OP_DECIDE $new_obj_id $add_prefs]
                  ($new_obj_id ^goal          $goal_id
@@ -838,7 +858,10 @@ proc ngs-create-decide-operator { state_id
 #
 proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacement_behavior ""} {op_id ""}} {
   
-  CORE_RefMacroVars
+  variable NGS_REPLACE_IF_EXISTS
+  variable NGS_OP_ID
+  variable NGS_OP_SIDE_EFFECT
+
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
   CORE_SetIfEmpty op_id $NGS_OP_ID
 
@@ -913,7 +936,7 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
 #
 proc ngs-add-tag-side-effect { action dest_obj tag_name {value ""} {replacement_behavior ""} {op_id ""}} {
   
-  CORE_RefMacroVars
+  variable NGS_YES
   CORE_SetIfEmpty value $NGS_YES
   return "[ngs-add-primitive-side-effect $action $dest_obj [ngs-tag-for-name $tag_name] $value $replacement_behavior $op_id]"
 }
@@ -948,7 +971,10 @@ proc ngs-create-goal-in-place { goal_set_id
                                 {supergoal_id ""} 
                                 {attribute_list ""} } {
 
-  CORE_RefMacroVars
+  variable NGS_GOAL_ATTRIBUTE
+  variable NGS_TAG_CONSTRUCTED
+  variable NGS_TAG_I_SUPPORTED
+
   variable lhs_val
 
   lappend attribute_list type "$basetype $goal_type"
@@ -993,7 +1019,9 @@ proc ngs-create-goal-by-operator { state_id
                                    {attribute_list ""} 
                                    {add_prefs "="} } {
 
-  CORE_RefMacroVars
+  variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+  variable NGS_TAG_OP_CREATE_GOAL
+
   variable lhs_val
 
   lappend attribute_list type "$basetype $goal_type"
@@ -1052,7 +1080,12 @@ proc ngs-create-goal-as-return-value { state_id
                                        {attribute_list ""} 
                                        {add_prefs "="} } {
     
-  CORE_RefMacroVars
+  variable NGS_GOAL_RETURN_VALUE
+  variable NGS_GOAL_ATTRIBUTE
+  variable NGS_ADD_TO_SET
+  variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+  variable NGS_TAG_OP_RETURN_NEW_GOAL
+
   variable rhs_val
 
   lappend attribute_list type "$basetype $goal_type"
@@ -1117,7 +1150,10 @@ proc ngs-irequest-decision { goal_id
                             dec_attr 
                             { replacement_behavior ""} } {
 
-   CORE_RefMacroVars
+   variable NGS_REPLACE_IF_EXISTS
+   variable NGS_DECISION_ATTR
+   variable NGS_TYPE_DECISION_STRUCTURE
+
    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
    set decision_id [CORE_GenVarName "_decision"]
@@ -1162,7 +1198,10 @@ proc ngs-orequest-decision { goal_id
                             dec_attr 
                             { replacement_behavior ""} } {
 
-   CORE_RefMacroVars
+   variable NGS_REPLACE_IF_EXISTS
+   variable NGS_DECISION_ATTR
+   variable NGS_TYPE_DECISION_STRUCTURE
+
    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
    set decision_id [CORE_GenVarName "_decision"]
@@ -1197,7 +1236,10 @@ proc ngs-orequest-decision { goal_id
 #     to be a general way to retract the activation operator.
 #
 proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
-  CORE_RefMacroVars
+  variable NGS_YES
+  variable NGS_NO
+  variable NGS_DECIDES_ATTR
+  variable NGS_TAG_ACTIVATE_ON_DECISION
 
   if { $activate_on_decision != $NGS_YES } {
       return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)
@@ -1242,7 +1284,9 @@ proc ngs-create-ret-val-in-place { ret_val_name
                                    {new_val ""} 
                                    {replacement_behavior ""} } {
 
-    CORE_RefMacroVars
+    variable NGS_REPLACE_IF_EXISTS
+    variable NGS_TYPE_STATE_RETURN_VALUE
+
     CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
     set ret_val_id [CORE_GenVarName new-ret-val]
@@ -1291,9 +1335,7 @@ proc ngs-create-ret-tag-in-place { ret_val_name
                                    {tag_val ""} 
                                    {replacement_behavior ""} } {
 
-  CORE_RefMacroVars
-
-	return "[ngs-create-ret-val-in-place $ret_val_name $ret_val_set_id $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior]"
+  return "[ngs-create-ret-val-in-place $ret_val_name $ret_val_set_id $dest_obj_id [ngs-tag-for-name $tag_name] $tag_val $replacement_behavior]"
 }
 
 # Creates a return value that will mark a goal as decided in the super-state
@@ -1311,7 +1353,15 @@ proc ngs-create-ret-tag-in-place { ret_val_name
 #  the indifferent preference is given but you can override using this argument.
 #
 proc ngs-make-choice-by-operator { state_id choice_id {add_prefs "="}} {
-  CORE_RefMacroVars
+  variable NGS_YES
+  variable NGS_OP_ID
+  variable NGS_REPLACE_IF_EXISTS
+  variable NGS_DECISION_RET_VAL_NAME
+  variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+  variable NGS_TAG_OP_RETURN_VALUE
+  variable NGS_TAG_OP_MAKE_CHOICE
+  variable NGS_TAG_OP_CREATE_PRIMITIVE
+
   set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name select "decision-option" $choice_id]
   
@@ -1352,7 +1402,12 @@ proc ngs-set-ret-val-by-operator { state_id
                                    value 
                                    {add_prefs "="} } {
 
-    CORE_RefMacroVars
+    variable NGS_OP_ID
+    variable NGS_REPLACE_IF_EXISTS
+    variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+    variable NGS_TAG_OP_RETURN_VALUE
+    variable NGS_TAG_OP_CREATE_PRIMITIVE
+    
     set op_id $NGS_OP_ID
     set op_name [ngs-create-op-name return $ret_val_name $value]
 
@@ -1388,7 +1443,12 @@ proc ngs-create-typed-object-for-ret-val { state_id
                                            new_obj_id 
  										                       { attribute_list "" } } {
 
-   CORE_RefMacroVars
+   variable NGS_OP_ID
+   variable NGS_REPLACE_IF_EXISTS
+   variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+   variable NGS_TAG_OP_RETURN_VALUE
+   variable NGS_TAG_OP_CREATE_TYPED_OBJECT
+
    set op_id $NGS_OP_ID
    set op_name [ngs-create-op-name "return-new-$type_name" $ret_val_name $new_obj_id]
 

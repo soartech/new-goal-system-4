@@ -1,3 +1,5 @@
+
+
 #
 # This file provides macro(s) for declaring goals. You must
 #  declare a goal before trying to create and test for them, otherwise
@@ -17,7 +19,25 @@
 #
 proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
 
-  CORE_RefMacroVars
+  variable NGS_YES
+  variable NGS_TAG_CONSTRUCTED
+  variable NGS_TAG_TYPE_POOL
+  variable NGS_GB_ACHIEVE
+  variable NGS_GS_ACHIEVED
+  variable NGS_GS_ACTIVE
+  variable NGS_TAG_I_SUPPORTED
+  variable NGS_TAG_REMOVE_ACHIEVED
+  variable GOAL_TAG_STACK_SELECTED
+  variable NGS_TAG_REQUIRES_DECISION
+  variable NGS_TAG_NO_OPTIONS
+  variable NGS_TAG_ONE_OPTION
+  variable NGS_TAG_DECISION_STATUS
+  variable NGS_OP_DECIDE_GOAL
+  variable NGS_TAG_ACTIVATE_ON_DECISION
+  variable NGS_TAG_ALREADY_ACTIVATED
+  variable NGS_DECISION_ITEM_RET_VAL_NAME
+  variable NGS_ACTIVATION_STATUS_RET_VAL
+  variable NGS_TAG_SELECTION_STATUS
 
   NGS_DeclareType $goal_type $attribute_list
 
@@ -246,6 +266,10 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-create-ret-tag-in-place $NGS_ACTIVATION_STATUS_RET_VAL <ret-vals> <g> $NGS_TAG_ALREADY_ACTIVATED $NGS_YES]"
 
 }
+
+
+variable NGS_TAG_CONSTRUCTED
+variable NGS_TAG_DECISION_POOL
 
 ## Additional productions that are not goal-type specific
 # Create a goal pool for goals that request decisions

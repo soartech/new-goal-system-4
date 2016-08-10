@@ -1,3 +1,5 @@
+variable NGS_TAG_OP_REMOVE_ATTRIBUTE
+
 # Apply operator to mark goal achieved
 sp "ngs*core*goal*apply*remove-attribute
   (state <s> ^operator <o>)

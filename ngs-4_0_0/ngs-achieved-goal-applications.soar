@@ -1,3 +1,5 @@
+variable NGS_TAG_REMOVE_ACHIEVED
+
 # Apply rule that cleans up an achieved goal
 sp "ngs*core*goal*apply*remove-achieved-goal
   [ngs-match-selected-operator-on-top-state <s> <o>]

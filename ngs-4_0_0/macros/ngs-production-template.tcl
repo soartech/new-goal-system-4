@@ -66,7 +66,7 @@ proc ngs-declare-tsp { production_name production_body } {
 #
 proc ngs-expand-tsp { template_name expansion_lists } {
     
-    CORE_RefMacroVars
+    variable $template_name
 
     set template_string [subst \$\{$template_name\}]
 

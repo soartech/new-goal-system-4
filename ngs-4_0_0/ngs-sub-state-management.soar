@@ -1,3 +1,19 @@
+variable WM_ACTIVE_GOAL
+variable NGS_OP_DECIDE_GOAL
+variable NGS_RETURN_VALUES
+variable NGS_DECISION_RET_VAL_NAME
+variable NGS_TAG_DECISION_STATUS
+variable NGS_YES
+variable NGS_NO
+variable NGS_TAG_OP_RETURN_VALUE
+variable NGS_TAG_SELECTION_STATUS
+variable NGS_TAG_ALREADY_ACTIVATED
+variable NGS_OP_COPY_RETURN_VALUES
+variable NGS_TAG_OP_RETURN_NEW_GOAL
+variable NGS_TAG_SUBSTATE_RESULT_RETURNED
+variable NGS_REPLACE_IF_EXISTS
+variable NGS_ADD_TO_SET
+
 # This is the traditional way names are given to substates
 sp "ngs*core*substate*set-name
   (state <s> ^superstate { <> nil <superstate> })

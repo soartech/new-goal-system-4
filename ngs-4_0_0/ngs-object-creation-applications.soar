@@ -1,3 +1,19 @@
+variable NGS_TAG_INTELLIGENT_CONSTRUCTION
+variable NGS_TAG_OP_CREATE_PRIMITIVE
+variable NGS_TAG_OP_CREATE_TAG
+variable NGS_TAG_OP_REMOVE_ATTRIBUTE
+variable NGS_TAG_OP_REMOVE_TAG
+variable NGS_TAG_SHALLOW_COPY
+variable NGS_TAG_GOAL_STACK_SELECTED
+variable NGS_TAG_SOURCE_OBJ
+variable NGS_REPLACE_IF_EXISTS
+variable NGS_ADD_TO_SET
+variable NGS_TAG_COPY_COMPLETE
+variable NGS_TAG_CONSTRUCTED
+variable NGS_TAG_OP_CREATE_GOAL
+variable NGS_TAG_OP_DEEP_COPY
+
+
 ## Create a unique temporary spot to store the object as it is created
 sp "ngs*core*elaborate*temp-object-space
   [ngs-match-proposed-operator <s> <o>]

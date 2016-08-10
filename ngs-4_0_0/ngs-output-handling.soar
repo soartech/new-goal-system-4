@@ -1,3 +1,8 @@
+variable NGS_OUTPUT_COMMAND_ATTRIBUTE
+variable NGS_TAG_STATUS_COMPLETE
+variable NGS_TAG_ERROR
+variable NGS_TAG_ERROR_STRING
+
 # Propose operator to remove an output link command after being tagged as completed
 # This operator is given best preference so it happens right away
 sp "ngs*output-link*propose*remove-completed-command

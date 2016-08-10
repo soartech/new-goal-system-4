@@ -285,7 +285,7 @@ proc ngs-dtp-report-missing-values { { after_cycle 0 } } {
 #
 proc ngs-dashboard { {pool_name ""} {missing_only ""}} {
 
-    CORE_RefMacroVars
+    variable NGS_YES
     CORE_SetIfEmpty pool_name "<all-pools>"
 
     NGS_DebugPrintLine

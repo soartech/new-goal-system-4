@@ -1,3 +1,5 @@
+variable NGS_TAG_REMOVE_ACHIEVED
+variable NGS_OP_DECIDE
 
 # This says that if we propose a new operator to remove a currently active goal, we should prefer to execute that operator
 #  (and remove the active goal)

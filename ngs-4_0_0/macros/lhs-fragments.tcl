@@ -76,7 +76,7 @@ proc ngs-create-tag-test-list { obj_id tag_list } {
 #            value (separately from the test)
 #
 proc ngs-eq { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_EQUAL
   # Probably should put in some processing to handle disjunctions
   return [ngs-test $NGS_TEST_EQUAL $obj_id $attr $val $val_id]
 }
@@ -94,7 +94,8 @@ proc ngs-eq { obj_id attr val { val_id ""} } {
 #        absence of an attribute
 #
 proc ngs-neq { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_EQUAL
+  variable NGS_TEST_NOT_EQUAL
   # If not binding is provided, we use the more comprehensive
   #  negation that will match even if the attribute doesn't exist
   if {$val_id == ""} {
@@ -105,28 +106,29 @@ proc ngs-neq { obj_id attr val { val_id ""} } {
 }
 # Less Than "<"
 proc ngs-lt { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_LESS_THAN
   return [ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $val $val_id]
 }
 # Less Than or Equal To "<="
 proc ngs-lte { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_LESS_THAN_OR_EQUAL
   return [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $val $val_id]
 }
 # Greater Than ">"
 proc ngs-gt { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_GREATER_THAN
   return [ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $val $val_id]
 }
 # Greater Than or Equal To ">="
 proc ngs-gte { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_GREATER_THAN_OR_EQUAL
   return [ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $val $val_id]
 }
 
 # Negated versions of the inequality comparisons (useful for input-link testing)
 proc ngs-nlt { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_LESS_THAN
+  variable NGS_TEST_GREATER_THAN_OR_EQUAL
   # If not binding is provided, we use the more comprehensive
   #  negation that will match even if the attribute doesn't exist
   if {$val_id == ""} {
@@ -136,7 +138,8 @@ proc ngs-nlt { obj_id attr val { val_id ""} } {
   }
 }
 proc ngs-nlte { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_LESS_THAN_OR_EQUAL
+  variable NGS_TEST_GREATER_THAN
   # If not binding is provided, we use the more comprehensive
   #  negation that will match even if the attribute doesn't exist
   if {$val_id == ""} {
@@ -146,7 +149,8 @@ proc ngs-nlte { obj_id attr val { val_id ""} } {
   }
 }
 proc ngs-ngt { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_GREATER_THAN
+  variable NGS_TEST_LESS_THAN_OR_EQUALs
   # If not binding is provided, we use the more comprehensive
   #  negation that will match even if the attribute doesn't exist
   if {$val_id == ""} {
@@ -156,7 +160,8 @@ proc ngs-ngt { obj_id attr val { val_id ""} } {
   }
 }
 proc ngs-ngte { obj_id attr val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_GREATER_THAN_OR_EQUAL
+  variable NGS_TEST_LESS_THAN
   # If not binding is provided, we use the more comprehensive
   #  negation that will match even if the attribute doesn't exist
   if {$val_id == ""} {
@@ -168,12 +173,14 @@ proc ngs-ngte { obj_id attr val { val_id ""} } {
 
 # Range versions of the inequality comparisons
 proc ngs-gte-lt { obj_id attr low_val high_val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_GREATER_THAN_OR_EQUAL
+  variable NGS_TEST_LESS_THAN
   return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
           [ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $high_val]"
 }
 proc ngs-gte-lte { obj_id attr low_val high_val { val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_TEST_GREATER_THAN_OR_EQUAL
+  variable NGS_TEST_LESS_THAN_OR_EQUAL
   return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
           [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $high_val]"
 }
@@ -488,7 +495,7 @@ proc ngs-test { test_type obj_id attr val { val_id ""} } {
 # 
 proc ngs-time { state_id time {time_id ""} {time_test ""} {input_link_id ""}} {
   
-  CORE_RefMacroVars
+  variable NGS_TEST_EQUAL
 
   set system_id [CORE_GenVarName "system"]
 
@@ -645,7 +652,7 @@ proc ngs-is-not-my-type { object_id type_name } {
 #
 # Tags are prefixed by a special string, so you cannot
 proc ngs-is-tagged { object_id tag_name {tag_val "" } } {
-  CORE_RefMacroVars
+  variable NGS_YES
   CORE_SetIfEmpty tag_val $NGS_YES
   return "($object_id  ^[ngs-tag-for-name $tag_name] $tag_val)"
 }
@@ -657,7 +664,7 @@ proc ngs-is-tagged { object_id tag_name {tag_val "" } } {
 # [ngs-is-not-tagged object_id tag_name (tag_val)]
 #
 proc ngs-is-not-tagged { object_id tag_name {tag_val "" } } {
-  CORE_RefMacroVars
+  variable NGS_YES
   CORE_SetIfEmpty tag_val $NGS_YES
   return "-($object_id ^[ngs-tag-for-name $tag_name] $tag_val)"
 }
@@ -680,7 +687,7 @@ proc ngs-is-not-tagged { object_id tag_name {tag_val "" } } {
 # [ngs-is-active <goal>]
 #
 proc ngs-is-active { goal_id } {
-  CORE_RefMacroVars
+  variable NGS_GS_ACTIVE
   return "[ngs-is-tagged $goal_id $NGS_GS_ACTIVE]"
 }
 
@@ -695,7 +702,7 @@ proc ngs-is-active { goal_id } {
 # [ngs-is-not-active goal_id]
 #
 proc ngs-is-not-active { goal_id } {
-  CORE_RefMacroVars
+  variable NGS_GS_ACTIVE
   return "[ngs-is-not-tagged $goal_id $NGS_GS_ACTIVE]"
 }
 
@@ -714,7 +721,7 @@ proc ngs-is-not-active { goal_id } {
 # [ngs-is-achieved goal_id]
 #
 proc ngs-is-achieved { goal_id } {
-  CORE_RefMacroVars
+  variable NGS_GS_ACHIEVED
   return "[ngs-is-tagged $goal_id $NGS_GS_ACHIEVED]"
 }
 
@@ -729,7 +736,7 @@ proc ngs-is-achieved { goal_id } {
 # [ngs-is-achieved goal_id]
 #
 proc ngs-is-not-achieved { goal_id } {
-  CORE_RefMacroVars
+  variable NGS_GS_ACHIEVED
   return "[ngs-is-not-tagged $goal_id $NGS_GS_ACHIEVED]"
 }
 
@@ -745,7 +752,7 @@ proc ngs-is-not-achieved { goal_id } {
 #      provided, this macro will match either a YES or NO decision.
 # 
 proc ngs-has-decided { goal_id { decision_value "" } } {
-  CORE_RefMacroVars
+  variable NGS_TAG_SELECTION_STATUS
   CORE_GenVarIfEmpty decision_value "decision-value"
   return "[ngs-is-tagged $goal_id $NGS_TAG_SELECTION_STATUS $decision_value]"
 }
@@ -762,7 +769,7 @@ proc ngs-has-decided { goal_id { decision_value "" } } {
 #      provided, this macro will match either a YES or NO decision.
 # 
 proc ngs-has-not-decided { goal_id { decision_value "" } } {
-  CORE_RefMacroVars
+  variable NGS_TAG_SELECTION_STATUS
   CORE_GenVarIfEmpty decision_value "__decision-value"
   return "[ngs-is-not-tagged $goal_id $NGS_TAG_SELECTION_STATUS $decision_value]"
 }
@@ -780,7 +787,7 @@ proc ngs-has-not-decided { goal_id { decision_value "" } } {
 # goal_id - variable bound to the goal that is part of the stack being tested
 #
 proc ngs-is-goal-stack-selected { goal_id } {
-  CORE_RefMacroVars
+  variable GOAL_TAG_STACK_SELECTED
   return "[ngs-is-tagged $goal_id $GOAL_TAG_STACK_SELECTED]"
 }
 
@@ -793,7 +800,7 @@ proc ngs-is-goal-stack-selected { goal_id } {
 # goal_id - variable bound to the goal that is part of the stack being tested
 #
 proc ngs-is-not-goal-stack-selected { goal_id } {
-  CORE_RefMacroVars
+  variable GOAL_TAG_STACK_SELECTED
   return "[ngs-is-not-tagged $goal_id $GOAL_TAG_STACK_SELECTED]"  
 }
 
@@ -805,7 +812,7 @@ proc ngs-is-not-goal-stack-selected { goal_id } {
 # decision_name - name of the decision to test for 
 #
 proc ngs-is-assigned-decision { goal_id decision_name } {
-  CORE_RefMacroVars
+  variable NGS_DECIDES_ATTR
   return "($goal_id ^$NGS_DECIDES_ATTR $decision_name)"
 }
 
@@ -817,7 +824,7 @@ proc ngs-is-assigned-decision { goal_id decision_name } {
 # decision_name - name of the decision to test for 
 #
 proc ngs-is-not-assigned-decision { goal_id decision_name } {
-  CORE_RefMacroVars
+  variable NGS_DECIDES_ATTR
   return "-{ ($goal_id ^$NGS_DECIDES_ATTR $decision_name) }"
 }
 
@@ -848,7 +855,7 @@ proc ngs-has-requested-decision { goal_id
                               { decision_attr "" }
                               { replacement_behavior "" }
                               { decision_info_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_DECISION_ATTR
   CORE_GenVarIfEmpty decision_info_id "decision-info"
 
   set lhs_ret "($goal_id ^$NGS_DECISION_ATTR $decision_info_id)
@@ -1001,7 +1008,6 @@ proc ngs-conditions-false-for-all-other-choices { choice_id other_choice_id args
 proc ngs-has-side-effect { op_id 
                            {side_effect_id ""} } {
   
-  CORE_RefMacroVars
   CORE_SetIfEmpty side_effect_id "side-effect"
   
   if { $side_effect_id != ""} {
@@ -1054,7 +1060,7 @@ proc ngs-does-not-have-side-effects { op_id } {
 # [ngs-is-attr-constructed parent_id attribute object_id]
 #
 proc ngs-is-attr-constructed { parent_id attribute object_id } {
-  CORE_RefMacroVars
+  variable NGS_TAG_CONSTRUCTED
   return "($parent_id ^$attribute $object_id)
           [ngs-is-tagged $object_id $NGS_TAG_CONSTRUCTED]"
 }
@@ -1074,7 +1080,6 @@ proc ngs-is-attr-constructed { parent_id attribute object_id } {
 # [ngs-is-attr-not-constructed parent_id attribute object_id]
 #
 proc ngs-is-attr-not-constructed { parent_id attribute {object_id ""} } {
-  CORE_RefMacroVars
   CORE_GenVarIfEmpty object_id "__new-obj"
   return "-{ [ngs-is-attr-constructed $parent_id $attribute $object_id] }"
 }
@@ -1095,7 +1100,7 @@ proc ngs-is-attr-not-constructed { parent_id attribute {object_id ""} } {
 # [ngs-is-obj-constructed object_id]
 #
 proc ngs-is-obj-constructed { object_id } {
-  CORE_RefMacroVars
+  variable NGS_TAG_CONSTRUCTED
   return "[ngs-is-tagged $object_id $NGS_TAG_CONSTRUCTED]"
 }
 
@@ -1142,7 +1147,7 @@ proc ngs-is-obj-not-constructed { object_id } {
 #
 proc ngs-is-return-val { ret_val_set_id ret_val_name {ret_value_id ""} { ret_val_desc_id "" } } {
   
-    CORE_RefMacroVars
+    variable NGS_TAG_CONSTRUCTED
     CORE_GenVarIfEmpty ret_val_desc_id "val-desc"
 
     set lhs_val "($ret_val_set_id  ^value-description $ret_val_desc_id)
@@ -1345,7 +1350,7 @@ proc ngs-output-link { state_id output_link_id {bindings ""} } {
 #                   ngs-bind as in [ngs-bind $state_id $state_bindings]
 #
 proc ngs-match-goalpool { state_id goal_pool {goal_type ""} { state_bindings ""}} {
-  CORE_RefMacroVars
+  variable WM_GOAL_SET
 
   if { $state_bindings != "" } {
     set state_bindings [ngs-bind $state_id $state_bindings]
@@ -1383,7 +1388,6 @@ proc ngs-match-goal { state_id
                       goal_id 
                       {basetype ""}
                       {goal_pool_id ""}} {
-  CORE_RefMacroVars
 
   # Default value initialization
   CORE_GenVarIfEmpty goal_pool_id "goal-pool"
@@ -1433,7 +1437,7 @@ proc ngs-match-selected-goal { state_id
                               { basetype "" } 
                               { goal_pool_id "" }} {
   
-  CORE_RefMacroVars
+  variable NGS_YES
 
   set supergoal_id [CORE_GenVarName "supergoal"]
   CORE_GenVarIfEmpty decision_name "decision-name"
@@ -1478,7 +1482,8 @@ proc ngs-match-goal-to-create-subgoal { state_id
                                         subgoal_pool_id 
                                         { supergoal_basetype "" } } {
 
-  CORE_RefMacroVars
+  variable NGS_TAG_CONSTRUCTED
+  variable WM_GOAL_SET
 
   set goal_pool_id      [CORE_GenVarName "goals"]
   set supergoal_pool_id [CORE_GenVarName "supergoals"]
@@ -1515,7 +1520,9 @@ proc ngs-match-goal-to-create-subgoal { state_id
 #
 proc ngs-match-substate { substate_id {params_id ""} {top_state_id ""} {superstate_id ""}} {
 
-  CORE_RefMacroVars
+  variable WM_SUPERSTATE
+  variable WM_TOP_STATE
+  variable NGS_SUBSTATE_PARAMS
 
   variable superstate_test
   variable top_state_test
@@ -1567,7 +1574,7 @@ proc ngs-match-active-goal { substate_id
                              {params_id ""}
                              {top_state_id ""}
                              {superstate_id ""} } {
-  CORE_RefMacroVars
+  variable WM_ACTIVE_GOAL
 
   set lhs_ret "[ngs-match-substate $substate_id $params_id $top_state_id $superstate_id]
                ($substate_id ^$WM_ACTIVE_GOAL $goal_id)
@@ -1593,7 +1600,7 @@ proc ngs-match-active-goal { substate_id
 proc ngs-match-top-state-active-goal { state_id
                                        goal_type 
                                        goal_id } {
-  CORE_RefMacroVars
+  variable WM_GOAL_SET
 
   set lhs_ret = "(state $state_id ^$WM_GOAL_SET.$goal_type $goal_id)
                  [ngs-is-active $goal_id]"
@@ -1625,7 +1632,10 @@ proc ngs-match-to-make-choice { substate_id
                                 {top_state_id ""} 
                                 {superstate_id ""} } {
 
-  CORE_RefMacroVars
+  variable NGS_OP_DECIDE_GOAL
+  variable NGS_RETURN_VALUES
+  variable NGS_DECISION_RET_VAL_NAME
+
   CORE_GenVarIfEmpty params_id "params"
 
   set return_value_desc_id [CORE_GenVarName "ret-vals"]
@@ -1667,7 +1677,8 @@ proc ngs-match-to-set-return-val { substate_id
                                      {params_id ""}
                                      {top_state_id ""}
                                      {superstate_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_RETURN_VALUES
+
   CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
   # This method of retracting is probably no longer necessary given all-or-nothing construction
@@ -1705,7 +1716,9 @@ proc ngs-match-to-create-return-goal { substate_id
                                        {params_id ""}
                                        {top_state_id ""}
                                        {superstate_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_RETURN_VALUES
+  variable NGS_GOAL_RETURN_VALUE
+
   set return_value_set [CORE_GenVarName "ret-vals"]
   set new_goal_id      [CORE_GenVarName "new-goal"]
 
@@ -1784,7 +1797,7 @@ proc ngs-match-proposed-atomic-operator { state_id
                                           {op_tags ""}
                                           {op_name ""} } {
 
-  CORE_RefMacroVars
+  variable NGS_OP_ATOMIC
   return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
           [ngs-is-type $op_id $NGS_OP_ATOMIC]"                                      
 
@@ -1815,7 +1828,7 @@ proc ngs-match-proposed-decide-operator { state_id
                                           {op_tags ""}
                                           {op_name ""}
                                           {ret_val_id ""} } {
-  CORE_RefMacroVars
+  variable NGS_OP_DECIDE
 
   if { $ret_val_id != "" } {
       set ret_val_bind "return-values:$ret_val_id"
@@ -1953,7 +1966,7 @@ proc ngs-bind-choice-operator { op_id
                                 {choice_type ""}
                                 {choice_bind ""}} {
 
-   CORE_RefMacroVars
+   variable NGS_YES
 
    set dest_obj [CORE_GenVarName "dest-obj"]
    set dest_attr [CORE_GenVarName "dest-attr"]
