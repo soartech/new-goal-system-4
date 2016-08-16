@@ -22,7 +22,7 @@ sp "ngs*output-link*propose*remove-completed-command*deprecated
 	[ngs-is-my-type <command> <my-type>]
 	[ngs-eq <command> status complete]
 -->
-	[ngs-remove-attribute-by-operator <s> <ol> <any-command-attr> <command> ">"]
+	[ngs-remove-attribute-by-operator <s> <ol> <any-command-attr> <command> "> ="]
 	[core-trace NGS_TRACE_OUTPUT "O OUTPUT-COMMAND-EXECUTED-DEPRECATED, (| <my-type> |, | <ol> |.| <any-command-attr> | | <command> |)."]"
 
 # Print out to console any error messages
