@@ -135,7 +135,7 @@ proc np { args } {
 		echo "Usage: np (depth=2) id1 id2 id3 ..."
 	}
 
-	set depth 2
+	set depth 1
 	set first [lindex $args 0]
 
 	if { [string is integer [string index $first 0]] == 1 } {
