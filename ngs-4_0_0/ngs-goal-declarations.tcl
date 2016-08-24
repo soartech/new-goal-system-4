@@ -126,7 +126,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     # Set of productions to pool based on requested decisions
 
     # Step one, indicate that a pool is needed (allows multiple firings)
-    sp "ngs*core*goal*create-tag-need-decision-pool$goal_type
+    sp "ngs*core*goal*create-tag-need-decision-pool*$goal_type
       [ngs-match-goal <s> $goal_type <g>]
       [ngs-is-my-type <g> $goal_type]
       [ngs-match-goalpool <s> <master-pool>]
@@ -137,7 +137,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     # Step two is separate (below the macro). It creates a decision goal pool
     
     # Step three, copy goals that request the given decision to the pool
-    sp "ngs*core*goal*copy-goal-to-decision-pool$goal_type
+    sp "ngs*core*goal*copy-goal-to-decision-pool*$goal_type
       [ngs-match-goal <s> $goal_type <g>]
       [ngs-is-my-type <g> $goal_type]
       [ngs-has-requested-decision <g> <decision-name>]
@@ -235,8 +235,9 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
 
   # This marks the goal as selected only if it both has the "pre" selection flag and
   #  it is decided
-  sp "ngs*core*goal*elaborate*selection-status$goal_type
+  sp "ngs*core*goal*elaborate*selection-status*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
     [ngs-is-assigned-decision <g> <any-decision>]
     [ngs-is-tagged <g> $NGS_TAG_DECISION_STATUS <decision-value>]
   -->
@@ -254,6 +255,33 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]
     (<o> ^decision-name <decision-name>)"
 
+  # This can happen when a goal was selected, ends up being unassigned from a decision
+  #  and then is reassigned to the decision. The next production should eliminate most
+  #  (or all) instances of htis, but I have it here in case. It is the right thing to do
+  #  if we have two "decided yes"
+  sp "ngs*core*goal*propose-to-create-substate-if-two-decided-yes*$goal_type
+    [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
+    [ngs-has-requested-decision <g> <decision-name>]
+    [ngs-is-subgoal <g> <subgoal>]
+    [ngs-is-assigned-decision <subgoal> <decision-name>]
+    [ngs-is-tagged <subgoal> $NGS_TAG_DECISION_STATUS $NGS_YES]
+    [ngs-is-subgoal <g> "{ <subgoal2> <> <subgoal>}"]
+    [ngs-is-assigned-decision <subgoal2> <decision-name>]
+    [ngs-is-tagged <subgoal2> $NGS_TAG_DECISION_STATUS $NGS_YES]
+  -->
+    [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]
+    (<o> ^decision-name <decision-name>)
+    (write (crlf) | --- WARNING: There are at least two goals with a decided flag set to *yes* - | <subgoal> |, | <subgoal2>)"
+
+  # We give this high priority since we want to set the state to be logically consistent as soon as possible
+  sp "ngs*core*goal*propose-to-remove-status-flag*when-not-assigned-decision*$goal_type
+    [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-not-assigned-decision <g> <decision-name>]
+    [ngs-has-decided <g> <decision-val>]
+  -->
+    [ngs-remove-tag-by-operator <s> <g> NGS_TAG_DECISION_STATUS <decision-val> "> ="]"
+        
   # Automatically activate a goal after selection if it is flagged for auto-activation
   sp "ngs*core*goal*activate-goal-after-selection*$goal_type
     [ngs-match-selected-goal <s> $goal_type <g> <obj> <attr> <behavior>]
@@ -280,5 +308,4 @@ sp "ngs*core*goal*create-decision-based-goal-pool
   (<master-pool> ^<decision-name> <new-pool>)
   [ngs-tag <new-pool> $NGS_TAG_CONSTRUCTED]
   [ngs-tag <new-pool> $NGS_TAG_DECISION_POOL]"
-
 
