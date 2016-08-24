@@ -1345,7 +1345,7 @@ proc ngs-create-ret-tag-in-place { ret_val_name
 #  that selects one goal over the others. It will set the return value for
 #  the sub-state.
 #
-# [ngs-make-choice-by-operator state_id choice_id]
+# [ngs-make-choice-by-operator state_id choice_id (add_prefs)]
 #
 # state_id  - state in which to propose the operator to make the choice
 # choice_id - variable bound to the identifier of the goal that was chosen
