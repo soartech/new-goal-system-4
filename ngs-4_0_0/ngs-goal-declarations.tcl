@@ -270,7 +270,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-assigned-decision <subgoal2> <decision-name>]
     [ngs-is-tagged <subgoal2> $NGS_TAG_DECISION_STATUS $NGS_YES]
   -->
-    [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]
+    [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g> {} "> ="]
     (<o> ^decision-name <decision-name>)
     (write (crlf) | --- WARNING: There are at least two goals with a decided flag set to *yes* - | <subgoal> |, | <subgoal2>)"
 
