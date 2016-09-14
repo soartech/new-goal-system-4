@@ -1,3 +1,4 @@
+# NOTE: These methods don't work as well as I'd hoped. Need to rethink the dashboard processes
 
 # Print out the goal stacks
 #

@@ -922,9 +922,9 @@ NGS_DeclareGoal MyDerivedGoalType2 {
 
 This macro expands into several productions that maintain the goal pool associated with goals of this type. These productions also manage the subgoal/supergoal links, propagate achievement flags, remove achieved goals, and maintain goal decision info (see ###).
 
-Goals of type $NGS_GB_ACHIEVE will automatically be removed if they are marked as achieved (see `ngs-tag-goal-achieved`). Your code is responsible for tagging goals as achieved, but the NGS library will clean up these achieved goals automatically, if they are o-supported. When achieved goals form a hierarchy, achievement of a goal higher in the hierarchy will cause all goals lower in the hierarchy to be automatically removed.
+Goals of type $NGS\_GB\_ACHIEVE will automatically be removed if they are marked as achieved (see `ngs-tag-goal-achieved`). Your code is responsible for tagging goals as achieved, but the NGS library will clean up these achieved goals automatically, if they are o-supported. When achieved goals form a hierarchy, achievement of a goal higher in the hierarchy will cause all goals lower in the hierarchy to be automatically removed.
 
-Alternatively, you can i-support your goals, in which case the LHS logic of your goal creation productions should include the achievement condition so that the goal will automatically retract when it is achieved.
+Alternatively, you can i-support your goals, in which case the LHS logic of your goal creation productions should include the achievement condition such that the goal will automatically retract when it is achieved.
 
 Goal subgoal/supergoal links are automatically created and maintained by the NGS macros. You do not need to manage these other than to pass the correct parameters to macros such as `ngs-create-goal-by-operator` or `ngs-create-goal-in-place`.
 
@@ -934,7 +934,7 @@ Goals can be created in three different ways depending on how you intend to buil
 
 **Creating I-Supported Goal**
 
-An I-supported goal is instantiated when the goal is not achieved and retracts (using Soar's i-support mechanism) when the goal is achieved. I-supported goals provide a very powerful way to maintain a reactive behavior model with relatively little code. I-supported goals are recommended, but not required when using NGS 4.
+An I-supported goal is instantiated when the goal is not achieved and retracts (using Soar's i-support mechanism) when the goal is achieved. I-supported goals provide a very powerful way to maintain a reactive behavior model with relatively little code. 
 
 To create an i-supported goal, using the following macro on the right hand side of an i-supported production:
 
@@ -946,7 +946,7 @@ Goal creation macros require a variable bound to the goal pool (here shown as <g
 * ngs-match-goalpool
 * ngs-match-goal-to-create-subgoal
 
-The version you use depends on whether you are creating a stand-alone goal (ngs-match-goalpool) or a sub-goal of another goal (ngs-match-goal-to-create-subgoal). The following is an example of each case:
+The version you use depends on whether you are creating a stand-alone goal (`ngs-match-goalpool`) or a sub-goal of another goal (`ngs-match-goal-to-create-subgoal`). The following is an example of each case:
 
 ```
 # Standalone goal construction

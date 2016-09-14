@@ -1,18 +1,19 @@
 
+
 setup { 
   source "common.soar"
 
   CORE_ActivateTraceCategory NGS_TRACE_I_TYPED_OBJECTS
   CORE_ActivateTraceCategory NGS_TRACE_I_GOALS
   CORE_ActivateTraceCategory NGS_TRACE_SIDE_EFFECTS
-  # CORE_ActivateTraceCategory NGS_TRACE_O_TYPED_OBJECTS
-  # CORE_ActivateTraceCategory NGS_TRACE_O_GOALS
-  # CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
-  # CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
-  # CORE_ActivateTraceCategory NGS_TRACE_TAGS
-  # CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES
-  # CORE_ActivateTraceCategory NGS_TRACE_RETURN_VALUES
-  # CORE_ActivateTraceCategory NGS_TRACE_DECISIONS
+  CORE_ActivateTraceCategory NGS_TRACE_O_TYPED_OBJECTS
+  CORE_ActivateTraceCategory NGS_TRACE_O_GOALS
+  CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
+  CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
+  CORE_ActivateTraceCategory NGS_TRACE_TAGS
+  CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES
+  CORE_ActivateTraceCategory NGS_TRACE_RETURN_VALUES
+  CORE_ActivateTraceCategory NGS_TRACE_DECISIONS
   CORE_ActivateTraceCategory NGS_TRACE_OUTPUT
 
   NGS_DeclareGoal TestAchievementGoal
@@ -70,6 +71,30 @@ sp "test
     (pass)"
 
 }
+
+test goal-o-support-goal-creation-and-deletion {
+
+sp "test*create-maintenance-goal
+    [ngs-match-goalpool <s> <goals> TestMaintenanceGoal]
+    (<s> ^$WM_CYCLE_COUNT > 2)
+-->
+    [ngs-create-goal-by-operator <s> TestMaintenanceGoal $NGS_GB_MAINT <new-goal>]
+    [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> created-goal]
+    (write (crlf) |This is a Test|)" 
+
+sp "test*remove-maintenance-goal
+	[ngs-match-goal <s> TestMaintenanceGoal <g>]
+-->
+	[ngs-remove-goal-by-operator <s> <g>]"
+
+sp "test
+    [ngs-match-goal <s> TestMaintenanceGoal <g>]
+    [ngs-is-tagged <s> created-goal]
+-->
+    (pass)"
+
+}
+
 
 test create-atomic-value {
     

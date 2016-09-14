@@ -1,3 +1,7 @@
+source "../_core/_CORE_Macros.tcl"
+source "../_core/_CORE_MacroVariables.tcl"
+source "../_core/_CORE_Math.tcl"
+
 source "../load.soar"
 CORE_Source helpers.tcl
 

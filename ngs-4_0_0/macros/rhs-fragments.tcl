@@ -408,9 +408,9 @@ proc ngs-create-typed-object-by-operator { state_id
 	                                        attribute
 	                                        type
 	                                        new_obj_id
-											                    {attribute_list ""}
+											{attribute_list ""}
 	                                        {replacement_behavior ""} 
-                                          {add_prefs "="} } {
+                                            {add_prefs "="} } {
 
   variable NGS_OP_ID
   variable NGS_REPLACE_IF_EXISTS
@@ -650,8 +650,40 @@ proc ngs-remove-tag-by-operator { state_id
     variable NGS_TAG_OP_REMOVE_TAG
 	CORE_SetIfEmpty value $NGS_YES
 	return "[ngs-remove-attribute-by-operator $state_id $parent_obj_id [ngs-tag-for-name $tag_name] $value $add_prefs]
-          [ngs-tag-operator $NGS_TAG_OP_REMOVE_TAG]
-          [core-trace NGS_TRACE_TAGS "O REMOVE-TAG, (| $parent_obj_id |.[ngs-tag-for-name $tag_name] $value)."]" 
+            [ngs-tag-operator $NGS_TAG_OP_REMOVE_TAG]
+            [core-trace NGS_TRACE_TAGS "O REMOVE-TAG, (| $parent_obj_id |.[ngs-tag-for-name $tag_name] $value)."]" 
+}
+
+# Remove an o-supported goal from the goal pool
+#
+# Use this method to directly remove a goal from memory. Typically this only makes sense for
+#  maintenance goals. Achievement goals are automatically removed when they are tagged as achieved.
+#  If you are using i-supported goals you don't use this method - the goal should retract via the 
+#  proposal production retraction.
+# 
+# [ngs-remove-goal-by-operator state_id goal_id (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# goal_id - variable bound to the id of the goal to remove
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
+proc ngs-remove-goal-by-operator { state_id
+								   goal_id
+								   {add_prefs "="} } {
+	variable NGS_OP_ID
+    variable NGS_TAG_OP_REMOVE_ATTRIBUTE
+    variable NGS_TAG_OP_REMOVE_GOAL
+
+    set op_id $NGS_OP_ID
+    set op_name [ngs-create-op-name "remove-" "goal" $goal_id]
+
+	return "[ngs-create-atomic-operator $state_id $op_name $op_id $add_prefs]
+			    ($op_id ^dest-attribute goal
+     	                ^value-to-remove $goal_id)
+            [ngs-tag $op_id $NGS_TAG_OP_REMOVE_ATTRIBUTE]
+            [ngs-tag $op_id $NGS_TAG_OP_REMOVE_GOAL]
+            [core-trace NGS_TRACE_O_GOALS "O REMOVE-GOAL, (| $goal_id |."]"	
 }
 
 # Creates a tag using an operator. The tag value will be constructed using
@@ -1021,6 +1053,7 @@ proc ngs-create-goal-by-operator { state_id
 
   variable NGS_TAG_INTELLIGENT_CONSTRUCTION
   variable NGS_TAG_OP_CREATE_GOAL
+  variable NGS_OP_ID
 
   variable lhs_val
 
@@ -1085,6 +1118,7 @@ proc ngs-create-goal-as-return-value { state_id
   variable NGS_ADD_TO_SET
   variable NGS_TAG_INTELLIGENT_CONSTRUCTION
   variable NGS_TAG_OP_RETURN_NEW_GOAL
+  variable NGS_OP_ID
 
   variable rhs_val
 
