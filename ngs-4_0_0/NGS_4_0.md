@@ -8,6 +8,7 @@
 1. [Production Left Hand Sides](#lhs)
 1. [Common actions](#actions)
 1. [NGS Goals](#goals)
+1. [Decide Operators] (#decide)
 
 ## Introduction <a id="introduction"></a>
 ### What is NGS 4?
@@ -932,6 +933,14 @@ Goal subgoal/supergoal links are automatically created and maintained by the NGS
 
 Goals can be created in three different ways depending on how you intend to build and maintain your goal hierarchy.
 
+* **I-Supported Goals**: I-Supported goals use Soar's truth maintenance to instantiate and retract goals when the are applicable. I-Supported goal hierarchies are great for enabling reactivity and for ensuring logical consistency among goals. I-Supported goals mimic some of the support structure of the traditional Soar state stack where the state stack is supported by a hierarchy of operator proposals which, by Soar's architecture constraints, are always i-supported.
+* **O-Supported Goals**: O-Supported goals are constructed and removed through operator applications. O-Supported goals can be used as a way to avoid some types of oscillations that can occur when input values change rapidly. O-Supported goals could also be used to generate plans in a planning system.
+* **O-Supported Goals as Return Values**: A special case of o-supported goal is a goal that is created in a sub-state. These goals are best as o-supported structures due to the fact that they will depend on values available in the sub-state (which goes away after processing). To support the process of return goals from sub-states, NGS provides special macros to create goals as return values.
+
+**Limitation**: There is currently no way to construct a goal in a "latent" state (i.e. a state where it isn't in a goal pool) and then activate it (i.e. move it to the goal pool) later. This type of creation/activation process could be helpful for planning process that might create goals and later activate them.
+
+(**NOTE**: The actual structure of a value returned from a sub-state is determined by the _justification_ that Soar creates to support the value that is created. See the Soar Manual for more details.).
+
 **Creating I-Supported Goal**
 
 An I-supported goal is instantiated when the goal is not achieved and retracts (using Soar's i-support mechanism) when the goal is achieved. I-supported goals provide a very powerful way to maintain a reactive behavior model with relatively little code. 
@@ -969,13 +978,99 @@ Notice in the second example that two goal types are provided. The first goal ty
 
 **Creating and Removing O-Supported Goals**
 
+To create an o-supported goal use the following macro on the right hand side of a production.
+
+```
+[ngs-create-goal-by-operator <state> MyGoalType $NGS_GB_ACHIEVE <new-goal> <supergoal> { goal-attr-1 val1 goal-attr-2 val2 ... } preferences]
+```
+
+Because the production creates an operator preference, it's right hand side changes will be o-supported. Unlike with the i-supported version, you do not have to bind to the goal pool on the left hand side. The operator application productions in the NGS library do that for you.  Here is how the two i-supported productions above might look if they used o-supported goals:
+
+```
+# Standalone goal construction
+sp "achieve-message-handled*trigger*any-message*o-supported
+	[ngs-match-top-state <s> {} <il>]
+	[ngs-bind <il> message-queue.message]
+-->
+	[ngs-create-goal-by-operator AchieveMessageHandled $NGS_GB_ACHIEVE <goal> {} { message <message> }]"
+
+# Subgoal construction example
+sp "achieve-modified-wedge-formation*trigger*for-maneuver-task*o-supported
+	[ngs-match-goal <s> AchieveManeuverTask <sg>]
+	... (additional bindings)
+-->
+	[ngs-create-goal-by-operator AchieveModifiedWedgeFormation $NGS_GB_ACHIEVE <g> <sg>]
+	... (additional construction code)"
+
+```
+
+Notice the different match macros used when creating o-supported v. i-supported goals. In the first case, there is no need to bind to a goal pool. Instead the more general `ngs-match-top-state` is used (though other match macros can be used, if desired).  In the second case, we only need to bind to the goal that will be the new goal's supergoal (not to the new goal's pool). So we use `ngs-match-goal` to bind the supergoal instead of `ngs-match-goal-to-create-subgoal`.
+
+_O-supported Goal Removal_
+
+O-supported goals must be removed deliberately (i.e. by operators) when they are no longer applicable. There are two ways to do this, depending on the type of goal that is created.
+
+To remove an **achievement goal** (i.e. one that should only exist while it is not met) use the `ngs-tag-goal-achieved` macro on the right hand side of any production (i-supported or o-supported). The NGS library will automatically propose an operator to remove the achieved goal, and will remove all sub-goals of the achieved goal.
+
+Maintenance goals are not necessarily supposed to go away when they are achieved and the NGS does NOT automatically remove them. To remove a **maintenance goal**, use the macro `ngs-remove-goal-by-operator` on the right hand side of a production. This macro will create an operator to remove the goal. Just as is the case for operator-based goal creation, you do not need to bind to or pass the goal pool in which the goal resides.
 
 **Creating and Returning Goals in Substates**
 
+There are two ways to create goals in substates. First, the standard o-supported process (discussed above) can be used. In this case, a goal is immediately placed in the goal pool and is available for matching using the ngs goal match macros (e.g. `ngs-match-goal`). The potential issue with this approach is that goal creation is likely to trigger other actions which might interrupt the execution of the sub-state. If this type of behavior is desired, then it can be achieved using NGS.
+
+However, in most cases it is better for agent robustness to delay the construction of the goal until the sub-state completes processing (i.e. it returns). NGS provides macros to make this process simple.
+
+To create a goal that will be placed in the goal pool after a substate completes execution, simply construct the goal using the following macro:
+
+```
+[ngs-create-goal-as-return-value <state> MyGoalType $NGS_GB_ACHIEVE <new-goal> <supergoal> { goal-attr-1 val1 goal-attr-2 val2 ... } preferences]
+```
+
+The parameters are identical to `ngs-create-goal-by-operator` with the only different being the behavior of the operator that it creates. Rather than placing the goal immediately into the goal pool, it will place in the sub-state's return value set. Then, when the sub-state completes and its values are returned, NGS library productions will copy the goal into the goal pool at the same time the rest of the return values are set.
+
+Because goals returned from sub-state using this method are o-supported, you will need to ensure these goals get removed through one of the removal methods discussed for o-supported goals above.
 
 ### Matching and Binding to Goals
 
-### "Active" Goals
+Goals define the context for agent behavior and, as such, often are the trigger and key matching object in a production. NGS has several macros to support matching goals in common contexts.  We divide our discussion of these macros across three common use cases:
+
+* Matching goals in the top state. Typically this is done to trigger actions and to create sub-goals.
+* Matching goals in sub-states. Typically this is done to trigger a multi-step process when using Decide Operators (see Decide Operators below).
+* Matching a special category of goal call "Decision Goals." These goals are discussed in a separate section.
+
+#### Top-state Goal Matching
+
+When creating an isolated, i-supported goal on the top state, you should start your production with the following macro:
+
+```
+[ngs-match-goalpool <s> <goal-pool> MyGoalType]
+```
+
+This macro will bind to the goal pool of the given type (here MyGoalType). You can then pass the `<goal-pool>` variable to `ngs-created-goal-in-place` to create the goal. 
+
+Two other macros can be used for productions that need to bind to existing goals. First is `ngs-match-goal`:
+
+```
+[ngs-match-goal <s> MyGoalType <g>]
+```
+
+This macro is used frequently as the primary way to productions to only fire in support of a goal.
+
+To create an i-supported sub-goal, use the `ngs-match-goal-to-create-subgoal` macro, which provides a convenient way to bind both to the supergoal instances and to the sub-goal pool.
+
+```
+[ngs-match-goal-to-create-subgoal <s> SuperGoalType <supergoal> SubGoalType <sub-goal-pool>]
+```
+
+The `<sub-goal-pool>` variable should be passed as the goal pool identifier to the `ngs-create-goal-in-place` macro on the right hand side of the production that creates the sub-goal.  The `<supergoal>` variable is passed as the supergoal identifier.
+
+
+#### "Active" Goals
+
+
+## Decide Operators <a id="decide"></a>
+
+
 ___
 
 

@@ -1090,7 +1090,7 @@ proc ngs-create-goal-by-operator { state_id
 #  stored in the return value set. Then, upon completion of the sub-state it will be moved
 #  to the top-state goal pool.
 #
-# [ngs-create-goal-as-return-value state_id goal_type basetype new_obj_id (supergoal_id) (goal_pool_id) (add_prefs)]
+# [ngs-create-goal-as-return-value state_id goal_type basetype new_obj_id (supergoal_id) (attribute_list) (add_prefs)]
 #
 # state_id - variable bound to the _sub-state_ in which the operator to create the goal should be proposed.
 # goal_type - user-defined type of the goal to construct
@@ -1107,7 +1107,7 @@ proc ngs-create-goal-by-operator { state_id
 #
 proc ngs-create-goal-as-return-value { state_id
                                        goal_type
-									                     basetype
+									   basetype
                                        new_obj_id
                                        {supergoal_id ""}
                                        {attribute_list ""} 
