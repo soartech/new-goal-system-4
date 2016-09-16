@@ -1064,13 +1064,127 @@ To create an i-supported sub-goal, use the `ngs-match-goal-to-create-subgoal` ma
 
 The `<sub-goal-pool>` variable should be passed as the goal pool identifier to the `ngs-create-goal-in-place` macro on the right hand side of the production that creates the sub-goal.  The `<supergoal>` variable is passed as the supergoal identifier.
 
+## Decide Operators, Active Goals and Decision Goals <a id="decide"></a>
 
-#### "Active" Goals
+For most behavior models, the decision they make are the centerpiece of the model. Because decisions are so important and central, NGS provides some support to make the decision making process simpler, less error prone, and most consistent.  The key elements NGS defines to support decision making are as follows:
+
+* **Decide Operators**: Decide operators are operators that are not applied. They result in an operator no-change and the creation of a sub-state. These operators are called "decide" operators because typically the purpose of a sub-state is to make a decision after considering options. However, sub-states can also be used to implement more traditional software sub-routines and functions and decide operators can be used for this purpose as well.
+* **Active Goals**: An "active" goal is one that is attached to a decide operator. Essentially, an active goal is one that is being pursued through processes executing in the sub-state.
+* **Decision Goals**: "Decision goals" is a term used to describe a specific way of organizing goal hierarchies to support decision making. Decision goals are just regular goals but with some additional data and processes associated with them to support making and maintaining a decision.  They are similar to operators, but persist even after the decision is made (unlike operators).
+ 
+### Decide Operators
+
+Decide operators are typically used in two ways:
+
+1. To execute a connected process that should complete in "one step" (all or nothing)
+1. To decide between multiple options. If this is your use case, consider using Decision Goals rather than decide operators directly. Decision goals use decide operators, but wrap them in a higher level abstraction which can make managing the decision easier.
+
+A decision operator is simply an operator that is not intended to be applied directly.  It is intended to no-change, producing a Soar sub-state. Decide operators and the sub-states they produce contain some common structures which can be used by other productions that execute the process that the decide operator represents. 
+
+The structure of a decide operator is as follows:
+
+```
+^ operator
+^^ type             # NGS_OP_DECIDE
+^^ name 			# your name for the operator (the action/decision)
+^^ goal				# becomes the "active" goal if this operator is selected
+^^ return-values    # stores meta-information about the return values
+```
+
+Whether a sub-state makes a decision or executes a process, it must produce a result in order to be useful (with the exception of, perhaps, a sub-state used to print something to the console). A _result_ is any change to working memory that is reachable through a top state WME. So for example, if a production adds the WME: `(S54 ^my-value 5)` to the sub-state S5, it is NOT creating a return value. However, if it adds the WME: `(G15 ^my-value *yes*)` to the goal G15 that is stored in the global NGS goal pool, the production IS creating a return value. 
+
+Soar treats return values specially. All return values are associated with a _justification_ -- a production automatically created by the architecture based on the chain of WMEs that were tested in order to create the new value. Detailed discussion of justifications and how they impact the lifetime of return values is beyond the scope of this reference and the reader is referred to the Soar Manual for more information.
+
+One potential issue with sub-states is that they can create return values at any time. These return values can, in turn, trigger other actions (e.g. operator proposals/retractions) that can interrupt the execution of the sub-state. Furthermore, even if these return values don't cause the sub-state to interrupt, updates to the input link could do the same thing. 
+
+The former problem, i.e. one return value triggering an interruption, is typically a design flaw, but can be a pain to debug and fix.  The second problem, i.e. an input process triggering an interruption, is a fundamental characteristic and expected behavior in an asynchronous, real-time model.
+
+This behavior is not a flaw in the Soar architecture, but rather a fundamental characteristic that can be very powerful if used correctly, but using it correctly can be challenging, even for experienced model builders.
+
+NGS provides an abstraction and support macros to make sub-states easier to manage and use this type of reactivity correctly.
+
+The core idea is that all return values should be executed _at the same time_ (or technically, during the same operator application wave). If consistently enforced, this constraint guarantees that if a sub-state is interrupted no partially implemented changes will be left dangling. In fact, if a sub-state is interrupted, it is as if that sub-state was never instantiated. If the cause of the interruption makes it unnecessary to execute that sub-state, then model continues executing without it. If it is still required, it begins executed from scratch again at some future decision cycle.
+
+To help maintain this constraint, NGS creates the "return value" abstraction. Sub-states can return more than one value (which is why each requires a name) and can even return values that are generated in the code that creates the operator (this is useful mainly for process tagging). 
+
+A return value is a 4-tuple consisting of the following:
+* A name. Return value names form a sort of "definition" or "contract" between the code that creates (or calls) the decide operator and the code that executes the decide operator.
+* A parent object (an object that will receive the return value)
+* A parent attribute (the attribute that will receive the return value)
+* A value (the return value itself - either an atomic value or the id of an object)
+
+To make sub-states independent and modular, the production that creates a decide operator must specify the first three items -- the name, parent object, and parent attribute. These values are stored on the operator under the "return-values" attribute. S
+
+The "value" attribute is typically (though not always) created by the sub-state. Code that executes the sub-state creates the return value(s) and places them in a temporary holding location in the sub-state. In some cases, it is desirable to have a "fixed" return value - i.e. a return value that is decided on before the sub-state is executed but should only be set after the sub-state completes. The most common example of this is a flag that indicates the sub-state executed. In these cases, the code that creates the decide operator can provide a caller-defined return value (name, parent object, parent attribute, and value) that will be put in the return value storage area and copied to the destination (the parent object) when the sub-state returns.
+
+NGS library code actually implements the return process as follows:
+* Upon entering the sub-state, the NGS library proposes an operator named: `ngs-op-copy-return-values-to-destination`. 
+* This operator is given least (<) preference such that as long other operators are proposed, it will not be selected. 
+* Once other operators execute (presumably setting the return values), this operator is selected and its single apply production copies all return values to their associated parent objects/attributes in one step.
+
+The one weakness of this approach is that it is possible for the sub-state to fail, the `ngs-op-copy-return-values-to-destination` to execute, and the sub-state to return after not actually doing what was intended. A later version of NGS may incorporate better handling (or at least error reporting) when this occurs. Currently, this is likely to cause a state no change in the sub-state because a failure in the sub-state will often prevent the retraction condition for the decide operator's proposal production from matching.
+
+#### Creating a Decide Operator
+
+Creating a decide operator is straightforward. Use the `ngs-create-decide-operator` macro as follows:
+
+```
+# Minimal decide operator creation example (no return values)
+sp "sample*create-decide-operator
+  [ngs-match-goal <s> MyGoalType <g>]
+  [ngs-is-not-tagged <g> i-am-done-flag]
+  ... (test some other things that trigger the decide operator)
+-->
+  [ngs-create-decide-operator <s> decide-operator-name <o> <return-values> <g> i-am-done-flag]"
+
+```
+
+This example shows a minimal construction for creating a decide operator.  
+
+Decide operators have user-defined names (unlike atomic operators, which are named using an NGS-defined naming pattern). You can use this name to give the process and simple, human understandable label for the action being performed by the operator. This name is not used by NGS, but is likely to be used by your code that implements the sub-state.
+
+Since sub-states almost always create at least one return values, the `ngs-create-decide-operator` macro constucts a return value set on the operator and provides a convenient binding to that set in the macro. In the next example, we will show how to use the variable bound to this set.
+
+The next parameter is the decide operator's goal. _All_ decide operators are associated with a goal, which becomes the "active" goal when the operator is selected. The active goal is made directly available in the sub-state when the operator no changes. Because of this, almost all decide operator proposal productions will begin with `ngs-match-goal` or one of the other goal matching macros.
+
+Finally, the `ngs-create-decide-operator` macro provides an optional parameter -- the name of a boolean tag that should be created on the active goal (`<g>` in this case) upon returning from the sub-state generated by the decide operator. This tag is typically used to force retraction of the operator that proposes the decide operator, after the operator execute (i.e. it signals that the system is done executing the sub-state).  Behind the scenes, NGS  creates a return value that creates this tag in the operators return value set. Since this action is so common, that the steps to do it are abstracted.
+
+Because most decide operators generate sub-states with at least one return value, most decide operator proposals a a bit more complex. Here, for example, is a production from a real model that proposes to handle a message that tells a vehicle to change formation.
+
+```
+sp "achieve-message-handled*propose*handle-change-formation-message
+	[ngs-match-goal <s> AchieveMessageHandled <g>]
+	[ngs-bind <s> robo-agent.current-commands]
+	[ngs-bind <g> message!ChangeFormationMessage.payload]
+	[ngs-is-not-tagged <g> message-copied]
+-->
+	[ngs-create-decide-operator <s> handle-formation-change-message <o> <ret-vals> <g> message-copied]
+	[ngs-create-ret-val-in-place payload <ret-vals> <current-commands> change-formation]
+	[ngs-tag <o> $RS_DEEP_COPY_MESSAGE]"
+```
+
+The first line and the last line of the left hand side follow the same pattern expressed in the first example. The `[ngs-bind <s> robo-agent.current-commands]` binds to the location where the return value (the message payload) should be placed after it is handled.  The `[ngs-bind <g> message!ChangeFormationMessage.payload]` defines the condition under which this should happen; i.e. when a message of type ChangeFormationMessage is recieved.
+
+The key addition to the right hand side is the line:
+
+```
+[ngs-create-ret-val-in-place payload <ret-vals> <current-commands> change-formation]
+```
+
+The `ngs-create-ret-val-in-place` macro constructs a return value description on the operator. This description tells the sub-state code where to put the return value, which in this case is named `payload` (the first parameter to the macro). In English, this macro says to do the following:
+
+Link the return value called "payload" to the object bound to `<current-commands>` under the attribute "change-formation".  The `<ret-vals>` variable is the same variable that is bound to the return value set in the `ngs-create-decide-operator` macro.
+
+The `ngs-tag` statement is an additional parameter that the sub-state code will use to control the processing of the message.  Decide operators can have any number and type of parameters. These parameters are automatically copied to to the sub-state under the "params" attribute.
 
 
-## Decide Operators <a id="decide"></a>
+### "Active" Goals
 
+NGS defines an "active" goal as one for which action is being taken in a substate. 
 
+### Decision Goals
+
+To be completed
 ___
 
 
@@ -1081,8 +1195,7 @@ ___
  * Goal declaration
  * Creating goals
  * Removing goals
- * Goal matching
- * "Active" goal
+ * Goal matchinge * "Active" goal
  * Common goal tags
 
 * JC: Decide Operators
