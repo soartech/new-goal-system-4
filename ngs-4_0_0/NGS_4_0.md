@@ -8,7 +8,7 @@
 1. [Production Left Hand Sides](#lhs)
 1. [Common actions](#actions)
 1. [NGS Goals](#goals)
-1. [Decide Operators] (#decide)
+1. [Decide Operators](#decide)
 
 ## Introduction <a id="introduction"></a>
 ### What is NGS 4?
@@ -872,7 +872,7 @@ top-state
 The <goal-index> is  a sub-pool where goals that share the same index value are stored. Goals are indexed as follows:
 * Their most-derived type. When goals are created, they are placed in the pool indexed by their most derived type. 
 * Their sub-types. Goals are shallow copied into pools based on their base types (all of them).
-* Their declared decisions. When goals are being used to make explicit decisions (see ###), they are also shallow copied into pools based on their requested decisions.
+* Their declared decisions. When goals are being used to make explicit decisions (see [Decide Operators](#decide)), they are also shallow copied into pools based on their requested decisions.
 
 These indices ensure that goal pools stay small (increasing match speed) and for flexibility and generality in how goals can be referenced.
 
@@ -894,7 +894,7 @@ NGS Goals are typed objects and share the same basic structure as all other type
   ^supergoal								# If this is the subgoal of another goal
   ^subgoal									# If this goal has subgoal(s) - multi-valued
   ^type $NGS_GB_ACHIEVE | $NGS_GB_MAINT   	# Specify achievement/maintenance goals
-  ^__tagged*ngs*$NGS_GS_ACHIEVED            # If the goal is achieved
+  ^__tagged*ngs*$NGS_GS_ACHIEVED			# If the goal is achieved
   ^__tagged*ngs*$NGS_GS_ACTIVE				# If the goal is active in a sub-state
 ```
 
@@ -921,9 +921,9 @@ NGS_DeclareGoal MyDerivedGoalType2 {
 }
 ```
 
-This macro expands into several productions that maintain the goal pool associated with goals of this type. These productions also manage the subgoal/supergoal links, propagate achievement flags, remove achieved goals, and maintain goal decision info (see ###).
+This macro expands into several productions that maintain the goal pool associated with goals of this type. These productions also manage the subgoal/supergoal links, propagate achievement flags, remove achieved goals, and maintain goal decision info (see [Decide Operators](#decide)).
 
-Goals of type $NGS\_GB\_ACHIEVE will automatically be removed if they are marked as achieved (see `ngs-tag-goal-achieved`). Your code is responsible for tagging goals as achieved, but the NGS library will clean up these achieved goals automatically, if they are o-supported. When achieved goals form a hierarchy, achievement of a goal higher in the hierarchy will cause all goals lower in the hierarchy to be automatically removed.
+Goals of type `$NGS_GB_ACHIEVE` will automatically be removed if they are marked as achieved (see `ngs-tag-goal-achieved`). Your code is responsible for tagging goals as achieved, but the NGS library will clean up these achieved goals automatically, if they are o-supported. When achieved goals form a hierarchy, achievement of a goal higher in the hierarchy will cause all goals lower in the hierarchy to be automatically removed.
 
 Alternatively, you can i-support your goals, in which case the LHS logic of your goal creation productions should include the achievement condition such that the goal will automatically retract when it is achieved.
 
@@ -939,7 +939,7 @@ Goals can be created in three different ways depending on how you intend to buil
 
 **Limitation**: There is currently no way to construct a goal in a "latent" state (i.e. a state where it isn't in a goal pool) and then activate it (i.e. move it to the goal pool) later. This type of creation/activation process could be helpful for planning process that might create goals and later activate them.
 
-(**NOTE**: The actual structure of a value returned from a sub-state is determined by the _justification_ that Soar creates to support the value that is created. See the Soar Manual for more details.).
+(**NOTE**: The actual support of a value returned from a sub-state is determined by the _justification_ that Soar creates to support the value that is created. The vast majority of cases will likely get O-Support, even if you use an I-Supported rule to create the result. See the Soar Manual for more details.).
 
 **Creating I-Supported Goal**
 
@@ -974,7 +974,7 @@ sp "achieve-modified-wedge-formation*trigger*for-maneuver-task
 	... (additional construction code)"
 ``` 
 
-Notice in the second example that two goal types are provided. The first goal type is the type of the _supergoal_ while the second goal type is the type of the goal you want to create. Because the production itself is constructing the goal, the last parameter of ngs-match-goal-to-create-subgoal is an identifier to the goalpool for this second goal type. This goal pool identifier (here, \<goals>) is used in the right hand side to construct the goal.
+Notice in the second example that two goal types are provided. The first goal type is the type of the _supergoal_ while the second goal type is the type of the goal you want to create. Because the production itself is constructing the goal, the last parameter of ngs-match-goal-to-create-subgoal is an identifier to the goalpool for this second goal type. This goal pool identifier (here, `<goals>`) is used in the right hand side to construct the goal.
 
 **Creating and Removing O-Supported Goals**
 
@@ -984,7 +984,7 @@ To create an o-supported goal use the following macro on the right hand side of 
 [ngs-create-goal-by-operator <state> MyGoalType $NGS_GB_ACHIEVE <new-goal> <supergoal> { goal-attr-1 val1 goal-attr-2 val2 ... } preferences]
 ```
 
-Because the production creates an operator preference, it's right hand side changes will be o-supported. Unlike with the i-supported version, you do not have to bind to the goal pool on the left hand side. The operator application productions in the NGS library do that for you.  Here is how the two i-supported productions above might look if they used o-supported goals:
+Because the production creates an operator, its right-hand side changes will be o-supported (more accurately, NGS creates the goal via an operator apply behind the scenes). Unlike with the i-supported version, you do not have to bind to the goal pool on the left hand side. The operator application productions in the NGS library do that for you.  Here is how the two i-supported productions above might look if they used o-supported goals:
 
 ```
 # Standalone goal construction
@@ -1026,7 +1026,7 @@ To create a goal that will be placed in the goal pool after a substate completes
 [ngs-create-goal-as-return-value <state> MyGoalType $NGS_GB_ACHIEVE <new-goal> <supergoal> { goal-attr-1 val1 goal-attr-2 val2 ... } preferences]
 ```
 
-The parameters are identical to `ngs-create-goal-by-operator` with the only different being the behavior of the operator that it creates. Rather than placing the goal immediately into the goal pool, it will place in the sub-state's return value set. Then, when the sub-state completes and its values are returned, NGS library productions will copy the goal into the goal pool at the same time the rest of the return values are set.
+The parameters are identical to `ngs-create-goal-by-operator` with the only difference being the behavior of the operator that it creates. Rather than placing the goal immediately into the goal pool, it will place in the sub-state's return value set. Then, when the sub-state completes and its values are returned, NGS library productions will copy the goal into the goal pool at the same time the rest of the return values are set.
 
 Because goals returned from sub-state using this method are o-supported, you will need to ensure these goals get removed through one of the removal methods discussed for o-supported goals above.
 
@@ -1035,8 +1035,8 @@ Because goals returned from sub-state using this method are o-supported, you wil
 Goals define the context for agent behavior and, as such, often are the trigger and key matching object in a production. NGS has several macros to support matching goals in common contexts.  We divide our discussion of these macros across three common use cases:
 
 * Matching goals in the top state. Typically this is done to trigger actions and to create sub-goals.
-* Matching goals in sub-states. Typically this is done to trigger a multi-step process when using Decide Operators (see Decide Operators below).
-* Matching a special category of goal call "Decision Goals." These goals are discussed in a separate section.
+* Matching goals in sub-states. Typically this is done to trigger a multi-step process when using Decide Operators (see [Decide Operators](#decide) below).
+* Matching a special category of goal call "Decision Goals." These goals are discussed in a separate section ([Decide Operators](#decide)).
 
 #### Top-state Goal Matching
 
@@ -1054,19 +1054,19 @@ Two other macros can be used for productions that need to bind to existing goals
 [ngs-match-goal <s> MyGoalType <g>]
 ```
 
-This macro is used frequently as the primary way to productions to only fire in support of a goal.
+This macro is used frequently as the primary way to create productions to only fire in support of a goal.
 
-To create an i-supported sub-goal, use the `ngs-match-goal-to-create-subgoal` macro, which provides a convenient way to bind both to the supergoal instances and to the sub-goal pool.
+To create an i-supported sub-goal, use the `ngs-match-goal-to-create-subgoal` macro, which provides a convenient way to bind both to the supergoal instances and to the subgoal pool.
 
 ```
-[ngs-match-goal-to-create-subgoal <s> SuperGoalType <supergoal> SubGoalType <sub-goal-pool>]
+[ngs-match-goal-to-create-subgoal <s> SuperGoalType <supergoal> SubGoalType <subgoal-pool>]
 ```
 
-The `<sub-goal-pool>` variable should be passed as the goal pool identifier to the `ngs-create-goal-in-place` macro on the right hand side of the production that creates the sub-goal.  The `<supergoal>` variable is passed as the supergoal identifier.
+The `<subgoal-pool>` variable should be passed as the goal pool identifier to the `ngs-create-goal-in-place` macro on the right hand side of the production that creates the sub-goal.  The `<supergoal>` variable is passed as the supergoal identifier.
 
 ## Decide Operators, Active Goals and Decision Goals <a id="decide"></a>
 
-For most behavior models, the decision they make are the centerpiece of the model. Because decisions are so important and central, NGS provides some support to make the decision making process simpler, less error prone, and most consistent.  The key elements NGS defines to support decision making are as follows:
+For most behavior models, the decision they make are the centerpiece of the model. Because decisions are so important and central, NGS provides some support to make the decision making process simpler, less error prone, and most consistent. The key elements NGS defines to support decision making are as follows:
 
 * **Decide Operators**: Decide operators are operators that are not applied. They result in an operator no-change and the creation of a sub-state. These operators are called "decide" operators because typically the purpose of a sub-state is to make a decision after considering options. However, sub-states can also be used to implement more traditional software sub-routines and functions and decide operators can be used for this purpose as well.
 * **Active Goals**: An "active" goal is one that is attached to a decide operator. Essentially, an active goal is one that is being pursued through processes executing in the sub-state.
@@ -1079,21 +1079,21 @@ Decide operators are typically used in two ways:
 1. To execute a connected process that should complete in "one step" (all or nothing)
 1. To decide between multiple options. If this is your use case, consider using Decision Goals rather than decide operators directly. Decision goals use decide operators, but wrap them in a higher level abstraction which can make managing the decision easier.
 
-A decision operator is simply an operator that is not intended to be applied directly.  It is intended to no-change, producing a Soar sub-state. Decide operators and the sub-states they produce contain some common structures which can be used by other productions that execute the process that the decide operator represents. 
+A decide operator is simply an operator that is not intended to be applied directly.  It is intended to operator no-change, producing a Soar sub-state. Decide operators and the sub-states they produce contain some common structures which can be used by other productions that execute the process that the decide operator represents. 
 
 The structure of a decide operator is as follows:
 
 ```
 ^ operator
-^^ type             # NGS_OP_DECIDE
-^^ name 			# your name for the operator (the action/decision)
-^^ goal				# becomes the "active" goal if this operator is selected
-^^ return-values    # stores meta-information about the return values
+^^ type            # NGS_OP_DECIDE
+^^ name            # your name for the operator (the action/decision)
+^^ goal            # becomes the "active" goal if this operator is selected
+^^ return-values   # stores meta-information about the return values
 ```
 
-Whether a sub-state makes a decision or executes a process, it must produce a result in order to be useful (with the exception of, perhaps, a sub-state used to print something to the console). A _result_ is any change to working memory that is reachable through a top state WME. So for example, if a production adds the WME: `(S54 ^my-value 5)` to the sub-state S5, it is NOT creating a return value. However, if it adds the WME: `(G15 ^my-value *yes*)` to the goal G15 that is stored in the global NGS goal pool, the production IS creating a return value. 
+Whether a sub-state makes a decision or executes a process, it must produce a result in order to be useful (with the exception of, perhaps, a sub-state used to print something to the console). A _result_ is any change to working memory that is reachable through a `superstate` WME. So for example, if a production adds the WME: `(S54 ^my-value 5)` to the sub-state S54, it is NOT creating a return value. However, if it adds the WME: `(G15 ^my-value *yes*)` to the goal G15 that is stored in the global NGS goal pool, the production IS creating a return value. 
 
-Soar treats return values specially. All return values are associated with a _justification_ -- a production automatically created by the architecture based on the chain of WMEs that were tested in order to create the new value. Detailed discussion of justifications and how they impact the lifetime of return values is beyond the scope of this reference and the reader is referred to the Soar Manual for more information.
+Soar treats return values specially. All return values are associated with a _justification_ -- a production automatically created by the architecture based on the chain of WMEs that were tested in order to create the new value. The vast majority of cases will likely get O-Support, even if you use an I-Supported rule to create the result. Detailed discussion of justifications and how they impact the lifetime of return values is beyond the scope of this reference and the reader is referred to the Soar Manual for more information.
 
 One potential issue with sub-states is that they can create return values at any time. These return values can, in turn, trigger other actions (e.g. operator proposals/retractions) that can interrupt the execution of the sub-state. Furthermore, even if these return values don't cause the sub-state to interrupt, updates to the input link could do the same thing. 
 
@@ -1113,9 +1113,9 @@ A return value is a 4-tuple consisting of the following:
 * A parent attribute (the attribute that will receive the return value)
 * A value (the return value itself - either an atomic value or the id of an object)
 
-To make sub-states independent and modular, the production that creates a decide operator must specify the first three items -- the name, parent object, and parent attribute. These values are stored on the operator under the "return-values" attribute. S
+To make sub-states independent and modular, the production that creates a decide operator must specify the first three items -- the name, parent object, and parent attribute. These values are stored on the operator under the "return-values" attribute.
 
-The "value" attribute is typically (though not always) created by the sub-state. Code that executes the sub-state creates the return value(s) and places them in a temporary holding location in the sub-state. In some cases, it is desirable to have a "fixed" return value - i.e. a return value that is decided on before the sub-state is executed but should only be set after the sub-state completes. The most common example of this is a flag that indicates the sub-state executed. In these cases, the code that creates the decide operator can provide a caller-defined return value (name, parent object, parent attribute, and value) that will be put in the return value storage area and copied to the destination (the parent object) when the sub-state returns.
+The "value" attribute is typically (though not always) created by the sub-state. Code that executes the sub-state creates the return value(s) and places them in a temporary holding location in the sub-state. In some cases, it is desirable to have a "fixed" return value - i.e., a return value that is decided on before the sub-state is executed but should only be set after the sub-state completes. The most common example of this is a flag that indicates the sub-state executed. In these cases, the code that creates the decide operator can provide a caller-defined return value (name, parent object, parent attribute, and value) that will be put in the return value storage area and copied to the destination (the parent object) when the sub-state returns.
 
 NGS library code actually implements the return process as follows:
 * Upon entering the sub-state, the NGS library proposes an operator named: `ngs-op-copy-return-values-to-destination`. 
@@ -1143,11 +1143,11 @@ This example shows a minimal construction for creating a decide operator.
 
 Decide operators have user-defined names (unlike atomic operators, which are named using an NGS-defined naming pattern). You can use this name to give the process and simple, human understandable label for the action being performed by the operator. This name is not used by NGS, but is likely to be used by your code that implements the sub-state.
 
-Since sub-states almost always create at least one return values, the `ngs-create-decide-operator` macro constucts a return value set on the operator and provides a convenient binding to that set in the macro. In the next example, we will show how to use the variable bound to this set.
+Since sub-states almost always create at least one return values, the `ngs-create-decide-operator` macro constructs a return value set on the operator and provides a convenient binding to that set in the macro. In the next example, we will show how to use the variable bound to this set.
 
 The next parameter is the decide operator's goal. _All_ decide operators are associated with a goal, which becomes the "active" goal when the operator is selected. The active goal is made directly available in the sub-state when the operator no changes. Because of this, almost all decide operator proposal productions will begin with `ngs-match-goal` or one of the other goal matching macros.
 
-Finally, the `ngs-create-decide-operator` macro provides an optional parameter -- the name of a boolean tag that should be created on the active goal (`<g>` in this case) upon returning from the sub-state generated by the decide operator. This tag is typically used to force retraction of the operator that proposes the decide operator, after the operator execute (i.e. it signals that the system is done executing the sub-state).  Behind the scenes, NGS  creates a return value that creates this tag in the operators return value set. Since this action is so common, that the steps to do it are abstracted.
+Finally, the `ngs-create-decide-operator` macro provides an optional parameter -- the name of a boolean tag that should be created on the active goal (`<g>` in this case) upon returning from the sub-state generated by the decide operator. This tag is typically used to force retraction of the operator that proposes the decide operator, after the operator execute (i.e. it signals that the system is done executing the sub-state).  Behind the scenes, NGS  creates a return value that creates this tag in the operators return value set. Since this action is so common, the steps to do it are abstracted.
 
 Because most decide operators generate sub-states with at least one return value, most decide operator proposals a a bit more complex. Here, for example, is a production from a real model that proposes to handle a message that tells a vehicle to change formation.
 
@@ -1163,7 +1163,7 @@ sp "achieve-message-handled*propose*handle-change-formation-message
 	[ngs-tag <o> $RS_DEEP_COPY_MESSAGE]"
 ```
 
-The first line and the last line of the left hand side follow the same pattern expressed in the first example. The `[ngs-bind <s> robo-agent.current-commands]` binds to the location where the return value (the message payload) should be placed after it is handled.  The `[ngs-bind <g> message!ChangeFormationMessage.payload]` defines the condition under which this should happen; i.e. when a message of type ChangeFormationMessage is recieved.
+The first line and the last line of the left hand side follow the same pattern expressed in the first example. The `[ngs-bind <s> robo-agent.current-commands]` binds to the location where the return value (the message payload) should be placed after it is handled.  The `[ngs-bind <g> message!ChangeFormationMessage.payload]` defines the condition under which this should happen; i.e. when a message of type ChangeFormationMessage is received.
 
 The key addition to the right hand side is the line:
 
