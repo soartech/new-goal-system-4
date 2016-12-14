@@ -1418,7 +1418,7 @@ proc ngs-match-goal { state_id
 # goal_id - variable that will be bound to the goal of the given type
 # decision_obj - (Optional) variable that will be bound to the object that should recieve the decision's resulting action
 # decision_attr - (Optional) variable/constant that will be bound to the attribute that should recieve the decision's resulting action
-# replacement_behavior - (Optoinal) variable or constant bound to the replacement-behavior of the decision WME. See rhs-fragments.tcl
+# replacement_behavior - (Optional) variable or constant bound to the replacement-behavior of the decision WME. See rhs-fragments.tcl
 #                           for examples of how this is used. Typically you don't need to bind this since the infrastructure
 #                           handles it for you.
 # decision_name - (Optional) If provided, constrains the match to only be for goals that are deciding the given decision name.
