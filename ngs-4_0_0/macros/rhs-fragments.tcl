@@ -1486,7 +1486,7 @@ proc ngs-create-typed-object-for-ret-val { state_id
    set op_id $NGS_OP_ID
    set op_name [ngs-create-op-name "return-new-$type_name" $ret_val_name $new_obj_id]
 
-   return  "[ngs-create-atomic-operator $state_id $new_obj_id $op_id]
+   return  "[ngs-create-atomic-operator $state_id $op_name $op_id]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                           ^ret-val-name         $ret_val_name)
             [ngs-ocreate-typed-object-in-place $op_id new-obj $type_name $new_obj_id $attribute_list]
