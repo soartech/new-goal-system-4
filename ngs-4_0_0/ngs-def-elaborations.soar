@@ -1,13 +1,21 @@
 variable NGS_TAG_SELECTED_GOAL
 variable NGS_GS_ACTIVE
 variable NGS_TAG_CONSTRUCTED
+variable WM_GOAL_SET
+variable WM_CTX_GLOBAL_POOLS
 
 # Create the top level goal set for all NGS goals
-sp {ngs*core*goals*elaborate-goal-set-on-top-state
+sp "ngs*core*goals*elaborate-goal-set-on-top-state
   (state <s> ^superstate nil)
 -->
-  (<s> ^goals <gs>)
-}
+  [ngs-icreate-typed-object-in-place <s> $WM_GOAL_SET NGSGoalSet <gs>]
+"
+
+# Create the root location for global variable pools
+sp "ctxvar*elaborate*global-pools
+    [ngs-match-top-state <s>]
+-->
+    [ngs-icreate-typed-object-in-place <s> $WM_CTX_GLOBAL_POOLS Bag <poolset>]"
 
 # Marks a goal with the NGS_GS_ACTIVE tag after that
 #  goal is selected for execution in a substate

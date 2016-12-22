@@ -34,6 +34,40 @@ variable NGS_TYPE_DECISION_STRUCTURE
 variable NGS_OP_SIDE_EFFECT
 variable NGS_TYPE_OUTPUT_COMMAND
 
+# A few basic types
+#
+# Set contains multi-valued attributes (it is technically a set)
+#
+# HierarchicalSet is a bag that contains a collection of sets, where each collection is named
+#
+# Bag contains a collection of values, each with a different name and possibly 
+#  a different type. Bags are essentially hashtables in terms of structure/access.
+#
+# HierarchicalBag a bag where each member is itself a bag
+#
+NGS_DeclareType Set {}
+NGS_DeclareType HierarchicalSet { }
+NGS_DeclareType Bag {}
+NGS_DeclareType HierarchicalBag { }
+
+# Type to create context variable pools and indexes for these pools.
+#
+# See NGS_CreateGlobalContextVariablePool and NGS_CreateContextPoolCategories.
+# These types are used internally and should need to be used by user code in
+#  general.
+#
+NGS_DeclareType NGSContextVariablePool { type HierarchicalBag }
+NGS_DeclareType NGSContextVariableCategory { type Bag }
+
+# Type used for the global goal pool.
+#
+# User methods generally do not need to use this type at all, but if you
+#  inspect the top state's goal pool, you will see this type.
+#
+NGS_DeclareType NGSGoalSet {
+    type HierarchicalSet
+}
+
 # Type used to create return values in substate
 #
 # This type is only needed internally by other NGS code and doesn't need

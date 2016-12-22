@@ -1,0 +1,43 @@
+##!
+# @file
+#
+# @created jacobcrossman 20161222
+
+
+setup { 
+
+  source "common.soar"
+
+  NGS_DeclareGoal GoalWithContextVariables 
+
+}
+
+
+test create-global-pool-and-categories {
+
+    NGS_CreateGlobalContextVariablePool sample-pool { categoryA category-B CategoryC }
+
+    sp "test
+        [ngs-match-top-state <s> $WM_CTX_GLOBAL_POOLS.sample-pool]
+        [ngs-bind <sample-pool> categoryA category-B CategoryC]
+    -->
+        (pass)"
+
+}
+
+test create-goal-context-pool-and-categories {
+
+    sp "test*create-goal
+        [ngs-match-goalpool <s> <goals> GoalWithContextVariables]
+    -->
+        [ngs-create-goal-in-place <goals> GoalWithContextVariables $NGS_GB_ACHIEVE <g>]"
+
+    NGS_CreateContextPoolCategories GoalWithContextVariables { categoryA category-B CategoryC }
+
+    sp "test
+        [ngs-match-goal <s> GoalWithContextVariables <g>]
+        [ngs-bind <g> categoryA category-B CategoryC]
+    -->
+        (pass)"
+
+} 
