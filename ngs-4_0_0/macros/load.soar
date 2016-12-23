@@ -5,7 +5,6 @@ CORE_InternalSource type-declarations.tcl
 
 CORE_InternalSource lhs-fragments.tcl
 CORE_InternalSource rhs-fragments.tcl
-CORE_InternalSource context-variables.tcl
 
 CORE_InternalSource debug.tcl
 CORE_InternalSource ngs-production-template.tcl

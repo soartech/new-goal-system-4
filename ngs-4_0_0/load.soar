@@ -10,3 +10,5 @@ CORE_InternalSource ngs-goal-declarations.tcl
 CORE_InternalSource ngs-removal-applications.soar
 CORE_InternalSource ngs-standard-time-elaborations.soar
 CORE_InternalSource ngs-output-handling.soar
+
+CORE_LoadDir context-variables

@@ -6,8 +6,10 @@
     <member path="ngs-4_0_0" />
     <member path="ngs-4_0_0/_core" />
     <member path="ngs-4_0_0/macros" />
-    <member path="ngs-4_0_0/tests/common.soar" />
-    <member path="ngs-4_0_0/tests/helpers.tcl" />
+    <member path="ngs-4_0_0/tests" />
+    <member path="ngs-4_0_0/context-variables/context-variables.tcl" />
+    <member path="ngs-4_0_0/context-variables/load.soar" />
+    <member path="ngs-4_0_0/context-variables/stable-value.tcl" />
   </members>
 </soaragent>
 
