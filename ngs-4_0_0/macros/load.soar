@@ -8,3 +8,5 @@ CORE_InternalSource rhs-fragments.tcl
 
 CORE_InternalSource debug.tcl
 CORE_InternalSource ngs-production-template.tcl
+
+CORE_InternalSource stor.tcl
