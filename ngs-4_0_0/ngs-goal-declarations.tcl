@@ -39,6 +39,10 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   variable NGS_ACTIVATION_STATUS_RET_VAL
   variable NGS_TAG_SELECTION_STATUS
 
+  # This is not technically necessary, as NGS_DeclareType already does this and its the only thing referencing attribute_list,
+  # but this is just in case we ever use attribute_list elsewhere in this proc in the future.
+  set attribute_list [strip_comments $attribute_list]
+
   NGS_DeclareType $goal_type $attribute_list
 
   # Creates a bin to store goals of the given type
@@ -52,7 +56,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   # Adds the sub-goal attribute to a supergoal
   sp "ngs*core*goals*link-subgoal*$goal_type
 	[ngs-match-goal <s> $goal_type <g>]
-  [ngs-is-my-type <g> $goal_type]
+    [ngs-is-my-type <g> $goal_type]
 	[ngs-is-supergoal <g> <supergoal>]
   -->
 	(<supergoal> ^subgoal <g>)"

@@ -66,6 +66,8 @@
 #
 proc expand_variables { var_list } {
 	
+    set var_list [strip_comments $var_list]
+
 	# The variables in the list will not be declared in
 	#  the scope of this procedure, so we need to reference
 	#  each before we can substitute in the string
@@ -82,6 +84,14 @@ proc expand_variables { var_list } {
 	return [subst $var_list]
 
 }
+
+# this is a simple way of removing comments (adapted from http://wiki.tcl.tk/1669)
+# it will not work if there is a value that actually contains the # character (e.g., it doesn't check for escaping, etc.)
+# but that is extremely uncommon, so not be worth dealing with for now 
+proc strip_comments { arg } {
+    return [regsub -all {#.*?\n} $arg \n]
+}
+
 
 # Declares a type that can be used later in your code
 #
