@@ -164,4 +164,27 @@ NGS_DeclareType $NGS_OP_SIDE_EFFECT {
 NGS_DeclareType $NGS_TYPE_OUTPUT_COMMAND {}
 
 
+# Default type for sets
+NGS_DeclareType Set {}
 
+# Bags are like sets, but the indexes aren't multi-valued
+NGS_DeclareType Bag {}
+
+# The System Information
+# All times are milliseconds
+# Wall time is the system clock (on the computer that is running)
+# Sim time is the simulation time if running in simulation
+# Cycle count is the number of decision cycles
+#
+# Time is the vlaue for time you should use in your program. It will
+#  be as follows:
+#  - cycle-count * 50 if there is no sim-time or wall-time
+#  - sim-time if there is a sim-time
+#  - wall-time if there is a wall-time and no sim-time
+# 
+NGS_DeclareType SystemInformation {
+    wall-time ""
+    sim-time ""
+    cycle-count ""
+    time ""
+}

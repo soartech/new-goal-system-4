@@ -147,7 +147,7 @@ proc np { args } {
 	foreach id $args {
 		echo "+---------------------------------------+"
 		echo "+ OBJECT: $id"
-		p --tree --depth $depth $id
+		print --tree --depth $depth $id
 	}
 	echo "+---------------------------------------+"
 
