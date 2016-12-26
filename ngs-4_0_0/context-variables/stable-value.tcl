@@ -3,34 +3,60 @@
 #
 # @created jacobcrossman 20161223
 
-NGS_DeclareType ContextVariable {
-    value ""
-}
-
-NGS_DeclareType StableValue {
-    type ContextVariable
-    src-obj ""
-    src-attr ""
-    min-bound ""
-    max-bound ""
-    delta-type ""
-
-    delta ""
-
-    min-delta ""
-    max-delta ""
-
-    delta-src-obj ""
-    delta-src-attr ""
-}
-
-CORE_CreateMacroVar NGS_CTX_VAR_SUPPRESS_SAMPLING "suppress-sampling"
-
-CORE_CreateMacroVar NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE "absolute"
-CORE_CreateMacroVar NGS_CTX_VAR_DELTA_TYPE_PERCENT  "percent"
-
-# 
+# Creates a stable value context variable 
 #
+# A stable value is a value is a copy of a numeric value that updates only
+#  when the source numeric value changes more than a specified amount.
+#
+# You must define your stable value using NGS_DefineStableValue for the
+#  stable value to work.
+#
+# A stable value is instantiated with a source object and attribute. Do NOT bind to
+#  the source attribute on the LHS of the production that creates a stable value. If
+#  you do, the stable value will "blink" every time the source value changes, which 
+#  defeats the point of the stable value. Just bind to the source object and pass in
+#  the name of the attribute.
+#
+# Three forms are allowed:
+#
+# Form 1: Single delta (specify a single value for the delta parameter). In this case
+#           the stable value will change when the source value changes by more than this
+#           delta in either direction (lower or higher).
+#         E.g. [ngs-create-stable-value <my-pool> my-variable <src> attr-name 1]
+#
+# Form 2: Min/Max (specify a list with min and max value for the delta parameter). In this
+#           case the stable value will change when the source value is more than min lower
+#           than the current stable value or is more than max higher than the current stable
+#           value.
+#         E.g. [ngs-create-stable-value <my-pool> my-variable <src> attr-name {1 2}]
+#
+# Form 3: Single delta, dynamic source (specify a list with the delta source object and attribute)
+#           In this case the stable value will change when the source value changes by more than the
+#           amount bound to the deltal source object/attribute. Use this when the delta changes
+#           dynamimcally throughout the model's execution time.
+#         E.g. [ngs-create-stable-value <my-pool> my-variable <src> attr-name {<delta-src> delta-value}]
+#
+# All delta values (in all forms) can be absolute values or percentages. If they are percentages
+#  the delta values will be computed by multiplying the percentage values by the current
+#  stable value.
+#
+# See the stable-value tests in the ngs test directory
+#
+# [ngs-create-stable-value pool_id variable_name src_obj src_attr delta (variable_id) (delta_type)]
+#
+# pool_id - Variable bound to the identifier for the category pool into which to place the new
+#             stable value. Bind to this pool using one of the following macros:
+#             ngs-match-to-create-context-variable or ngs-match-goal-to-create-context-variable
+# variable_name - Name of the context variable that should be constructed
+# src_obj - Variable bound to the object containing the value to be sampled
+# src_attribute - Name of the attribute to sample (do NOT bind to this in the LHS)
+# delta - Either a constant/variable (Form 1), a list with a min/max (Form 2), or
+#          a list with a delta source obj/attr (Form 3). All forms specify the bounds
+#          on the stable-value, indicating when it will be resampled from the source value.
+# variable_id - (Optional) If provided, a variable that is bound to the newly created stable value.
+#                You can use this, for exmaple, to tag the variable.
+# delta_type - (Optional). The type of delta being used. Either NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE (default),
+#                or NGS_CTX_VAR_DELTA_TYPE_PERCENTAGE.
 #
 proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { variable_id "" } { delta_type "" } } {
 
@@ -70,7 +96,24 @@ proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { va
             $substructure"
 }
 
-# Production to create the variable so we can get the bindings
+# Declare and define a stable value
+#
+# Use this macro to declare and define the productions for a stable value.
+#
+# This macro instantiates productions that elaborate the min and max bounds on a stable
+#  value and that execute the sampling behavior whenever the source value changes
+#  beyond the min and max bounds
+#
+# You must call this macro for every stable value you wish to use in your program or
+#  that value will not properly update.
+#
+# NGS_DefineStableValue pool_name_or_goal_type category_name variable_name
+#
+# pool_name_or_goal_type - Either the global pool into which the variable will be placed
+#   type of goal onto which it will be placed (if it is a local context variable)
+# category_name - Name of the category into which to place the variable
+# variable_name - Name of the variable
+#
 proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name } {
 
     set goal_id <g>

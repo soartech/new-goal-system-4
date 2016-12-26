@@ -31,7 +31,7 @@
 # Working memory attributes that are commonly accessed
 CORE_CreateMacroVar WM_GOAL_SET "goals"
 CORE_CreateMacroVar WM_ACTIVE_GOAL "active-goal"
-CORE_CreateMacroVar WM_CTX_GLOBAL_POOLS "ctx-var-pools"
+
 
 CORE_CreateMacroVar NGS_OP_ATTRIBUTE "operator"
 CORE_CreateMacroVar NGS_OP_ID        "<o>"

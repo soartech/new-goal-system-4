@@ -1,0 +1,11 @@
+##!
+# @file
+#
+# @created jacobcrossman 20161226
+ variable WM_CTX_GLOBAL_POOLS
+
+# Create the root location for global variable pools
+sp "ctxvar*elaborate*global-pools
+    [ngs-match-top-state <s>]
+-->
+    [ngs-icreate-typed-object-in-place <s> $WM_CTX_GLOBAL_POOLS Bag <poolset>]"
