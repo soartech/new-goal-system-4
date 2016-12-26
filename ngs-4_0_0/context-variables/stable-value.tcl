@@ -13,7 +13,7 @@ NGS_DeclareType StableValue {
     src-attr ""
     min-bound ""
     max-bound ""
-    delta-units ""
+    delta-type ""
 
     delta ""
 
@@ -24,20 +24,25 @@ NGS_DeclareType StableValue {
     delta-src-attr ""
 }
 
-CORE_CreateMacroVar NGS_CTX_VAR_UNIT_ABSOLUTE "absolute"
-CORE_CreateMacroVar NGS_CTX_VAR_UNIT_PERCENT  "percent"
+CORE_CreateMacroVar NGS_CTX_VAR_SUPPRESS_SAMPLING "suppress-sampling"
 
-proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { variable_id "" } { delta_units "" } } {
+CORE_CreateMacroVar NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE "absolute"
+CORE_CreateMacroVar NGS_CTX_VAR_DELTA_TYPE_PERCENT  "percent"
+
+# 
+#
+#
+proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { variable_id "" } { delta_type "" } } {
 
     CORE_GenVarIfEmpty variable_id "variable"
 
-    variable NGS_CTX_VAR_UNIT_ABSOLUTE
-    CORE_SetIfEmpty delta_units $NGS_CTX_VAR_UNIT_ABSOLUTE ;# could also be NGS_CTX_VAR_UNIT_PERCENT
+    variable NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE
+    CORE_SetIfEmpty delta_type $NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE ;# could also be NGS_CTX_VAR_DELTA_TYPE_PERCENT
 
-    set root_obj "[ngs-icreate-typed-object-in-place $pool_id $variable_name StableValue $variable_id ]
+    set root_obj "[ngs-icreate-typed-object-in-place $pool_id $variable_name StableValue $variable_id]
                   [ngs-create-attribute $variable_id src-obj $src_obj]
                   [ngs-create-attribute $variable_id src-attr $src_attr]
-                  [ngs-create-attribute $variable_id delta-units $delta_units]"
+                  [ngs-create-attribute $variable_id delta-type $delta_type]"
 
 
     # Now, figure out what type of delta we have: (1) a constant (default), (2) a range, or
@@ -82,8 +87,8 @@ proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name 
                        [ngs-bind-ctx <s> $pool_name_or_goal_type $category_name:$cat_id $variable_name:$var_id]"
     }
 
-    variable NGS_CTX_VAR_UNIT_ABSOLUTE
-    variable NGS_CTX_VAR_UNIT_PERCENT
+    variable NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE
+    variable NGS_CTX_VAR_DELTA_TYPE_PERCENT
 
     #################################################################################################################
     # Productions that maintain the min and max bounds under different conditions
@@ -91,7 +96,7 @@ proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name 
     # Production for when only a single delta is provided
     sp "ctxvar*elaborate*stable-value*min-max-bounds*$pool_name_or_goal_type*$category_name*$variable_name*absolute*delta-only
         $root_bind
-        [ngs-bind $var_id value delta delta-units:$NGS_CTX_VAR_UNIT_ABSOLUTE]
+        [ngs-bind $var_id value delta delta-type:$NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE]
     -->
         [ngs-create-attribute $var_id min-bound "(- <value> <delta>)"]
         [ngs-create-attribute $var_id max-bound "(+ <value> <delta>)"]"
@@ -100,7 +105,7 @@ proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name 
     sp "ctxvar*elaborate*stable-value*min-max-bounds*$pool_name_or_goal_type*$category_name*$variable_name*absolute*min-max-delta
         $root_bind
         [ngs-nex $var_id delta]
-        [ngs-bind $var_id value min-delta max-delta delta-units:$NGS_CTX_VAR_UNIT_ABSOLUTE]
+        [ngs-bind $var_id value min-delta max-delta delta-type:$NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE]
     -->
         [ngs-create-attribute $var_id min-bound "(- <value> <min-delta>)"]
         [ngs-create-attribute $var_id max-bound "(+ <value> <max-delta>)"]"
@@ -109,7 +114,7 @@ proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name 
         $root_bind
         [ngs-nex $var_id delta]
         [ngs-nex $var_id min-delta]
-        [ngs-bind $var_id value delta-src-obj delta-src-attr delta-units:$NGS_CTX_VAR_UNIT_ABSOLUTE]
+        [ngs-bind $var_id value delta-src-obj delta-src-attr delta-type:$NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE]
         (<delta-src-obj> ^<delta-src-attr> <delta-src-val>)
     -->
         [ngs-create-attribute $var_id min-bound "(- <value> <delta-src-val>)"]
@@ -118,7 +123,7 @@ proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name 
     # Production for when only a single delta is provided
     sp "ctxvar*elaborate*stable-value*min-max-bounds*$pool_name_or_goal_type*$category_name*$variable_name*percent*delta-only
         $root_bind
-        [ngs-bind $var_id value delta delta-units:$NGS_CTX_VAR_UNIT_PERCENT]
+        [ngs-bind $var_id value delta delta-type:$NGS_CTX_VAR_DELTA_TYPE_PERCENT]
     -->
         [ngs-create-attribute $var_id min-bound "(- <value> (* <delta> <value>))"]
         [ngs-create-attribute $var_id max-bound "(+ <value> (* <delta> <value>))"]"
@@ -127,7 +132,7 @@ proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name 
     sp "ctxvar*elaborate*stable-value*min-max-bounds*$pool_name_or_goal_type*$category_name*$variable_name*percent*min-max-delta
         $root_bind
         [ngs-nex $var_id delta]
-        [ngs-bind $var_id value min-delta max-delta delta-units:$NGS_CTX_VAR_UNIT_PERCENT]
+        [ngs-bind $var_id value min-delta max-delta delta-type:$NGS_CTX_VAR_DELTA_TYPE_PERCENT]
     -->
         [ngs-create-attribute $var_id min-bound "(- <value> (* <min-delta> <value>))"]
         [ngs-create-attribute $var_id max-bound "(+ <value> (* <max-delta> <value>))"]"
@@ -136,7 +141,7 @@ proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name 
         $root_bind
         [ngs-nex $var_id delta]
         [ngs-nex $var_id min-delta]
-        [ngs-bind $var_id value delta-src-obj delta-src-attr delta-units:$NGS_CTX_VAR_UNIT_PERCENT]
+        [ngs-bind $var_id value delta-src-obj delta-src-attr delta-type:$NGS_CTX_VAR_DELTA_TYPE_PERCENT]
         (<delta-src-obj> ^<delta-src-attr> <delta-src-val>)
     -->
         [ngs-create-attribute $var_id min-bound "(- <value> (* <delta-src-val> <value>))"]
@@ -146,10 +151,23 @@ proc NGS_DefineStableValue { pool_name_or_goal_type category_name variable_name 
     # Propose to change the stable-value when it goes out of bounds. This will trigger
     # elaboration of new bounds
 
+    variable NGS_CTX_VAR_SUPPRESS_SAMPLING
+
+    sp "ctxvar*propose*stable-value*init-value*$pool_name_or_goal_type*$category_name*$variable_name
+        $root_bind
+        [ngs-nex $var_id value]
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+        [ngs-bind $var_id src-obj src-attr]
+        (<src-obj> ^<src-attr> <src-val>)
+     -->
+        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]"
+
     sp "ctxvar*propose*stable-value*update-value*$pool_name_or_goal_type*$category_name*$variable_name
         $root_bind
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
         [ngs-bind $var_id min-bound max-bound src-obj src-attr]
-        [ngs-or [ngs-lt <src-obj> <src-attr> <min-bound>] \
+        [ngs-or [ngs-nex $var_id value] \
+                [ngs-lt <src-obj> <src-attr> <min-bound>] \
                 [ngs-gt <src-obj> <src-attr> <max-bound>]]
         (<src-obj> ^<src-attr> <src-val>)
      -->

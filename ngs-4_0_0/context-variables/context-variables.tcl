@@ -131,7 +131,7 @@ proc NGS_CreateContextPoolCategories { pool_name_or_goal_type list_of_categories
 #                                                      
 # Here's a complex example that tests velocity's value and binds the agent-position
 #
-# [ngs-bind-ctx <s> my-agent-pool agent-state:<state> velocity:>:2.0 agent-position "x::<x-pos> y::<y-pos>"]
+# [ngs-bind-ctx <s> my-agent-pool agent-state:<state> velocity:>,2.0 agent-position "x::<x-pos> y::<y-pos>"]
 #
 # 
 # [ngs-bind-ctx <s> pool_name (category_1) (variable_test_or_list1) (category2) (variable_test_or_list2) ...]
@@ -220,6 +220,33 @@ proc ngs-match-goal-to-create-context-variable { state_id goal_type goal_id cate
     }
     return "$lhs_ret
             [ngs-bind-goal-ctx $goal_id $category_name]"
+}
+
+# Suppress sampling on a context variable
+#
+# Suppressing sampling means that the underlying source variable will not be sampled
+#  even if the sampling conditions are otherwise matching. Use this method when
+#  some condition makes the sampling undesirable or invalid. For example, you might
+#  choose to sample the heading of a vehicle when the vehicle is moving,. In this case
+#  you'd suppress sampling of the heading when the velocity is at or near zero.  
+#
+# Note that this flag should be asserted via i-support (there is no o-support version).
+#
+# Suppression only works for sampled variables. The following are sampled variables
+#  * Stable Values
+#  * Time Sampled Values
+#  * Conditionally Sampled Values 
+#
+# Binned values are not sampled variables (they are inferred values), so this method does
+#  not affect them.
+# 
+# [ngs-suppress-context-variable-sampling var_id]
+#
+# var_id - A variable bound to the context-variable for which to suppress sampling. While
+#   this is asserted, the value attribute of var_id will not change.
+#
+proc ngs-suppress-context-variable-sampling { var_id } {
+    return [ngs-tag $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
 }
 
 # Internal procedures to expand the args for ngs-bind-ctx and ngs-bind-goal-ctx 

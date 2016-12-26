@@ -19,7 +19,7 @@ FailAfterNDecisionCycles 100
 sp "unit-test*create-system-attribute
     (state <s> ^$WM_INPUT_LINK <il>)
 -->
-    (<il> ^system <sys>)"
+    [ngs-icreate-typed-object-in-place <il> system SystemInformation <sys>]"
 
 sp "unit-test*elaborate-unit-test-cycle-count
     (state <s> ^$WM_INPUT_LINK <il>)

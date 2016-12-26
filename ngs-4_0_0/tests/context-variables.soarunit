@@ -41,3 +41,72 @@ test create-goal-context-pool-and-categories {
         (pass)"
 
 } 
+
+test stable-value {
+
+    NGS_CreateGlobalContextVariablePool sample-pool categoryA
+    NGS_DefineStableValue sample-pool categoryA slow-value-single-delta
+    NGS_DefineStableValue sample-pool categoryA slow-value-min-max
+    NGS_DefineStableValue sample-pool categoryA slow-value-delta-src
+    NGS_DefineStableValue sample-pool categoryA slow-value-single-delta-pct
+    NGS_DefineStableValue sample-pool categoryA slow-value-min-max-pct
+    NGS_DefineStableValue sample-pool categoryA slow-value-delta-src-pct
+
+    sp "test*create-delta
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-create-attribute <s> delta 1.5]
+        [ngs-create-attribute <s> delta-pct 0.5]"
+
+    sp "test*rapid-sample-value
+        [ngs-match-top-state <s>]
+        [ngs-time <s> <time>]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> rapid-value "(/ <time> 1000)" {} "+ < ="]"
+
+
+    sp "test*create-stable-value*single-delta
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
+    -->
+        [ngs-create-stable-value <pool> slow-value-single-delta <s> rapid-value 1.0]"
+
+    sp "test*create-stable-value*min-max
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
+    -->
+        [ngs-create-stable-value <pool> slow-value-min-max <s> rapid-value { 1.0 0.75 }]"
+
+    sp "test*create-stable-value*delta-source
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]
+    -->
+        [ngs-create-stable-value <pool> slow-value-delta-src <s> rapid-value { <s> delta }]"
+
+
+# These are the percentage versions
+    sp "test*create-stable-value*single-delta*percent
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
+    -->
+        [ngs-create-stable-value <pool> slow-value-single-delta-pct <s> rapid-value 0.8 {} $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
+
+    sp "test*create-stable-value*min-max*percent
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
+    -->
+        [ngs-create-stable-value <pool> slow-value-min-max-pct <s> rapid-value { 1.0 0.75 } {} $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
+
+    sp "test*create-stable-value*delta-source*percent
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]
+    -->
+        [ngs-create-stable-value <pool> slow-value-delta-src-pct <s> rapid-value { <s> delta-pct } {} $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
+
+    sp "test
+        [ngs-match-top-state <s>]
+        [ngs-bind-ctx <s> sample-pool categoryA {
+            slow-value-single-delta::4.25
+            slow-value-min-max:>=:4.15
+            slow-value-delta-src:~>=:4.75
+            slow-value-single-delta-pct:>:4.8
+            slow-value-min-max-pct:~<:4.5
+            slow-value-delta-src-pct:<>:3.54
+        }]
+    -->    
+        (pass)"
+}

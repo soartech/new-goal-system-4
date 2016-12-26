@@ -50,6 +50,15 @@ NGS_DeclareType HierarchicalSet { }
 NGS_DeclareType Bag {}
 NGS_DeclareType HierarchicalBag { }
 
+# The standard system information structure (contains times and cycle-counts)
+# The time attribute is computed using the productions in ngs-standard-time-elaborations.soar
+NGS_DeclareType SystemInformation {
+    cycle-count ""
+    sim-time ""
+    wall-time ""
+    time ""
+}
+
 # Type to create context variable pools and indexes for these pools.
 #
 # See NGS_CreateGlobalContextVariablePool and NGS_CreateContextPoolCategories.

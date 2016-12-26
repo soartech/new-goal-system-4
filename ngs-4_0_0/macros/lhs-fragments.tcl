@@ -358,14 +358,40 @@ proc ngs-not { args } {
 #
 # If you need any attribute to bind to a variable with a different name
 #  than the attribute, you can indicate this via the : symbol. E.g.
-#  [ngs-bind <input-link> system:<sys>.time:<my-time>] which will convert
-#  to the following Soar code:
+#
+#  [ngs-bind <input-link> system:<sys>.time:<my-time>] which will convert to:
+#
 #  (<input-link> ^system <sys>)
 #  (<sys>        ^time   <my-time>)
 #
-# Finally, if you want, you can constrain a binding to only occur
+# This works for comparison to constants as well. E.g.
+#
+#  [ngs-bind <input-link> system:<sys>.time:100] which will convert to 
+#
+#  (<input-link> ^system <sys>)
+#  (<sys>        ^time   100)
+#
+# You can also test constants for inequality (<>), or the standard inequalities.
+# To do this, use a double colon (:comparitor:value_or_variable). E.g.
+#
+# [ngs-bind <input-link> system.time:>:5] which will convert to
+#
+# (<intput-link> ^system <system>)
+# (<system>      ^time > 5)
+#
+# If your comparitor is prefixed with the ~ symbol, the system will use the stable
+#  version of the given inequality (this only works for inequalities). E.g.
+#
+# [ngs-bind <input-link> system.time:~>:5] which will convert to:
+#
+# (<intput-link> ^system <system>)
+# -(<system>      ^time <= 5)  
+# 
+# If you want, you can constrain a binding to only occur
 #  for attributes of a specific type using the ! operator. E.g.
+#
 #  [ngs-bind <input-link> agent!RobotAgent:<me>.location!Location] will expand to
+#
 #  (<input-link> ^agent <me>)
 #  (<me>         ^type RobotAgent)
 #  (<me>         ^location <location>)
@@ -406,11 +432,29 @@ proc ngs-bind { obj_id args } {
 
       # Handle renaming the attributes in variable names
       set names [split $segment ":"]
-      if { [llength $names] > 1} {
+      set names_length [llength $names]
+      if { $names_length == 1} {
+        set attr_name $segment
+        set comparitor ""
+        set negator ""
+      } elseif { $names_length == 2 } {
         set attr_name [lindex $names 0]
         set attr_var  [lindex $names 1]
-      } else {
-        set attr_name $segment
+        set comparitor ""
+        set negator ""
+      } elseif { $names_length == 3} {
+        set attr_name  [lindex $names 0]
+        set comparitor [lindex $names 1]
+        set attr_var   [lindex $names 2]
+
+        set negator ""
+        switch -exact $comparitor {
+          "~<"  { set comparitor ">="; set negator "-" }
+          "~<=" { set comparitor ">";  set negator "-"  }
+          "~>"  { set comparitor "<="; set negator "-" }                        
+          "~>=" { set comparitor "<";  set negator "-"  }        
+        }
+
       }
 
       # Handle case of testing the type
@@ -432,11 +476,12 @@ proc ngs-bind { obj_id args } {
       }
 
       # Add the given attribute test to the Soar code
+      set wme_test "($obj ^$attr_name $comparitor $attr_var)"
       if { $lhs_ret == "" } {
-        set lhs_ret "($obj ^$attr_name $attr_var)"
+        set lhs_ret  $negator$wme_test
       } else {
         set lhs_ret "$lhs_ret
-                     ($obj ^$attr_name $attr_var)"        
+                     $negator$wme_test"     
       }
 
       # Add a type test (if one was provided)
