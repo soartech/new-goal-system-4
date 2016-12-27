@@ -11,7 +11,7 @@ watch 1
 
 
 # fail faster than the default (which is 50000 dcs)
-FailAfterNDecisionCycles 100
+FailAfterNDecisionCycles 500
 
 ##########################################
 # Basic input link stuff

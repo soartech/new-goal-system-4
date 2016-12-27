@@ -58,7 +58,7 @@
 # delta_type - (Optional). The type of delta being used. Either NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE (default),
 #                or NGS_CTX_VAR_DELTA_TYPE_PERCENTAGE.
 #
-proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { variable_id "" } { delta_type "" } } {
+proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { delta_type "" } { variable_id "" } } {
 
     CORE_GenVarIfEmpty variable_id "variable"
 
@@ -66,6 +66,7 @@ proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { va
     CORE_SetIfEmpty delta_type $NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE ;# could also be NGS_CTX_VAR_DELTA_TYPE_PERCENT
 
     set root_obj "[ngs-icreate-typed-object-in-place $pool_id $variable_name StableValue $variable_id]
+                  [ngs-create-attribute $variable_id name $variable_name]
                   [ngs-create-attribute $variable_id src-obj $src_obj]
                   [ngs-create-attribute $variable_id src-attr $src_attr]
                   [ngs-create-attribute $variable_id delta-type $delta_type]"

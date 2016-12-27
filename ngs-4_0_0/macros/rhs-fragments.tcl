@@ -756,6 +756,24 @@ proc ngs-create-operator { state_id
     
 }
 
+# Create a binary preference between two operators
+#
+# A binary preference indicates that one operator is prefered over another
+#  and thus should be selected to execute before the other.
+#
+# Use the macro ngs-match-two-proposed-operators to bind the better and worse
+#  operators on the left hand side.
+#
+# [ngs-prefer-operator state_id better_op_id worse_op_id]
+#
+# state_id - variable bound to the state in which the operators are proposed
+# better_op_id - Variable bound to the operator that is better (and should be selected) 
+# worse_op_id - Variable bound to the operator that is worse (not be be selected) 
+                                                          #
+proc ngs-prefer-operator { state_id better_op_id worse_op_id } {
+    return "($state_id ^operator $better_op_id > $worse_op_id)"
+}                                                                                                                  
+                                                               
 # Create an atomic operator
 #
 # An atomic operator has the type set to NGS_OP_ATOMIC. Atomic

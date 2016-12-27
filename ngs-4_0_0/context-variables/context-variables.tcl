@@ -71,14 +71,14 @@ proc NGS_CreateContextPoolCategories { pool_name_or_goal_type list_of_categories
         set rhs_code ""
     }
 
-    set name_suffix ""
+    set name_suffix $pool_name_or_goal_type
     foreach category_name $list_of_categories {
         set name_suffix "$name_suffix*$category_name"
         set rhs_code "$rhs_code
                       [ngs-icreate-typed-object-in-place <pool> $category_name NGSContextVariableCategory <$category_name>]"
     }
 
-    sp* "ctxvar*elaborate*categories$name_suffix
+    sp "ctxvar*elaborate*categories$name_suffix
         $root_bind
     -->
         $rhs_code"
@@ -199,7 +199,7 @@ proc ngs-match-to-create-context-variable { state_id pool_name category_name { i
 #  your new context variable. The category pool soar variable will be <category_name>
 #  unless you specify a different name using the ngs-bind syntax - category_name:<my-var-name>
 #  
-# [ngs-match-goal-to-create-context-variable goal_id category_name (input_link_id)]
+# [ngs-match-goal-to-create-context-variable state_id goal_type goal_id category_name (input_link_id)]
 #
 # 
 # state_id - A variable bound to the top state

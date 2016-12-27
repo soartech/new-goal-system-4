@@ -379,6 +379,10 @@ proc ngs-not { args } {
 # (<intput-link> ^system <system>)
 # (<system>      ^time > 5)
 #
+# Because the '.' is used to separate attributes, it cannot be used as a decimal
+# If you need a number with a decimal, use the comma '," instead. It will be replaced
+#  with a decimal during processing.
+#
 # If your comparitor is prefixed with the ~ symbol, the system will use the stable
 #  version of the given inequality (this only works for inequalities). E.g.
 #
@@ -420,7 +424,9 @@ proc ngs-bind { obj_id args } {
     # Handles dot notation
     set segments [split $attr "."]
     foreach segment $segments {
- 
+
+      set segment [string map {"," "."} $segment]
+
       set attr_var ""
 
       # Handle tags (prefixed with @)
@@ -2119,7 +2125,7 @@ proc ngs-match-two-proposed-operators { state_id
 
 
   set lhs_ret "(state $state_id ^operator $op1_id +
-							                  ^operator { $op2_id <> $op1_id } +)"
+			                    ^operator { $op2_id <> $op1_id } +)"
 
   if { $op1_tags != "" } {
     set lhs_ret "$lhs_ret

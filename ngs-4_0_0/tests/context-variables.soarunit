@@ -8,14 +8,16 @@ setup {
 
   source "common.soar"
 
+  NGS_CreateGlobalContextVariablePool sample-pool { categoryA category-B CategoryC }
+
   NGS_DeclareGoal GoalWithContextVariables 
+  NGS_CreateContextPoolCategories GoalWithContextVariables { categoryA category-B CategoryC }
 
 }
 
 
 test create-global-pool-and-categories {
 
-    NGS_CreateGlobalContextVariablePool sample-pool { categoryA category-B CategoryC }
 
     sp "test
         [ngs-match-top-state <s> $WM_CTX_GLOBAL_POOLS.sample-pool]
@@ -32,7 +34,6 @@ test create-goal-context-pool-and-categories {
     -->
         [ngs-create-goal-in-place <goals> GoalWithContextVariables $NGS_GB_ACHIEVE <g>]"
 
-    NGS_CreateContextPoolCategories GoalWithContextVariables { categoryA category-B CategoryC }
 
     sp "test
         [ngs-match-goal <s> GoalWithContextVariables <g>]
@@ -44,7 +45,6 @@ test create-goal-context-pool-and-categories {
 
 test stable-value {
 
-    NGS_CreateGlobalContextVariablePool sample-pool categoryA
     NGS_DefineStableValue sample-pool categoryA slow-value-single-delta
     NGS_DefineStableValue sample-pool categoryA slow-value-min-max
     NGS_DefineStableValue sample-pool categoryA slow-value-delta-src
@@ -85,17 +85,17 @@ test stable-value {
     sp "test*create-stable-value*single-delta*percent
         [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
     -->
-        [ngs-create-stable-value <pool> slow-value-single-delta-pct <s> rapid-value 0.8 {} $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
+        [ngs-create-stable-value <pool> slow-value-single-delta-pct <s> rapid-value 0.8 $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
 
     sp "test*create-stable-value*min-max*percent
         [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
     -->
-        [ngs-create-stable-value <pool> slow-value-min-max-pct <s> rapid-value { 1.0 0.75 } {} $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
+        [ngs-create-stable-value <pool> slow-value-min-max-pct <s> rapid-value { 1.0 0.75 } $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
 
     sp "test*create-stable-value*delta-source*percent
         [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]
     -->
-        [ngs-create-stable-value <pool> slow-value-delta-src-pct <s> rapid-value { <s> delta-pct } {} $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
+        [ngs-create-stable-value <pool> slow-value-delta-src-pct <s> rapid-value { <s> delta-pct } $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
 
     sp "test
         [ngs-match-top-state <s>]
@@ -107,6 +107,119 @@ test stable-value {
             slow-value-min-max-pct:~<:4.5
             slow-value-delta-src-pct:<>:3.54
         }]
+    -->    
+        (pass)"
+}
+
+test dynamic-binned-value {
+
+    NGS_DefineDynamicBinValue sample-pool categoryA binned-time-single-delta
+    NGS_DefineDynamicBinValue sample-pool categoryA longitudinal-pos-to-leader
+    NGS_DefineDynamicBinValue sample-pool categoryA my-speed
+    NGS_DefineDynamicBinValue GoalWithContextVariables category-B how-cold-is-it
+
+    sp "test*rapid-sample-value
+        [ngs-match-top-state <s>]
+        [ngs-time <s> <time>]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> rapid-value "(/ <time> 1000)" {} "+ < ="]"
+
+    sp "test*create-dyn-bin-value*binned-time-single-delta
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
+    -->
+        [ngs-create-dyn-bin-value <pool> binned-time-single-delta <s> rapid-value <bins> 0.1]
+        [ngs-add-dyn-bin <bins> early 0.5 {}]
+        [ngs-add-dyn-bin <bins> perfect 2.0 early { 0.1 0.2 }]
+        [ngs-add-dyn-bin <bins> late {} perfect { 0.2 }]"
+
+    sp "test*leader-distance
+        [ngs-match-top-state <s> rapid-value]
+    -->
+        [ngs-create-attribute <s> leader-dist-to-dest "(* <rapid-value> 4.0)"]"
+
+    sp "test*my-distance
+        [ngs-match-top-state <s> rapid-value]
+    -->
+        [ngs-create-attribute <s> my-dist-to-dest "(- (* <rapid-value> 6.0) 20.0)"]"
+
+    sp "test*create-dyn-bin-value*longitudinal-pos-to-leader
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
+    -->
+        [ngs-create-dyn-bin-value <pool> longitudinal-pos-to-leader <s> my-dist-to-dest <bins> 2.0]
+        [ngs-add-dyn-bin <bins> in-front { <s> leader-dist-to-dest } {}]
+        [ngs-add-dyn-bin <bins> behind {} in-front]"
+
+    sp "test*velocity-delta*small
+        [ngs-match-top-state <s> my-velocity:~<:1,0]
+    -->
+        [ngs-create-attribute <s> velocity-delta 0.1]"
+
+    sp "test*velocity-delta*large
+        [ngs-match-top-state <s> my-velocity:~>=:1,0]
+    -->
+        [ngs-create-attribute <s> velocity-delta 0.05]"
+                
+    sp "test*my-velocity*decreasing
+        [ngs-match-top-state <s> rapid-value]
+        [ngs-lt <s> rapid-value 3.0]
+    -->
+        [ngs-create-attribute <s> my-velocity "(- 3.0 <rapid-value>)"]
+        (write (crlf) |Velocity: | (- 3.0 <rapid-value>))"
+
+    sp "test*my-velocity*increasing
+        [ngs-match-top-state <s> rapid-value]
+        [ngs-gte <s> rapid-value 3.0]
+    -->
+        [ngs-create-attribute <s> my-velocity "(- <rapid-value> 3.0)"]
+        (write (crlf) |^^^ Velocity: | (- <rapid-value> 3.0))"
+        
+    sp "test*create-dyn-bin-value*my-speed
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
+    -->
+        [ngs-create-dyn-bin-value <pool> my-speed <s> my-velocity <bins> { <s> velocity-delta } $NGS_CTX_VAR_DELTA_TYPE_PERCENT]
+        [ngs-add-dyn-bin <bins> stopped 0.15 {} { 0.0 1.0 } ]
+        [ngs-add-dyn-bin <bins> walking 1.0 stopped]
+        [ngs-add-dyn-bin <bins> jogging 2.0 walking]
+        [ngs-add-dyn-bin <bins> running 3.0 jogging { 0.05 1.5 }]
+        [ngs-add-dyn-bin <bins> sprinting 4.0 running]
+        [ngs-add-dyn-bin <bins> speeding {} sprinting 0.5]"
+    
+    # Finally, let's test static bins. We'll do temperatures. We'll do it on a goal, just for fun
+
+    sp "test*create-goal
+        [ngs-match-goalpool <s> <goals> GoalWithContextVariables]
+    -->
+        [ngs-create-goal-in-place <goals> GoalWithContextVariables $NGS_GB_ACHIEVE <g>]"
+
+    sp "test*temperature
+        [ngs-match-top-state <s> rapid-value]
+    -->
+        [ngs-create-attribute <s> temperature "(- 120.0 (* <rapid-value> 12.0))"]"
+
+    # One bin is dynamic just to see if that works, the rest are static
+    sp "test*create-dyn-bin-value*how-cold-is-it
+        [ngs-match-goal-to-create-context-variable <s> GoalWithContextVariables <g> category-B:<pool>]
+    -->
+        [ngs-create-dyn-bin-value <pool> how-cold-is-it <s> temperature <bins>]
+        [ngs-add-dyn-bin <bins> i-cannot-feel-my-legs -20.0 {}]
+        [ngs-add-dyn-bin <bins> i-need-a-warmer-coat 0.0 i-cannot-feel-my-legs]
+        [ngs-add-dyn-bin <bins> brrrrr 20.0 i-need-a-warmer-coat]
+        [ngs-add-dyn-bin <bins> i-need-my-coat 35.0 brrrrr]
+        [ngs-add-dyn-bin <bins> rich-is-in-shorts 50.0 i-need-my-coat { 10.0 0.0 } ]
+        [ngs-add-dyn-bin <bins> nice 80.0 rich-is-in-shorts]
+        [ngs-add-dyn-bin <bins> florida-weather 95.0 nice]
+        [ngs-add-dyn-bin <bins> desert 110.0 florida-weather]
+        [ngs-add-dyn-bin <bins> i-am-melting {} desert]"
+
+
+    sp "test
+        [ngs-match-goal <s> GoalWithContextVariables <g>]
+        [ngs-bind-ctx <s> sample-pool categoryA {
+            binned-time-single-delta::late
+            longitudinal-pos-to-leader::behind
+            my-speed::speeding
+        }]
+        [ngs-bind-goal-ctx <g> category-B { how-cold-is-it::i-cannot-feel-my-legs }]
     -->    
         (pass)"
 }
