@@ -131,7 +131,7 @@ proc NGS_CreateContextPoolCategories { pool_name_or_goal_type list_of_categories
 #                                                      
 # Here's a complex example that tests velocity's value and binds the agent-position
 #
-# [ngs-bind-ctx <s> my-agent-pool agent-state:<state> velocity:>,2.0 agent-position "x::<x-pos> y::<y-pos>"]
+# [ngs-bind-ctx <s> my-agent-pool agent-state:<state> velocity:>:2.0 agent-position "x::<x-pos> y::<y-pos>"]
 #
 # 
 # [ngs-bind-ctx <s> pool_name (category_1) (variable_test_or_list1) (category2) (variable_test_or_list2) ...]
@@ -182,7 +182,7 @@ proc ngs-bind-goal-ctx { goal_id args } {
 #
 # state_id - A variable bound to the top state
 # pool_name - Name of the global pool in which you wish to place your new context variable
-# category_name - Name of the category in whic you wish to place your new context variable. Use
+# category_name - Name of the category in which you wish to place your new context variable. Use
 #                   the ngs-bind attr:<var> syntax if you want your category pool to bind to something
 #                   other than <category_name>
 # input_link_id - (Optional) If provided, will be bound to the input link
@@ -205,7 +205,7 @@ proc ngs-match-to-create-context-variable { state_id pool_name category_name { i
 # state_id - A variable bound to the top state
 # goal_type - The type of the goal you wish to bind to
 # goal_id - A variable bound to the goal on which you will create a context variable
-# category_name - Name of the category in whic you wish to place your new context variable. Use
+# category_name - Name of the category in which you wish to place your new context variable. Use
 #                   the ngs-bind attr:<var> syntax if you want your category pool to bind to something
 #                   other than <category_name>
 # input_link_id - (Optional) If provided, will be bound to the input link
