@@ -543,6 +543,11 @@ proc ngs-bind { obj_id args } {
 #
 proc ngs-bind-multi { obj_id attr args } {
     
+	# If the arguments are passed in as a list, then process them that way
+	if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
+	    set args [lindex $args 0]
+    }
+
     set unique_bindings ""
     set neq_bindings ""
 
