@@ -290,9 +290,14 @@ proc ngs-anyof { args } {
 #
 # this_id - variable that you want to bind to an attribute
 # that_id - variable bound to another object that you do NOT want this bound to.
+# args    - (optional) additional variables bound to other objects that you do NOT want this bound to.
 #
-proc ngs-this-not-that { this_id that_id } {
-  return "\{ $this_id <> $that_id \}"
+proc ngs-this-not-that { this_id that_id args } {
+  set additionalTests "" 
+  foreach arg $args {
+    append additionalTests " <> $arg "
+  }
+  return "\{ $this_id <> $that_id $additionalTests \}"
 }
 
 # Use to construct a predicate logic "or" for a list of (possibly complex) conditions
