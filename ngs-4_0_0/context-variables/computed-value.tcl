@@ -108,12 +108,12 @@ proc ngs-create-computed-val { pool_id
 # Here's an example that shows how you could compute the distance value described in the comments for
 #  ngs-create-computed-val:
 #
-# NGS_DefineComputedValue my-agent-pool distances distance-to-destination {
+# NGS_DefineComputedValue my-agent-pool distances distance-to-destination {sqrt (+ <x-delta-sq> <y-delta-sq>)} {
 #    { x-delta    "- <x> <lx>" }
 #    { y-delta    "- <y> <ly>" }
 #    { x-delta-sq "* <x-delta> <x-delta>" }
 #    { y-delta-sq "* <y-delta> <y-delta>" }
-# } {sqrt (+ <x-delta-sq> <y-delta-sq>)}
+# } 
 #
 # Here four intermediate values are constructed. The first two, x-delta and y-delta, reference
 #  the variables bound to sources as defined in ngs-create-computed-val (see that example). 
@@ -127,44 +127,39 @@ proc ngs-create-computed-val { pool_id
 # To show how you would complete the pass through described in the ngs-create-computed-val description
 #  we show one more example:
 #
-# NGS_DefineComputedValue my-agent-pool my-state my-speed {} {<speed>}
+# NGS_DefineComputedValue my-agent-pool my-state my-speed {<speed>}
 #
-# Here we do not define any intermediate values (the {}) and simply reference the source value "speed"
+# Here we do not define any intermediate values and simply reference the source value "speed"
 #  as defined in the call to ngs-create-computed-val. 
 #
-# NGS_DefineComputedValue pool_name_or_goal_type category_name variable_name internal_expression_list value_expression
+# NGS_DefineComputedValue pool_goal_or_path category_name variable_name internal_expression_list value_expression
 #
-# pool_name_or_goal_type - Either the global pool into which the variable will be placed
-#   type of goal onto which it will be placed (if it is a local context variable)
-# category_name - Name of the category into which to place the variable
+# pool_goal_or_path - A global context variable pool name, a goal type, or an arbitrary path rooted at the top state.
+#  This is the location where the context variable will be stored.
+# category_name - Name of the category into which to place the variable. Set to NGS_CTX_VAR_USER_LOCATION if you
+#   are placing the context variable in an arbitrary location specified by a path (see parameter pool_goal_or_path)
 # variable_name - Name of the variable
+# value_expression - An expression, following the rules for expressions described for the parmaeter 
+#  internal_expression_list, that will be used to set the computed value's "value" attribute. This value is what 
+#  external code references when they use the computed value.
 # internal_expression_list - A possibly empty list of variable name, expression pairs. The variables are simply
 #  the name you would like to use to reference the result of the expression. The expression is a valid Soar
 #  right hand side function call, a numeric constant, a string constant (surrounded by vertical bars - "|"), or
 #  a Soar variable. If an expression uses nested function calls, the outermost function does not require parentheses,
 #  though you can include them if you desire.
-# value_expression - An expression, following the rules for expressions described for the parmaeter 
-#  internal_expression_list, that will be used to set the computed value's "value" attribute. This value is what 
-#  external code references when they use the computed value.
 #
-proc NGS_DefineComputedValue { pool_name_or_goal_type category_name variable_name internal_expression_list value_expression } {
+proc NGS_DefineComputedValue { pool_goal_or_path category_name variable_name value_expression { internal_expression_list "" } } {
 
-    set goal_id <g>
-    set cat_id  <cat-pool>
     set var_id  <variable>
 
-    # First, we'll figure out if this is a goal type or global pool
-    variable NGS_TYPEINFO_$pool_name_or_goal_type
-    if {[info exists NGS_TYPEINFO_$pool_name_or_goal_type] != 0} {
-        set root_bind "[ngs-match-goal <s> $pool_name_or_goal_type $goal_id]
-                       [ngs-bind-goal-ctx $goal_id $category_name:$cat_id $variable_name:$var_id]"
-    } else {
-        set root_bind "[ngs-match-top-state <s>]
-                       [ngs-bind-ctx <s> $pool_name_or_goal_type $category_name:$cat_id $variable_name:$var_id]"
-    }
+    # Generate the root bindings shared by all productions in this macro
+    set root_bind [ngs-ctx-var-gen-root-bindings $pool_goal_or_path $category_name $variable_name $var_id]
+
+    # set the suffix for the template's names, removing any '.' charaters that appear (not allowed in production names)
+    set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name $variable_name]
 
     # Elaborate values for all sourced values
-    sp "ctxvar*computed-value*elaborate*source-vals*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*computed-value*elaborate*source-vals*$production_name_suffix
         $root_bind
         [ngs-bind $var_id sources.source]
         [ngs-bind <source> name src attr]
@@ -178,7 +173,7 @@ proc NGS_DefineComputedValue { pool_name_or_goal_type category_name variable_nam
         set name [lindex $expression_pair 0]
         set expression [lindex $expression_pair 1]
 
-        sp "ctxvar*computed-value*elaborate*internal-vals*$pool_name_or_goal_type*$category_name*$variable_name*$name
+        sp "ctxvar*computed-value*elaborate*internal-vals*$production_name_suffix*$name
             $root_bind
             [ngs-computed-value-bind-expression $var_id $expression]
         -->
@@ -186,7 +181,7 @@ proc NGS_DefineComputedValue { pool_name_or_goal_type category_name variable_nam
     }
 
     # Create the computed value (this is an elaboration, it is i-supported)
-    sp "ctxvar*computed-value*elaborate*internal-vals*$pool_name_or_goal_type*$category_name*$variable_name*value
+    sp "ctxvar*computed-value*elaborate*internal-vals*$production_name_suffix*value
         $root_bind
         [ngs-computed-value-bind-expression $var_id $value_expression]
     -->

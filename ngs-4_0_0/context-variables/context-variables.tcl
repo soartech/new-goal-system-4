@@ -48,7 +48,7 @@ proc NGS_CreateGlobalContextVariablePool { pool_name { list_of_categories "" } }
 #  for each pool or goal type using this macro.
 #
 # Each context variable is then indexible using its pool-name (or goal type), category name, and
-#  variable name (see ngs-bind-ctx-var)
+#  variable name (see ngs-bind-global-ctx-var)
 #
 # pool_name_or_goal_type: For goal pools, this should be the type of the
 #    goal that you want go create the category under (it can be a goal's based type or "my-type"). 
@@ -116,32 +116,32 @@ proc NGS_CreateContextPoolCategories { pool_name_or_goal_type list_of_categories
 # Bind to a category (typically useful when creating new context variables - though you should consider
 #    using ngs-match-to-create-ctx-var or ngs-match-goal-to-create-ctx-var instead):
 #
-# [ngs-bind-ctx <s> my-agent-pool agent-state]  -  the category will bind to the Soar variable <agent-state>
+# [ngs-bind-global-ctx <s> my-agent-pool agent-state]  -  the category will bind to the Soar variable <agent-state>
 #
 # Bind to the velocity variable under the agent-state category. Bind the category to the Soar variable <state>
 #   and bind the velocity variable to the Soar variable <my-vel>
 #
-# [ngs-bind-ctx <s> my-agent-pool agent-state:<state> velocity:<my-vel>]
+# [ngs-bind-global-ctx <s> my-agent-pool agent-state:<state> velocity:<my-vel>]
 #   
 # You can provide more than one variable for each category. To do this, just wrap the variables (each taking 
 #  one of the context variable forms above) in quotes or curly brackets. Here's an example that will
 #  bind to the x and y values (to Soar variables <x-pos> and <y-pos>) within the agent-position category
 #               
-# [ngs-bind-ctx <s> my-agent-pool agent-position "x::<x-pos> y::<y-pos>"]
+# [ngs-bind-global-ctx <s> my-agent-pool agent-position "x::<x-pos> y::<y-pos>"]
 #                                                      
 # Here's a complex example that tests velocity's value and binds the agent-position
 #
-# [ngs-bind-ctx <s> my-agent-pool agent-state:<state> velocity:>:2.0 agent-position "x::<x-pos> y::<y-pos>"]
+# [ngs-bind-global-ctx <s> my-agent-pool agent-state:<state> velocity:>:2.0 agent-position "x::<x-pos> y::<y-pos>"]
 #
 # 
-# [ngs-bind-ctx <s> pool_name (category_1) (variable_test_or_list1) (category2) (variable_test_or_list2) ...]
+# [ngs-bind-global-ctx <s> pool_name (category_1) (variable_test_or_list1) (category2) (variable_test_or_list2) ...]
 #
 # state_id - A variable bound to the top state
 # pool_name - Name of the global context variable pool to which to bind
 # args - An arbitrarily long list of alternating category names and variable tests (or variable test lists). See
 #         above for a detailed description and examples
 #
-proc ngs-bind-ctx { state_id pool_name args } {
+proc ngs-bind-global-ctx { state_id pool_name args } {
 
     variable WM_CTX_GLOBAL_POOLS
 
@@ -156,10 +156,10 @@ proc ngs-bind-ctx { state_id pool_name args } {
 # Bind to context categories and/or variables on a goal
 #
 # Use this macro to bind to the context variables stored on a goal. It has 
-#  the exact same bind language/semantics as ngs-bind-ctx, but it is rooted
+#  the exact same bind language/semantics as ngs-bind-global-ctx, but it is rooted
 #  at a goal instead of a global context pool.
 #
-# See ngs-bind-ctx for a detailed description of the binding syntax
+# See ngs-bind-global-ctx for a detailed description of the binding syntax
 #
 # goal_id - A variable bound to the goal for which you wish to bind and/or test context variables
 # args - An arbitrarily long list of alternating category names and variable tests (or variable test lists). See
@@ -169,6 +169,36 @@ proc ngs-bind-goal-ctx { goal_id args } {
 
     return [ngs-ctx-bind-internal "" $goal_id $args]
 
+}
+
+# Bind to a context variable that's located in a user defined location in working memory
+#
+# This method is more or less the same as ngs-bind-global-ctx except you must provide
+#  the id of the object that is holding the context variable instead of a category name.
+#
+# It supports all of the binding/comparison methods of ngs-bind-global-ctx.
+#
+# A simple example is as follows:
+#
+#   [ngs-match-top-state <s> my-agent.vehicle-state.distances]
+#   [ngs-bind-user-ctx <distances> "my-dist-to-dest::<my-dist> leader-dist-to-dest:<:<my-dist>"]
+#
+# You can bind more than one set of variables in one call. For example:
+#
+#   [ngs-match-top-state <s> my-agent.vehicle-state]
+#   [ngs-bind <vehicle-state> distances velocities]
+#   [ngs-bind-user-ctx <distances> my-dist-to-dest::<my-dist> <velocities> my-binned-velocity::slow]
+#
+# Here the same bind all is used to bind and test context variables from two different objects in the same call
+#
+# [ngs-bind-user-ctx obj_id1 variable_test_or_list1 (obj_id2) (variable_test_or_list2) ...]
+#
+# args - An arbitrarily long list of alternating object identifiers and variable tests (or variable test lists). See
+#         above for a detailed description and examples
+#
+proc ngs-bind-user-ctx { args } {
+
+    return [ngs-ctx-bind-internal "" "" $args]
 }
 
 # Matches against the given top state goal pool
@@ -189,7 +219,7 @@ proc ngs-bind-goal-ctx { goal_id args } {
 #
 proc ngs-match-to-create-context-variable { state_id pool_name category_name { input_link_id "" } } {
     return "[ngs-match-top-state $state_id {} $input_link_id]
-            [ngs-bind-ctx $state_id $pool_name $category_name]"
+            [ngs-bind-global-ctx $state_id $pool_name $category_name]"
 }
 
 # Matches a goal and context variable category so you can create a new context variable in that category
@@ -249,15 +279,15 @@ proc ngs-suppress-context-variable-sampling { var_id } {
     return [ngs-tag $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
 }
 
-# Internal procedures to expand the args for ngs-bind-ctx and ngs-bind-goal-ctx 
+# Internal procedures to expand the args for ngs-bind-global-ctx and ngs-bind-goal-ctx 
 #
 # DO NOT CALL THIS DIRECTLY
 #
-# See ngs-bind-ctx for a description of the binding syntax/semantics.
+# See ngs-bind-global-ctx for a description of the binding syntax/semantics.
 #
 # pool_ bindings - Soar code binding to the root pool
 # pool_id        - Variable bound to the root pool
-# category_bindings - A list containing the args list passed to ngs-bind-ctx or
+# category_bindings - A list containing the args list passed to ngs-bind-global-ctx or
 #                       ngs-bind-goal-ctx
 proc ngs-ctx-bind-internal { pool_bindings pool_id category_bindings } {
 
@@ -271,19 +301,22 @@ proc ngs-ctx-bind-internal { pool_bindings pool_id category_bindings } {
     foreach item $category_bindings {
       
        if { $on_category == 1 } {
-          # If the user renames the variable, we need to account for that
-          set name_and_var [split $item ":"]
-          if { [llength $name_and_var] == 1 } {
-            set cat_name $name_and_var
-            set cat_id  [CORE_GenVarName $cat_name]
+          if { $pool_id != "" } {
+	          # If the user renames the variable, we need to account for that
+	          set name_and_var [split $item ":"]
+	          if { [llength $name_and_var] == 1 } {
+	            set cat_name $name_and_var
+	            set cat_id  [CORE_GenVarName $cat_name]
+	          } else {
+	            set cat_name [lindex $name_and_var 0]
+	            set cat_id  [lindex $name_and_var 1]
+	          }       
+	
+	          set lhs_ret "$lhs_ret
+	                       ($pool_id ^$cat_name $cat_id)"
           } else {
-            set cat_name [lindex $name_and_var 0]
-            set cat_id  [lindex $name_and_var 1]
-          }       
-
-          set lhs_ret "$lhs_ret
-                       ($pool_id ^$cat_name $cat_id)"
-
+              set cat_id $item
+          }
           set on_category 0
        } else {
 
@@ -335,5 +368,83 @@ proc ngs-ctx-bind-internal { pool_bindings pool_id category_bindings } {
     return $lhs_ret
 }
 
+# Generate a suffix for the context variable maintenance production names.
+# 
+# This is used internally and is not useful for user code.
+#
+# pool_goal_or_path - A global context variable pool name, a goal type, or an arbitrary path rooted at the top state.
+#  This is the location where the context variable will be stored.
+# category_name - Name of the category into which to place the variable. Set to NGS_CTX_VAR_USER_LOCATION if you
+#   are placing the context variable in an arbitrary location specified by a path (see parameter pool_goal_or_path)
+# variable_name - Name of the context variable
+#
+proc ngs-ctx-var-gen-production-name-suffix { pool_goal_or_path category_name variable_name } {
+    # set the suffix for the template's names, removing any '.' charaters that appear (not allowed in production names)
+    return [string map { "." "*" } "$pool_goal_or_path*$category_name*$variable_name"]
+}
 
+# Generate the root bindings used by all of the DefineXYZ macross
+# 
+# This is used internally and is not useful for user code.
+#
+# pool_goal_or_path - A global context variable pool name, a goal type, or an arbitrary path rooted at the top state.
+#  This is the location where the context variable will be stored.
+# category_name - Name of the category into which to place the variable. Set to NGS_CTX_VAR_USER_LOCATION if you
+#   are placing the context variable in an arbitrary location specified by a path (see parameter pool_goal_or_path)
+# variable_name - Name of the context variable
+# var_id - Soar variable to which to bind the context variable's id.
+#
+proc ngs-ctx-var-gen-root-bindings { pool_goal_or_path category_name variable_name var_id} {
 
+    set goal_id [CORE_GenVarName "g"]
+    set cat_id  [CORE_GenVarName "cat-pool"]
+
+    # First, we'll figure out if this is a goal type or global pool
+    variable NGS_CTX_VAR_USER_LOCATION
+    if { $category_name != $NGS_CTX_VAR_USER_LOCATION } {
+        variable NGS_TYPEINFO_$pool_goal_or_path
+        if {[info exists NGS_TYPEINFO_$pool_goal_or_path] != 0} {
+            return "[ngs-match-goal <s> $pool_goal_or_path $goal_id]
+                    [ngs-bind-goal-ctx $goal_id $category_name:$cat_id $variable_name:$var_id]"
+        } else {
+            return "[ngs-match-top-state <s>]
+                    [ngs-bind-global-ctx <s> $pool_goal_or_path $category_name:$cat_id $variable_name:$var_id]"
+        }
+    } else {
+        return "[ngs-match-top-state <s> $pool_goal_or_path.$variable_name:$var_id]"
+    }
+
+}
+
+# Creates delta values in a uniform way for all context variables that use them
+#
+# This is used internally and is not useful for user code.
+#
+# delta - Either a constant/variable (Form 1), a list with a min/max (Form 2), or
+#          a list with a delta source obj/attr (Form 3). All forms specify the bounds
+#          on the stable-value, indicating when it will be resampled from the source value.
+# obj_id - place to store the delta values once they are parsed out of the delta structure
+#
+proc ngs-ctx-var-create-deltas { delta obj_id } {
+
+   # Now, figure out what type of delta we have: (1) a constant (default), (2) a range, or
+    #  (3) a source object/attribute pair
+    if { [llength $delta] == 1 } {
+        return [ngs-create-attribute $obj_id delta $delta]
+    } else  {
+        
+        # It's either a max/min or a source object and attribute
+        set first_item [lindex $delta 0]
+        set second_item [lindex $delta 1]
+
+        # Check to see if the first_item is alpha-numeric, if it is, it is the minimum
+        if { [string index $first_item 0] == "<" } {
+            return "[ngs-create-attribute $obj_id delta-src-obj  $first_item]
+                    [ngs-create-attribute $obj_id delta-src-attr $second_item]"
+        } else {
+            return "[ngs-create-attribute $obj_id min-delta $first_item]
+                    [ngs-create-attribute $obj_id max-delta $second_item]"
+        } 
+    }
+
+}

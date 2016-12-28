@@ -95,38 +95,17 @@ proc ngs-create-dyn-bin-value { pool_id
                     "name $variable_name src-obj $src_obj src-attr $src_attr"]
                   [ngs-icreate-typed-object-in-place $variable_id bins Set $bin_set_id]"
 
-    set substructure ""
     if { $delta != "" } {
 
         variable NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE
         CORE_SetIfEmpty delta_type $NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE ;# could also be NGS_CTX_VAR_DELTA_TYPE_PERCENT
         
-        set root_obj "$root_obj
-                      [ngs-create-attribute $variable_id delta-type $delta_type]"
-
-        # Now, figure out what type of delta we have: (1) a constant (default), (2) a range, or
-        #  (3) a source object/attribute pair
-        if { [llength $delta] == 1 } {
-            set substructure [ngs-create-attribute $variable_id delta $delta]
-        } else  {
-            
-            # It's either a max/min or a source object and attribute
-            set first_item [lindex $delta 0]
-            set second_item [lindex $delta 1]
-    
-            # Check to see if the first_item is a variable, if it is, then its a source
-            if { [string index $first_item 0] == "<" } {
-                set substructure "[ngs-create-attribute $variable_id delta-src-obj  $first_item]
-                                  [ngs-create-attribute $variable_id delta-src-attr $second_item]"
-            } else {
-                set substructure "[ngs-create-attribute $variable_id min-delta $first_item]
-                                  [ngs-create-attribute $variable_id max-delta $second_item]"
-            } 
-        }
+        return  "$root_obj
+                 [ngs-ctx-var-create-deltas $delta $variable_id]
+                 [ngs-create-attribute $variable_id delta-type $delta_type]"
     }
 
-    return "$root_obj
-            $substructure"
+    return $root_obj
 }
 
 # Add a bin to a dynamic binned value
@@ -196,35 +175,15 @@ proc ngs-add-dyn-bin { bin_set_id
         # Tag the structure so we know it has its own delta value and shouldn't use the
         #  global delta value
         set lhs_ret "$lhs_ret
+                     [ngs-ctx-var-create-deltas $delta $new_bin_id]
                      [ngs-tag $new_bin_id $NGS_TAG_DYN_BIN_VAL_CUSTOM_DELTA]"
-        
-        # Now, figure out what type of delta we have: (1) a constant (default), (2) a range, or
-        #  (3) a source object/attribute pair
-        if { [llength $delta] == 1 } {
-            set lhs_ret "$lhs_ret
-                         [ngs-create-attribute $new_bin_id delta $delta]"
-        } else  {
-            
-            # It's either a max/min or a source object and attribute
-            set first_item [lindex $delta 0]
-            set second_item [lindex $delta 1]
-    
-            # Check to see if the first_item is a variable, if it is, then its a source
-            if { [string index $first_item 0] == "<" } {
-                set lhs_ret "$lhs_ret
-                             [ngs-create-attribute $new_bin_id delta-src-obj  $first_item]
-                             [ngs-create-attribute $new_bin_id delta-src-attr $second_item]"
-            } else {
-                set lhs_ret "$lhs_ret
-                             [ngs-create-attribute $new_bin_id min-delta $first_item]
-                             [ngs-create-attribute $new_bin_id max-delta $second_item]"
-            } 
-        }
     } 
 
     return $lhs_ret
 
 }
+
+
 
 # Define a Dynamically Binned Value
 #
@@ -232,39 +191,35 @@ proc ngs-add-dyn-bin { bin_set_id
 #  value. To actually construct the variable, us ngs-create-dyn-bin-value and its supporting
 #  macro ngs-add-dyn-bin.
 #
-# NGS_DefineDynamicBinValue pool_name_or_goal_type category_name variable_name
+# NGS_DefineDynamicBinValue pool_goal_or_path category_name variable_name
 #
-# pool_name_or_goal_type - Either the global pool into which the variable will be placed
-#   type of goal onto which it will be placed (if it is a local context variable)
-# category_name - Name of the category into which to place the variable
+# pool_goal_or_path - A global context variable pool name, a goal type, or an arbitrary path rooted at the top state.
+#  This is the location where the context variable will be stored.
+# category_name - Name of the category into which to place the variable. Set to NGS_CTX_VAR_USER_LOCATION if you
+#   are placing the context variable in an arbitrary location specified by a path (see parameter pool_goal_or_path)
 # variable_name - Name of the variable
 #
-proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_name } {
+proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name } {
 
-    set goal_id <g>
-    set cat_id  <cat-pool>
     set var_id  <variable>
-    set bin_id  <bin>
     set bin_set_id <bins>
     set bin_attr "bin"
+    set bin_id  <bin>
 
-    # First, we'll figure out if this is a goal type or global pool
-    variable NGS_TYPEINFO_$pool_name_or_goal_type
-    if {[info exists NGS_TYPEINFO_$pool_name_or_goal_type] != 0} {
-        set root_bind "[ngs-match-goal <s> $pool_name_or_goal_type $goal_id]
-                       [ngs-bind-goal-ctx $goal_id $category_name:$cat_id $variable_name:$var_id]
-                       [ngs-bind $var_id bins.$bin_attr:$bin_id]"
-    } else {
-        set root_bind "[ngs-match-top-state <s>]
-                       [ngs-bind-ctx <s> $pool_name_or_goal_type $category_name:$cat_id $variable_name:$var_id]
-                       [ngs-bind $var_id bins.$bin_attr:$bin_id]"
-    }
+    set var_id  <variable>
+
+    # Generate the root bindings shared by all productions in this macro
+    set root_bind "[ngs-ctx-var-gen-root-bindings $pool_goal_or_path $category_name $variable_name $var_id]
+                   [ngs-bind $var_id bins:$bin_set_id.$bin_attr:$bin_id]"
+
+    # set the suffix for the template's names, removing any '.' charaters that appear (not allowed in production names)
+    set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name $variable_name]
 
     variable NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE
     variable NGS_CTX_VAR_DELTA_TYPE_PERCENT
 
     # Elaborate max-val from src
-    sp "ctxvar*dyn-bins*elaborate*max-val*from-source*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*max-val*from-source*$production_name_suffix
         $root_bind
         [ngs-bind $bin_id max-src-obj max-src-attr]
         (<max-src-obj> ^<max-src-attr> <max-src-val>)
@@ -278,7 +233,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
     variable NGS_TAG_DYN_BINS_IS_STATIC
 
     # Elaborate min-delta and max-delta from single delta at variable level
-    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-parent-delta*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-parent-delta*$production_name_suffix
         $root_bind
         [ngs-is-not-tagged $bin_id $NGS_TAG_DYN_BIN_VAL_CUSTOM_DELTA]
         [ngs-bind $var_id delta]
@@ -287,7 +242,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id max-delta <delta>]"
 
     # Elaborate min-delta and max-delta from parent
-    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-parent-min-max*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-parent-min-max*$production_name_suffix
         $root_bind
         [ngs-is-not-tagged $bin_id $NGS_TAG_DYN_BIN_VAL_CUSTOM_DELTA]
         [ngs-bind $var_id min-delta max-delta]
@@ -296,7 +251,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id max-delta <max-delta>]"
 
     # Elaborate min-delta and max-delta from source delta
-    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-parent-src-delta*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-parent-src-delta*$production_name_suffix
         $root_bind
         [ngs-is-not-tagged $bin_id $NGS_TAG_DYN_BIN_VAL_CUSTOM_DELTA]
         [ngs-bind $var_id delta-src-obj delta-src-attr]
@@ -306,7 +261,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id max-delta <delta>]"
 
     # Elaborate min-delta and max-delta from single delta
-    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-single-delta*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-single-delta*$production_name_suffix
         $root_bind
         [ngs-is-tagged $bin_id $NGS_TAG_DYN_BIN_VAL_CUSTOM_DELTA]
         [ngs-bind $bin_id delta]
@@ -315,7 +270,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id max-delta <delta>]"
 
     # Elaborate min-delta and max-delta from source delta
-    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-src-delta*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*min-max-delta*from-src-delta*$production_name_suffix
         $root_bind
         [ngs-is-tagged $bin_id $NGS_TAG_DYN_BIN_VAL_CUSTOM_DELTA]
         [ngs-bind $bin_id delta-src-obj delta-src-attr]
@@ -324,7 +279,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id min-delta <delta>]
         [ngs-create-attribute $bin_id max-delta <delta>]"
 
-    sp "ctxvar*dyn-bins*elaborate*min-max-delta*no-delta-values*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*min-max-delta*no-delta-values*$production_name_suffix
         $root_bind
         [ngs-nex $var_id delta]
         [ngs-nex $var_id delta-min]
@@ -343,7 +298,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
     # Elaborate current-minimum
     #  OR Not selected now, my prev's current-maximum
     #     Selected now, my prev's max-val - min-delta
-    sp "ctxvar*dyn-bins*elaborate*cur-min*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*cur-min*$production_name_suffix
         $root_bind
         [ngs-bind $bin_id prev-bin:<prev-name>]
         [ngs-bind $bin_set_id $bin_attr:<prev>.name:<prev-name>]
@@ -352,7 +307,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id cur-min <prev-max>]"
 
     # The case where no delta is supplied (now it's not dynamic, it's just a static bin)
-    sp "ctxvar*dyn-bins*elaborate*cur-max*no-deltas*$pool_name_or_goal_type*$category_name*$variable_name
+    sp "ctxvar*dyn-bins*elaborate*cur-max*no-deltas*$production_name_suffix
         $root_bind
         [ngs-is-tagged $bin_id $NGS_TAG_DYN_BINS_IS_STATIC]
         [ngs-bind $bin_id max-val]
@@ -360,7 +315,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id cur-max <max-val>]"         
          
     # Easy case, when this bin is currently selected
-    sp "ctxvar*dyn-bins*elaborate*cur-max*this-bin-selected*$pool_name_or_goal_type*$category_name*$variable_name*absolute
+    sp "ctxvar*dyn-bins*elaborate*cur-max*this-bin-selected*$production_name_suffix*absolute
         $root_bind
         [ngs-is-not-tagged $bin_id $NGS_TAG_DYN_BINS_IS_STATIC]
         [ngs-eq $var_id delta-type $NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE]
@@ -371,7 +326,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
 
     # Case when neither this bin, nor the next bin is selected. Binds to the next bin as well
     #  by checking to see if it is the previous bin of that bin
-    sp "ctxvar*dyn-bins*elaborate*cur-max*this-and-next-not-selected*$pool_name_or_goal_type*$category_name*$variable_name*any-case
+    sp "ctxvar*dyn-bins*elaborate*cur-max*this-and-next-not-selected*$production_name_suffix*any-case
         $root_bind
         [ngs-is-not-tagged $bin_id $NGS_TAG_DYN_BINS_IS_STATIC]
         [ngs-bind $bin_id name max-val]
@@ -385,7 +340,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id cur-max <max-val>]"
 
     # Case when the next bin is selected (need to use it's min-delta)
-    sp "ctxvar*dyn-bins*elaborate*cur-max*next-bin-selected*$pool_name_or_goal_type*$category_name*$variable_name*absolute
+    sp "ctxvar*dyn-bins*elaborate*cur-max*next-bin-selected*$production_name_suffix*absolute
         $root_bind
         [ngs-is-not-tagged $bin_id $NGS_TAG_DYN_BINS_IS_STATIC]
         [ngs-eq $var_id delta-type $NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE]
@@ -399,7 +354,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id cur-max "(- <max-val> <next-min-delta>)"]"
         
     # Easy case, when this bin is currently selected
-    sp "ctxvar*dyn-bins*elaborate*cur-max*this-bin-selected*$pool_name_or_goal_type*$category_name*$variable_name*percent
+    sp "ctxvar*dyn-bins*elaborate*cur-max*this-bin-selected*$production_name_suffix*percent
         $root_bind
         [ngs-is-not-tagged $bin_id $NGS_TAG_DYN_BINS_IS_STATIC]
         [ngs-eq $var_id delta-type $NGS_CTX_VAR_DELTA_TYPE_PERCENT]
@@ -409,7 +364,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
         [ngs-create-attribute $bin_id cur-max "(+ <max-val> (* <max-delta> <max-val>))"]"
 
     # Case when the next bin is selected (need to use it's min-delta)
-    sp "ctxvar*dyn-bins*elaborate*cur-max*next-bin-selected*$pool_name_or_goal_type*$category_name*$variable_name*percent
+    sp "ctxvar*dyn-bins*elaborate*cur-max*next-bin-selected*$production_name_suffix*percent
         $root_bind
         [ngs-is-not-tagged $bin_id $NGS_TAG_DYN_BINS_IS_STATIC]
         [ngs-eq $var_id delta-type $NGS_CTX_VAR_DELTA_TYPE_PERCENT]
@@ -424,7 +379,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
 
     ############### PROPOSALS ####################################
     # When in bounds, propose operator to change the value
-    sp "ctxvar*dyn-bins*propose*set-value*$pool_name_or_goal_type*$category_name*$variable_name*min-and-max
+    sp "ctxvar*dyn-bins*propose*set-value*$production_name_suffix*min-and-max
         $root_bind
         [ngs-bind $bin_id name cur-min cur-max]
         [ngs-bind $var_id src-obj src-attr]
@@ -434,7 +389,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
     -->
         [ngs-create-attribute-by-operator <s> $var_id value <name>]"
 
-    sp "ctxvar*dyn-bins*propose*set-value*$pool_name_or_goal_type*$category_name*$variable_name*min-only
+    sp "ctxvar*dyn-bins*propose*set-value*$production_name_suffix*min-only
         $root_bind
         [ngs-bind $bin_id name cur-min]
         [ngs-nex $bin_id cur-max]
@@ -445,7 +400,7 @@ proc NGS_DefineDynamicBinValue { pool_name_or_goal_type category_name variable_n
      -->
         [ngs-create-attribute-by-operator <s> $var_id value <name>]"
 
-    sp "ctxvar*dyn-bins*propose*set-value*$pool_name_or_goal_type*$category_name*$variable_name*max-only
+    sp "ctxvar*dyn-bins*propose*set-value*$production_name_suffix*max-only
         $root_bind
         [ngs-bind $bin_id name cur-max]
         [ngs-nex $bin_id cur-min]

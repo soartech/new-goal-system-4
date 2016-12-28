@@ -48,7 +48,14 @@ test stable-value {
     NGS_DefineStableValue sample-pool categoryA slow-value-delta-src
     NGS_DefineStableValue sample-pool categoryA slow-value-single-delta-pct
     NGS_DefineStableValue sample-pool categoryA slow-value-min-max-pct
-    NGS_DefineStableValue sample-pool categoryA slow-value-delta-src-pct
+    NGS_DefineStableValue my-agent.state.times $NGS_CTX_VAR_USER_LOCATION slow-value-delta-src-pct
+
+    sp "test*user-location
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
+        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
+        [ngs-icreate-typed-object-in-place <state> times Bag <distances>]"
 
     sp "test*create-delta
         [ngs-match-top-state <s>]
@@ -91,20 +98,20 @@ test stable-value {
         [ngs-create-stable-value <pool> slow-value-min-max-pct <s> rapid-value { 1.0 0.75 } $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
 
     sp "test*create-stable-value*delta-source*percent
-        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]
+        [ngs-match-top-state <s> my-agent.state.times:<pool>]
     -->
         [ngs-create-stable-value <pool> slow-value-delta-src-pct <s> rapid-value { <s> delta-pct } $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
 
     sp "test
-        [ngs-match-top-state <s>]
-        [ngs-bind-ctx <s> sample-pool categoryA {
+        [ngs-match-top-state <s> my-agent.state.times]
+        [ngs-bind-global-ctx <s> sample-pool categoryA {
             slow-value-single-delta::4.25
             slow-value-min-max:>=:4.15
             slow-value-delta-src:~>=:4.75
             slow-value-single-delta-pct:>:4.8
             slow-value-min-max-pct:~<:4.5
-            slow-value-delta-src-pct:<>:3.54
         }]
+        [ngs-bind-user-ctx <times> slow-value-delta-src-pct:<>:3.54]
     -->    
         (pass)"
 }
@@ -112,9 +119,16 @@ test stable-value {
 test dynamic-binned-value {
 
     NGS_DefineDynamicBinValue sample-pool categoryA binned-time-single-delta
-    NGS_DefineDynamicBinValue sample-pool categoryA longitudinal-pos-to-leader
+    NGS_DefineDynamicBinValue my-agent.state.distances $NGS_CTX_VAR_USER_LOCATION longitudinal-pos-to-leader
     NGS_DefineDynamicBinValue sample-pool categoryA my-speed
     NGS_DefineDynamicBinValue GoalWithContextVariables category-B how-cold-is-it
+
+    sp "test*user-location
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
+        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
+        [ngs-icreate-typed-object-in-place <state> distances Bag <distances>]"
 
     sp "test*rapid-sample-value
         [ngs-match-top-state <s>]
@@ -141,7 +155,7 @@ test dynamic-binned-value {
         [ngs-create-attribute <s> my-dist-to-dest "(- (* <rapid-value> 6.0) 20.0)"]"
 
     sp "test*create-dyn-bin-value*longitudinal-pos-to-leader
-        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]    
+        [ngs-match-top-state <s> my-agent.state.distances:<pool>]    
     -->
         [ngs-create-dyn-bin-value <pool> longitudinal-pos-to-leader <s> my-dist-to-dest <bins> 2.0]
         [ngs-add-dyn-bin <bins> in-front { <s> leader-dist-to-dest } {}]
@@ -208,27 +222,37 @@ test dynamic-binned-value {
 
     sp "test
         [ngs-match-goal <s> GoalWithContextVariables <g>]
-        [ngs-bind-ctx <s> sample-pool categoryA {
+        [ngs-bind-global-ctx <s> sample-pool categoryA {
             binned-time-single-delta::late
-            longitudinal-pos-to-leader::behind
             my-speed::speeding
         }]
         [ngs-bind-goal-ctx <g> category-B { how-cold-is-it::i-cannot-feel-my-legs }]
+        [ngs-bind <s> my-agent.state.distances]
+        [ngs-bind-user-ctx <distances> longitudinal-pos-to-leader::behind]
     -->    
         (pass)"
 }
 
+
+
 test computed-values {
     
-    NGS_DefineComputedValue GoalWithContextVariables CategoryC passthrough-example {} "<rapid-value>"
-    NGS_DefineComputedValue sample-pool CategoryC my-pos-linked {} "<my-pos>"
-    NGS_DefineComputedValue sample-pool CategoryC distance-to-leader {
+    NGS_DefineComputedValue GoalWithContextVariables CategoryC passthrough-example "<rapid-value>"
+    NGS_DefineComputedValue sample-pool CategoryC my-pos-linked "<my-pos>"
+    NGS_DefineComputedValue my-agent.state.distances $NGS_CTX_VAR_USER_LOCATION distance-to-leader { sqrt (+ <x-delta2> <y-delta2>) } {
         { x-delta "- <x> <lx>"}
         { y-delta "- <y> <ly>"}
         { x-delta2 "(* <x-delta> <x-delta>)"}
         { y-delta2 "(* <y-delta> <y-delta>)"}
-    } "sqrt (+ <x-delta2> <y-delta2>)"
+    } 
 
+    sp "test*user-location
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
+        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
+        [ngs-icreate-typed-object-in-place <state> distances Bag <distances>]"
+ 
     sp "test*rapid-sample-value
         [ngs-match-top-state <s>]
         [ngs-time <s> <time>]
@@ -256,7 +280,7 @@ test computed-values {
         [ngs-create-attribute <l-pos> y "(* 0.5 <rapid-value>)"]" 
 
     sp "test*create-computed-value*distance-to-leader
-        [ngs-match-to-create-context-variable <s> sample-pool CategoryC:<pool>]
+        [ngs-match-top-state <s> my-agent.state.distances:<pool>]
         [ngs-bind <s> my-pos leader-pos]
     -->
         [ngs-create-computed-val <pool> distance-to-leader {
@@ -277,11 +301,10 @@ test computed-values {
     sp "test
         [ngs-match-goal <s> GoalWithContextVariables <g>]
         [ngs-bind <s> rapid-value my-pos]
-        [ngs-bind-ctx <s> sample-pool CategoryC {
-            my-pos-linked::<my-pos>
-            distance-to-leader:>:2.0
-        }]
+        [ngs-bind-global-ctx <s> sample-pool CategoryC { my-pos-linked::<my-pos> }]
         [ngs-bind-goal-ctx <g> CategoryC { passthrough-example::<rapid-value> }]
+        [ngs-bind <s> my-agent.state.distances]
+        [ngs-bind-user-ctx <distances> distance-to-leader:>:2.0]
     -->
         (pass)"
 }

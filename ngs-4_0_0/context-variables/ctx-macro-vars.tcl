@@ -6,6 +6,9 @@
 # Root pool off of the top state
 CORE_CreateMacroVar WM_CTX_GLOBAL_POOLS "ctx-var-pools"
 
+# Category when placing context variables wherever you want
+CORE_CreateMacroVar NGS_CTX_VAR_USER_LOCATION "user-location"
+
 # See ngs-suppress-context-variable-sampling
 CORE_CreateMacroVar NGS_CTX_VAR_SUPPRESS_SAMPLING "suppress-sampling"
 
