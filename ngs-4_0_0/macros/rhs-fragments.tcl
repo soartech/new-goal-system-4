@@ -690,8 +690,10 @@ proc ngs-remove-goal-by-operator { state_id
 #  intelligent construction.
 #
 # Use this method to add an o-supported tag to an object as a separate step
-#  from creation. If you just need to add a tag at the same time you are 
-#  constructing an object then use ngs-tag instead.
+#  from creation. If you just need to add a tag to the object at the same 
+#  time you are constructing an object then use ngs-tag instead. If you
+#  need to add an o-supported tag on another object at the time you are
+#  creating an object by operator, use ngs-add-tag-side-effect.
 #
 # [ngs-create-tag-by-operator state_id parent_obj_id tag_name (tag_val) (replacement_behavior) (add_prefs)]
 #
