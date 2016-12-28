@@ -1248,7 +1248,7 @@ proc ngs-create-goal-as-return-value { state_id
 #  you might request a decision to select a maneuver speed
 #
 # This version is specifically designed for i-supported goals.
-#   USe ngs-orequest-decision for o-supported goals.
+#   Use ngs-orequest-decision for o-supported goals.
 #
 # [ngs-irequest-decision goal_id decision_name dec_obj dec_attr replacement_behavior]
 #
@@ -1296,7 +1296,7 @@ proc ngs-irequest-decision { goal_id
 #  you might request a decision to select a maneuver speed
 #
 # This version is specifically designed for o-supported goals.
-#   USe ngs-irequest-decision for i-supported goals.
+#   Use ngs-irequest-decision for i-supported goals.
 #
 # [ngs-orequest-decision goal_id decision_name dec_obj dec_attr replacement_behavior]
 #
