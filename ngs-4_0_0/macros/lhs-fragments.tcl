@@ -58,6 +58,14 @@ proc ngs-create-tag-test-list { obj_id tag_list } {
 
 }
 
+# Expands an attribute using tag shorthand (@ for tag) to a full tag name
+#
+# This is used internally by NGS and is not meant for exterinal use
+proc ngs-expand-tags { attr } {
+    variable NGS_TAG_PREFIX
+    return [string map "@ $NGS_TAG_PREFIX" $attr] 
+}
+
 ######## Basic left hand side condition test macros ###########
 # Basic comparisons
 #
@@ -225,7 +233,7 @@ proc ngs-stable-gte-lte { obj_id attr low_val high_val } {
 # object_id - variable bound to the object to test
 # attribute - the attribute to test for existence
 proc ngs-ex { object_id attribute } {
-  return "($object_id ^$attribute)"
+  return "($object_id ^[ngs-expand-tags $attribute])"
 }
 
 # Evaluates to true when an attribute does NOT exist
@@ -238,7 +246,7 @@ proc ngs-ex { object_id attribute } {
 # object_id - variable bound to the object to test
 # attribute - the attribute to test for lack of existence
 proc ngs-nex { object_id attribute } {
-  return "($object_id -^$attribute)"
+  return "($object_id -^[ngs-expand-tags $attribute])"
 }
 
 # Evaluates to true when a tag does NOT exist 
@@ -531,6 +539,9 @@ proc ngs-bind { obj_id args } {
 # Example: Consider the set (s1 ^val <v1>) (s1 ^val <v2>) (s1 ^val <v2>)
 # To bind this set one way (without multiple matches) use the following
 # 
+# IMPORTANT: As of the time of this writing, this requires the most 
+#  recent version of C soar and the development version of JSoar to work
+#
 # [ngs-bind-multi <s> val <v1> <v2> <v3>]
 #
 # This will only bind if there are exactly 3 values for val.
@@ -547,6 +558,8 @@ proc ngs-bind-multi { obj_id attr args } {
 	if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
 	    set args [lindex $args 0]
     }
+
+    set attr [ngs-expand-tags $attr]
 
     set unique_bindings ""
     set neq_bindings ""
@@ -584,9 +597,9 @@ proc ngs-bind-multi { obj_id attr args } {
 #
 proc ngs-test { test_type obj_id attr val { val_id ""} } {
   if { $val_id == "" } {
-    return "($obj_id ^$attr $test_type $val)"
+    return "($obj_id ^[ngs-expand-tags $attr] $test_type $val)"
   } else {
-    return "($obj_id ^$attr \{ $val_id $test_type $val \})"
+    return "($obj_id ^[ngs-expand-tags $attr] \{ $val_id $test_type $val \})"
   }
 }
 

@@ -411,7 +411,7 @@ proc ngs-ctx-var-gen-root-bindings { pool_goal_or_path category_name variable_na
                     [ngs-bind-global-ctx <s> $pool_goal_or_path $category_name:$cat_id $variable_name:$var_id]"
         }
     } else {
-        return "[ngs-match-top-state <s> $pool_goal_or_path.$variable_name:$var_id]"
+        return "[ngs-match-top-state <s> [ngs-expand-tags $pool_goal_or_path].$variable_name:$var_id]"
     }
 
 }

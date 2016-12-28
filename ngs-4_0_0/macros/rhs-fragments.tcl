@@ -228,7 +228,7 @@ proc ngs-create-attribute { parent_obj_id
                             value
                             {prefs "+"} } {
 
-  return "($parent_obj_id ^$attribute $value $prefs)"        
+  return "($parent_obj_id ^[ngs-expand-tags $attribute] $value $prefs)"        
 }
 
 # Remove a working memory element, i.e. an object "attribute"
@@ -252,7 +252,7 @@ proc ngs-remove-attribute { parent_obj_id
                             attribute
                             value } {
 
-  return "($parent_obj_id ^$attribute $value -)"
+  return "($parent_obj_id ^[ngs-expand-tags $attribute] $value -)"
 }
 
 # Creates an object in a form appropriate for i-support
@@ -419,6 +419,7 @@ proc ngs-create-typed-object-by-operator { state_id
 
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
+  set attribute [ngs-expand-tags $attribute]
   set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name "create-$type" $attribute $new_obj_id $parent_obj_id]
 
@@ -526,6 +527,8 @@ proc ngs-create-attribute-by-operator { state_id
 
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
+  set attribute [ngs-expand-tags $attribute]
+
   if { [string first $NGS_TAG_PREFIX $attribute] == 0 } {
     set op_name [ngs-create-op-name create-tag [string range $attribute [string length $NGS_TAG_PREFIX] end] $value $parent_obj_id]
   } else {
@@ -577,6 +580,7 @@ proc ngs-deep-copy-by-operator { state_id
 
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
+  set attribute [ngs-expand-tags $attribute]
   set op_id $NGS_OP_ID
   set op_name [ngs-create-op-name deep-copy $attribute $value $parent_obj_id]
 
@@ -615,6 +619,7 @@ proc ngs-remove-attribute-by-operator { state_id
 	variable NGS_OP_ID
     variable NGS_TAG_OP_REMOVE_ATTRIBUTE
 
+    set attribute [ngs-expand-tags $attribute]
     set op_id $NGS_OP_ID
     set op_name [ngs-create-op-name remove-wme $attribute $value $parent_obj_id]
 
@@ -981,6 +986,7 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
   CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
   CORE_SetIfEmpty op_id $NGS_OP_ID
 
+  set dest_attr [ngs-expand-tags $dest_attr]
   set se_id [CORE_GenVarName "side-effect"]
   set attr_list "action $action destination-object $dest_obj destination-attribute $dest_attr \
                  value  \"$value\" replacement-behavior $replacement_behavior"
@@ -1405,6 +1411,7 @@ proc ngs-create-ret-val-in-place { ret_val_name
 
     CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
 
+    set attribute [ngs-expand-tags $attribute]
     set ret_val_id [CORE_GenVarName new-ret-val]
     set attr_list "name $ret_val_name replacement-behavior $replacement_behavior" 
 
