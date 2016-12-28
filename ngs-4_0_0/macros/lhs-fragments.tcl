@@ -523,6 +523,46 @@ proc ngs-bind { obj_id args } {
   return $lhs_ret
 }
 
+# Bind to a multi-valued attribute an exact number of times, uniquely
+#
+# Call this macro if you'd like to bind to exactly a set of size N
+#  of multi-valued attributes and you'd like to have only one binding.
+# 
+# Example: Consider the set (s1 ^val <v1>) (s1 ^val <v2>) (s1 ^val <v2>)
+# To bind this set one way (without multiple matches) use the following
+# 
+# [ngs-bind-multi <s> val <v1> <v2> <v3>]
+#
+# This will only bind if there are exactly 3 values for val.
+#                                                         
+# [ngs-bind-multi obj_id attr var1 var2 ...]
+#
+# obj_id - a variable bound to the object containing the multi-valued attributes
+# attr - the multi-valued attribute name
+# args - a list of Soar variables
+#
+proc ngs-bind-multi { obj_id attr args } {
+    
+    set unique_bindings ""
+    set neq_bindings ""
+
+    set last_var ""
+    set lt_bindings ""
+    foreach arg $args {
+        if { $lt_bindings == "" } {
+            set unique_bindings $arg
+        } else {
+            set unique_bindings "$unique_bindings {$arg $lt_bindings}"
+        }
+        set lt_bindings "< $arg $lt_bindings"
+        set neq_bindings "<> $arg $neq_bindings"
+    }
+
+    set neq_bindings "{[string trim $neq_bindings]}"
+    return "($obj_id ^$attr $unique_bindings
+                    -^$attr $neq_bindings)"
+}
+
 # The general test macro
 #
 # This macro is used by the more specific test macros to 
