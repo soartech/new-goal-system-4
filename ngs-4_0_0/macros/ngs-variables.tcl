@@ -32,7 +32,6 @@
 CORE_CreateMacroVar WM_GOAL_SET "goals"
 CORE_CreateMacroVar WM_ACTIVE_GOAL "active-goal"
 
-
 CORE_CreateMacroVar NGS_OP_ATTRIBUTE "operator"
 CORE_CreateMacroVar NGS_OP_ID        "<o>"
 CORE_CreateMacroVar NGS_GOAL_ATTRIBUTE "goal"
@@ -68,8 +67,9 @@ CORE_CreateMacroVar NGS_GB_ACHIEVE "achievement"
 CORE_CreateMacroVar NGS_GB_MAINT   "maintenance"
 
 # Types of operators. Atomic do some action, decide generate impasses
-CORE_CreateMacroVar NGS_OP_ATOMIC "atomic"
-CORE_CreateMacroVar NGS_OP_DECIDE "decide"
+CORE_CreateMacroVar NGS_OP_ATOMIC   "atomic"
+CORE_CreateMacroVar NGS_OP_SUBSTATE "no-change"
+CORE_CreateMacroVar NGS_OP_FUNCTION "no-change-function"
 
 # Operations used for side effects. 
 CORE_CreateMacroVar NGS_SIDE_EFFECT_REMOVE "remove"
@@ -83,7 +83,7 @@ CORE_CreateMacroVar NGS_TAG_SHALLOW_COPY			 "ngs*shallow-copy"
 CORE_CreateMacroVar NGS_TAG_COPY_COMPLETE			 "ngs*copy-complete"
 CORE_CreateMacroVar NGS_TAG_GOAL_STACK_SELECTED			 "ngs*copied-level"
 CORE_CreateMacroVar NGS_TAG_SOURCE_OBJ               "ngs*source-object"
-CORE_CreateMacroVar NGS_TAG_DECISION_COMPLETE        "ngs*decision-complete"
+CORE_CreateMacroVar NGS_TAG_FUNCTION_COMPLETE        "ngs*decision-complete"
 CORE_CreateMacroVar	NGS_TAG_SELECTED_GOAL			 "ngs*selected-goal"
 CORE_CreateMacroVar NGS_TAG_I_SUPPORTED              "ngs*i-supported"
 CORE_CreateMacroVar NGS_TAG_ACTIVATE_ON_DECISION  	 "ngs*activate-on-decision"
@@ -147,7 +147,7 @@ CORE_CreateMacroVar NGS_TEST_GREATER_THAN_OR_EQUAL ">="
 # CORE_ActivateTraceCategory NGS_TRACE_I_GOALS
 # CORE_ActivateTraceCategory NGS_TRACE_O_GOALS
 # CORE_ActivateTraceCategory NGS_TRACE_ATOMIC_OPERATORS
-# CORE_ActivateTraceCategory NGS_TRACE_DECIDE_OPERATORS
+# CORE_ActivateTraceCategory NGS_TRACE_SUBSTATE_OPERATORS
 # CORE_ActivateTraceCategory NGS_TRACE_SIDE_EFFECTS
 # CORE_ActivateTraceCategory NGS_TRACE_TAGS
 # CORE_ActivateTraceCategory NGS_TRACE_PRIMITIVES

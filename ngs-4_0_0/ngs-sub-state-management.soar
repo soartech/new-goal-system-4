@@ -30,15 +30,15 @@ sp "ngs*core*substate*set-top-state
 
 # Elaborate the operator's return values to the substate
 sp "ngs*core*substate*elaborate-return-values
-    [ngs-match-substate <ss> <params> <top-state> <superstate>]
+    [ngs-match-substate <ss> {} {} {} <superstate>]
     (<superstate> ^operator.return-values <ret-values>)
 -->
     (<ss> ^return-values <ret-values>)"
 
 # Elaborate the active goal in the sub-state
 sp "ngs*core*substate*set-active-goal
-  [ngs-match-substate <ss> <params> <top-state>]
-  (<top-state> ^operator.goal <g>)
+  [ngs-match-substate <ss> {} {} {} <superstate>]
+  (<superstate> ^operator.goal <g>)
 -->
   (<ss> ^$WM_ACTIVE_GOAL <g> +)" 
 
@@ -52,7 +52,7 @@ sp "ngs*core*substate*set-params
 
 # For decide goal sub-states, copy in the goals that represent the choices
 sp "ngs*core*substate*copy-decision-goals
-	[ngs-match-active-goal <s> <any-goal-type> <g> <g-params>]
+	[ngs-match-active-goal <s> <any-goal-type> <g> {} <g-params>]
 	(<g-params> ^decision-name <decision-name>)
 	[ngs-is-subgoal <g> <sub-goal>]
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
@@ -62,8 +62,7 @@ sp "ngs*core*substate*copy-decision-goals
 # Elaborates the return value structure for the decision. We don't know which object
 #  to tag yet because the selection hasn't been made yet.
 sp "ngs*core*substate*create-decision-return-structure
-	[ngs-match-substate <s>]
-	[ngs-is-named <s> $NGS_OP_DECIDE_GOAL]
+	[ngs-match-substate <s> $NGS_OP_DECIDE_GOAL]
 	(<s> ^$NGS_RETURN_VALUES <ret-vals>)
 -->
 	[ngs-create-ret-tag-in-place $NGS_DECISION_RET_VAL_NAME <ret-vals> {} $NGS_TAG_DECISION_STATUS $NGS_YES]"
@@ -136,7 +135,7 @@ sp "ngs*core*ret-vals*elaborate-operator*$NGS_TAG_OP_RETURN_NEW_GOAL*fill-in-ret
 #  preference operator to copy the return values to the top-state
 #
 sp "ngs*core*substate*propose*$NGS_OP_COPY_RETURN_VALUES
-	[ngs-match-substate <ss> <params> <top-state> <superstate>]
+	[ngs-match-substate <ss>]
 	(<ss> ^return-values <ret-val-set>)
 	[ngs-is-not-tagged <ss> $NGS_TAG_SUBSTATE_RESULT_RETURNED]
 -->

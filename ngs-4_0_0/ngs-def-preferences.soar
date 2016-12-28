@@ -1,11 +1,11 @@
 variable NGS_TAG_REMOVE_ACHIEVED
-variable NGS_OP_DECIDE
+variable NGS_OP_FUNCTION
 
 # This says that if we propose a new operator to remove a currently active goal, we should prefer to execute that operator
 #  (and remove the active goal)
 sp "ngs*core*goals*prefer-new-operator-if-same-as-active-goal
-    [ngs-match-two-proposed-operators <s> <o1> <o2> $NGS_TAG_REMOVE_ACHIEVED {} {} $NGS_OP_DECIDE {} <o2-name>]
-    [ngs-bind-decide-operator <o2> <g2>]
+    [ngs-match-two-proposed-operators <s> <o1> <o2> $NGS_TAG_REMOVE_ACHIEVED {} {} $NGS_OP_FUNCTION {} <o2-name>]
+    (<o2> ^goal <g2>)
     [ngs-match-active-goal <s2> <any-goal-type> <g2>]
     [ngs-is-named <s2> <o2-name>]
     [ngs-bind <o1> goal:<g1>]

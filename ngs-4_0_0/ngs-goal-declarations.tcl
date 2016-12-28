@@ -256,7 +256,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-not-tagged <decision-info> $NGS_TAG_ONE_OPTION]
     [ngs-is-not-tagged <decision-info> $NGS_TAG_NO_OPTIONS]
   --> 
-    [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]
+    [ngs-create-function-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]
     (<o> ^decision-name <decision-name>)"
 
   # This can happen when a goal was selected, ends up being unassigned from a decision
@@ -274,7 +274,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-assigned-decision <subgoal2> <decision-name>]
     [ngs-is-tagged <subgoal2> $NGS_TAG_DECISION_STATUS $NGS_YES]
   -->
-    [ngs-create-decide-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g> {} "> ="]
+    [ngs-create-function-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g> {} "> ="]
     (<o> ^decision-name <decision-name>)
     (write (crlf) | --- WARNING: There are at least two goals with a decided flag set to *yes* - | <subgoal> |, | <subgoal2>)"
 
@@ -293,7 +293,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-tagged <g> $NGS_TAG_ACTIVATE_ON_DECISION]
     [ngs-is-not-tagged <g> $NGS_TAG_ALREADY_ACTIVATED]
   -->
-    [ngs-create-decide-operator <s> [ngs-create-op-name execute-choice $goal_type <g>] <o> <ret-vals> <g>]
+    [ngs-create-function-operator <s> [ngs-create-op-name execute-choice $goal_type <g>] <o> <ret-vals> <g>]
     [ngs-create-ret-val-in-place $NGS_DECISION_ITEM_RET_VAL_NAME <ret-vals> <obj> <attr> {} <behavior>]
     [ngs-create-ret-tag-in-place $NGS_ACTIVATION_STATUS_RET_VAL <ret-vals> <g> $NGS_TAG_ALREADY_ACTIVATED $NGS_YES]"
 

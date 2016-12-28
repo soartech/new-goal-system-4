@@ -727,14 +727,14 @@ proc ngs-create-tag-by-operator { state_id
 # Create a plain operator
 #
 # This macro is primiarly for use by other NGS macros. It's best to use
-#  ngs-create-atomic-operator or ngs-create-decide-operator depending
+#  ngs-create-atomic-operator or ngs-create-function/substate-operator depending
 #  on the type of operator you need.
 #
 # [ngs-create-operator state_id op_name type (new_obj_id) (add_prefs)]
 #
 # state_id - variable bound to the state in which the operator should be proposed
 # op_name  - name of the operator (this prints out on the state stack in Soar)
-# type     - type of operator, one of NGS_OP_ATOMIC or NGS_OP_DECIDE
+# type     - type of operator, one of NGS_OP_ATOMIC, NGS_OP_SUBSTATE, or NGS_OP_FUNCTION
 # new_obj_id - a variable that will be bound to the
 #               newly constructed operator.
 # add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
@@ -803,16 +803,20 @@ proc ngs-create-atomic-operator { state_id
           [core-trace NGS_TRACE_ATOMIC_OPERATORS "I PROPOSE-ATOMIC, | $state_id |.operator | $new_obj_id |)."]"                                 
 }
             
-# Create a decision operator
+# Create a function operator
 #
-# Decision operators are of type NGS_OP_DECIDE. Decision operators do not have apply 
+# Function operators are of type NGS_OP_FUNCTION. Function operators do not have apply 
 #  productions, instead they trigger an operator no change.
+#
 # In the resulting sub-state the operator's actions can be determined and sequenced. Return
 #  values are set via the ngs-add-ret-val macro. If an operator needs to set static
 #  flags or return values in order to properly return, these can be passed into the 
 #  substate via the ret_val_list parameter.
 #
-# [ngs-create-decide-operator state_id op_name new_obj_id ret_val_set_id goal_id (completion_tag) (add_prefs)]
+# You can create arbitrary parameters on the operator, which will be available through
+#  the params attribute in the substate (see ngs-match-substate and ngs-match-active-goal)
+#
+# [ngs-create-function-operator state_id op_name new_obj_id ret_val_set_id (goal_id) (completion_tag) (add_prefs)]
 #
 # state_id - variable bound to the state in which the operator should be proposed
 # op_name  - name of the operator (this prints out on the state stack in Soar)
@@ -820,36 +824,43 @@ proc ngs-create-atomic-operator { state_id
 # ret_val_set_id - variable to be bound to the operator's return value set. You can use this
 #                   to specify where to place sub-state return values. See the macro
 #                   ngs-create-ret-val-in-place for info on how to create these return values.
-# goal_id - a variable bound to the goal associated with this decide operator. All decide operators
-#            should be created to achieve some goal. This goal becomes the active goal upon selection
-#            of the decide operator.
+# goal_id - (Optional) a variable bound to the goal associated with this function operator. This goal 
+#             becomes the active goal upon selection of the function operator.
 # completion_tag - (Optional) the name of a boolean tag that should be placed on the goal given by
 #                     goal_id after completion of the decision operator's sub-state. This can be
 #                     used to do simple process tagging (i.e. finished step 1).                   
 # add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
 #  the indifferent preference is given but you can override using this argument.
 #
-proc ngs-create-decide-operator { state_id
+proc ngs-create-function-operator { state_id
                                   op_name
                                   new_obj_id
                                   ret_val_set_id
-                                  goal_id
+                                 {goal_id ""}
  								 {completion_tag ""}
                                  {add_prefs "="} } {
 
-   variable NGS_OP_DECIDE
-   variable NGS_TAG_DECISION_COMPLETE
+   variable NGS_OP_FUNCTION
+   variable NGS_TAG_FUNCTION_COMPLETE
    variable NGS_YES
     
-   set rhs_val  "[ngs-create-operator $state_id $op_name $NGS_OP_DECIDE $new_obj_id $add_prefs]
-                 ($new_obj_id ^goal          $goal_id
-                              ^return-values $ret_val_set_id)"
+   set rhs_val  "[ngs-create-operator $state_id $op_name $NGS_OP_FUNCTION $new_obj_id $add_prefs]
+                 ($new_obj_id ^return-values $ret_val_set_id)"
+
+   if { $goal_id != "" } {
+       set rhs_val "$rhs_val
+                     ($new_obj_id ^goal $goal_id)"
+       set log_text " for goal | $goal_id |"
+   } else {
+       set log_text ""
+   }
 
    if { $completion_tag != "" } {
       set rhs_val "$rhs_val
-           	       [ngs-create-ret-tag-in-place $NGS_TAG_DECISION_COMPLETE $ret_val_set_id $goal_id $completion_tag $NGS_YES]"
+           	       [ngs-create-ret-tag-in-place $NGS_TAG_FUNCTION_COMPLETE $ret_val_set_id $goal_id $completion_tag $NGS_YES]"
    }
 
+   # I'm nots sure why this is needed. I don't know of where a function
    if { [string first "(concat" $op_name] == 0 } {
       set op_name_text $op_name
    } else {
@@ -857,7 +868,60 @@ proc ngs-create-decide-operator { state_id
    }
 
    return "$rhs_val
-           [core-trace NGS_TRACE_DECIDE_OPERATORS "I PROPOSE-DECIDE, | $op_name_text | for goal | $goal_id |, (| $state_id |.operator | $new_obj_id |)."]"
+           [core-trace NGS_TRACE_SUBSTATE_OPERATORS "I PROPOSE-FUNCTION, | $op_name_text |$log_text, (| $state_id |.operator | $new_obj_id |)."]"
+}
+
+# Create a substate operator
+#
+# Substate operators are of type NGS_OP_SUBSTATE. Substate operators do not have apply 
+#  productions, instead they trigger an operator no change.
+#
+# In this way substate operators are the same as function operators. The difference is that
+#  substate operators do not define any process for return values. You are left to handle
+#  returning values from the substate in whatever way you wish. Because of this, 
+#  there is no automatic mechanism for setting a substate completion flag either.
+#
+# You can create arbitrary parameters on the operator, which will be available through
+#  the params attribute in the substate (see ngs-match-substate and ngs-match-active-goal)
+#
+# [ngs-create-substate-operator state_id op_name new_obj_id (goal_id) (add_prefs)]
+#
+# state_id - variable bound to the state in which the operator should be proposed
+# op_name  - name of the operator (this prints out on the state stack in Soar)
+# new_obj_id - the variable that will be bound to the newly constructed operator.
+# goal_id - (Optional) a variable bound to the goal associated with this substate operator. This goal 
+#             becomes the active goal upon selection of the substate operator.
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
+proc ngs-create-substate-operator { state_id
+                                    op_name
+                                    new_obj_id
+                                   {goal_id ""}
+                                   {add_prefs "="} } {
+   variable NGS_OP_SUBSTATE
+    
+   set rhs_val  "[ngs-create-operator $state_id $op_name $NGS_OP_SUBSTATE $new_obj_id $add_prefs]"
+
+   if { $goal_id != "" } {
+       set rhs_val "$rhs_val
+                     ($new_obj_id ^goal $goal_id)"
+
+       set log_text " for goal | $goal_id |"
+   } else {
+       set log_text ""
+   }
+
+   # I'm nots sure why this is needed. I don't know of where a function
+   if { [string first "(concat" $op_name] == 0 } {
+      set op_name_text $op_name
+   } else {
+      set op_name_text |$op_name|
+   }
+
+   return "$rhs_val
+           [core-trace NGS_TRACE_SUBSTATE_OPERATORS "I PROPOSE-SUBSTATE, | $op_name_text |$log_text, (| $state_id |.operator | $new_obj_id |)."]"
+
 }
 
 # Adds a side-effect to an operator
@@ -1305,19 +1369,19 @@ proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
 
 # Creates a structure that defines a return value
 #
-# Typically you create return value structures when constructing a decide operator.
+# Typically you create return value structures when constructing a function operator.
 # These are created with i-support right on the operator. The sub-state code uses
 #  the information from this return value structure to determine where to place its
 #  return values
 #
 # [ngs-create-ret-val-in-place ret_val_name ret_val_set_id dest_obj_id attribute (new_val) (replacement_behavior)]
 #
-# ret_val_name - Name of the return value. The decide operator should document the return values it constructs such
+# ret_val_name - Name of the return value. The function operator should document the return values it constructs such
 #  that when you create this operator you know which return values to create. Note that you can create additional 
 #  return values (e.g. flags to set) that aren't required by the sub-state. If you do this, you'll need to specify
 #  the value for the return value.
 # ret_val_set_id - Variable bound to the return value set on the operator. You bind this variable using the
-#                    ngs-create-decide-operator macro.
+#                    ngs-create-function-operator macro.
 # dest_obj_id - Variable bound to the id of the object that should recieve the return value. If not passed,
 #                  the destination object is not set (used internally by NGS)
 # attribute - (Optional) Name of the attribute to which the return value should be bound. If not passed, the
@@ -1360,18 +1424,18 @@ proc ngs-create-ret-val-in-place { ret_val_name
 # Creates a return tag on an operator
 #
 # This macro does the same thing as ngs-create-ret-val-in-place except that it creates a tag. Because you
-#  can create return tags as part of decide operator construction (see ngs-create-decide-operator) it is
+#  can create return tags as part of function operator construction (see ngs-create-function-operator) it is
 #  not likely that you will need to use this macro often. However, if sub-state code creates tags as part
 #  if its return value set, you will need to macro to tell the sub-state where to put the tag.
 #
 # [ngs-create-ret-tag-in-place ret_val_name ret_val_set_id dest_obj_id tag_name (tag_val) (replacement_behavior)]
 #
-# ret_val_name - Name of the return value. The decide operator should document the return values it constructs such
+# ret_val_name - Name of the return value. The function operator should document the return values it constructs such
 #  that when you create this operator you know which return values to create. Note that you can create additional 
 #  return values (e.g. flags to set) that aren't required by the sub-state. If you do this, you'll need to specify
 #  the value for the return value.
 # ret_val_set_id - Variable bound to the return value set on the operator. You bind this variable using the
-#                    ngs-create-decide-operator macro.
+#                    ngs-create-function-operator macro.
 # dest_obj_id - Variable bound to the id of the object that should recieve the return value. If you pass in
 #                    an empty string (or leave out), the destination object remains unset (used internally by NGS)
 # tag_name - Name of the tag to construct in the return set.                  
