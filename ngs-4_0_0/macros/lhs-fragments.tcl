@@ -214,6 +214,20 @@ proc ngs-stable-gte-lte { obj_id attr low_val high_val } {
                           [ngs-gt $obj_id $attr $high_val]]]
 }
 
+# Evaluates to true when an attribute exists
+# Use when you don't need to bind to the value
+#
+# This is equivilent to ^attribute syntax in Soar, but is
+#  consistent with the NGS naming/syntax scheme
+#
+# [ngs-ex object_id attribute]
+#
+# object_id - variable bound to the object to test
+# attribute - the attribute to test for existence
+proc ngs-ex { object_id attribute } {
+  return "($object_id ^$attribute)"
+}
+
 # Evaluates to true when an attribute does NOT exist
 #
 # This is equivilent to -^attribute syntax in Soar, but is
