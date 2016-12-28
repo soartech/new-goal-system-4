@@ -1286,8 +1286,6 @@ proc ngs-orequest-decision { goal_id
 #
 # activate_on_decision - (Optional) If provided, marks the goal to be activated 
 #    after it is selected in a decision. Activated goals generate sub-states
-#    NOTE: this isn't configured to work yet because there doesn't appear
-#     to be a general way to retract the activation operator.
 #
 proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
   variable NGS_YES
