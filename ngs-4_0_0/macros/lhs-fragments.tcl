@@ -216,7 +216,7 @@ proc ngs-stable-gte-lte { obj_id attr low_val high_val } {
 
 # Evaluates to true when an attribute does NOT exist
 #
-# This is equivilent to -^attribute sytax in Soar, but is
+# This is equivilent to -^attribute syntax in Soar, but is
 #  consistent with the NGS naming/syntax scheme
 #
 # [ngs-nex object_id attribute]
