@@ -42,7 +42,7 @@
 #
 # See the stable-value tests in the ngs test directory
 #
-# [ngs-create-stable-value pool_id variable_name src_obj src_attr delta (variable_id) (delta_type)]
+# [ngs-create-stable-value pool_id variable_name src_obj src_attr delta (delta_type) (variable_id)]
 #
 # pool_id - Variable bound to the identifier for the category pool into which to place the new
 #             stable value. Bind to this pool using one of the following macros:
@@ -53,10 +53,10 @@
 # delta - Either a constant/variable (Form 1), a list with a min/max (Form 2), or
 #          a list with a delta source obj/attr (Form 3). All forms specify the bounds
 #          on the stable-value, indicating when it will be resampled from the source value.
-# variable_id - (Optional) If provided, a variable that is bound to the newly created stable value.
-#                You can use this, for exmaple, to tag the variable.
 # delta_type - (Optional). The type of delta being used. Either NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE (default),
 #                or NGS_CTX_VAR_DELTA_TYPE_PERCENTAGE.
+# variable_id - (Optional) If provided, a variable that is bound to the newly created stable value.
+#                You can use this, for exmaple, to tag the variable.
 #
 proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { delta_type "" } { variable_id "" } } {
 

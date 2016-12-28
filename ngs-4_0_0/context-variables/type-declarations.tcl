@@ -23,6 +23,26 @@ NGS_DeclareType SingleSourceVariable {
     src-attr ""
 }
 
+# A context variable that computes its value from one or more sources
+#
+# sources - a set of SourceDescription objects that define each source
+#
+NGS_DeclareType MultiSourceVariable {
+    sources ""
+}
+
+# A description of a source for multi source variables
+#
+# src - the source object identifier
+# attr - the source attribute
+# name - (Optional) the name of the source
+#
+NGS_DeclareType SourceDescription {
+    src ""
+    attr ""
+    name ""
+}
+
 # A context variable that uses a delta value
 #  to compute a min-max
 #
@@ -95,4 +115,14 @@ NGS_DeclareType DynamicBin {
 
     cur-min ""
     cur-max ""
+}
+
+# A value that is computed from other values, typically with one or more
+#  mathematical or other RHS functions
+#
+# This structure will be elaborated with many temporary variables that 
+#  are specific to the specific function and sources used.
+#
+NGS_DeclareType ComputedValue {
+    type { ContextVariable MultiSourceVariable }
 }

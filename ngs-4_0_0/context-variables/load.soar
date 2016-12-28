@@ -8,5 +8,8 @@ CORE_InternalSource type-declarations.tcl
 CORE_InternalSource context-variables.tcl
 CORE_InternalSource stable-value.tcl
 CORE_InternalSource dynamic-bins.tcl
+CORE_InternalSource computed-value.tcl
 
 CORE_InternalSource elaborations.soar
+
+

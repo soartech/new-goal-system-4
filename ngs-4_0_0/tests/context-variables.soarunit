@@ -13,11 +13,15 @@ setup {
   NGS_DeclareGoal GoalWithContextVariables 
   NGS_CreateContextPoolCategories GoalWithContextVariables { categoryA category-B CategoryC }
 
+  sp "test*create-goal
+	[ngs-match-goalpool <s> <goals> GoalWithContextVariables]
+  -->
+	[ngs-create-goal-in-place <goals> GoalWithContextVariables $NGS_GB_ACHIEVE <g>]"
+
 }
 
 
 test create-global-pool-and-categories {
-
 
     sp "test
         [ngs-match-top-state <s> $WM_CTX_GLOBAL_POOLS.sample-pool]
@@ -28,12 +32,6 @@ test create-global-pool-and-categories {
 }
 
 test create-goal-context-pool-and-categories {
-
-    sp "test*create-goal
-        [ngs-match-goalpool <s> <goals> GoalWithContextVariables]
-    -->
-        [ngs-create-goal-in-place <goals> GoalWithContextVariables $NGS_GB_ACHIEVE <g>]"
-
 
     sp "test
         [ngs-match-goal <s> GoalWithContextVariables <g>]
@@ -186,10 +184,6 @@ test dynamic-binned-value {
     
     # Finally, let's test static bins. We'll do temperatures. We'll do it on a goal, just for fun
 
-    sp "test*create-goal
-        [ngs-match-goalpool <s> <goals> GoalWithContextVariables]
-    -->
-        [ngs-create-goal-in-place <goals> GoalWithContextVariables $NGS_GB_ACHIEVE <g>]"
 
     sp "test*temperature
         [ngs-match-top-state <s> rapid-value]
@@ -221,5 +215,73 @@ test dynamic-binned-value {
         }]
         [ngs-bind-goal-ctx <g> category-B { how-cold-is-it::i-cannot-feel-my-legs }]
     -->    
+        (pass)"
+}
+
+test computed-values {
+    
+    NGS_DefineComputedValue GoalWithContextVariables CategoryC passthrough-example {} "<rapid-value>"
+    NGS_DefineComputedValue sample-pool CategoryC my-pos-linked {} "<my-pos>"
+    NGS_DefineComputedValue sample-pool CategoryC distance-to-leader {
+        { x-delta "- <x> <lx>"}
+        { y-delta "- <y> <ly>"}
+        { x-delta2 "(* <x-delta> <x-delta>)"}
+        { y-delta2 "(* <y-delta> <y-delta>)"}
+    } "sqrt (+ <x-delta2> <y-delta2>)"
+
+    sp "test*rapid-sample-value
+        [ngs-match-top-state <s>]
+        [ngs-time <s> <time>]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> rapid-value "(/ <time> 1000)" {} "+ < ="]"
+
+    sp "test*create-computed-value*passthrough-example
+        [ngs-match-goal-to-create-context-variable <s> GoalWithContextVariables <g> CategoryC:<pool>]
+    -->
+        [ngs-create-computed-val <pool> passthrough-example {{ <s> rapid-value }}]"
+
+    sp "test*create-positions
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-icreate-typed-object-in-place <s> my-pos Bag <my-pos>]
+        [ngs-icreate-typed-object-in-place <s> leader-pos Bag <l-pos>]"  
+
+    sp "test*update-positions
+        [ngs-match-top-state <s> rapid-value]
+        [ngs-bind <s> my-pos leader-pos:<l-pos>]
+    -->
+        [ngs-create-attribute <my-pos> x "(* 2.0 <rapid-value>)"]
+        [ngs-create-attribute <my-pos> y "(* 2.0 <rapid-value>)"]
+        [ngs-create-attribute <l-pos> x "(* 0.5 <rapid-value>)"]
+        [ngs-create-attribute <l-pos> y "(* 0.5 <rapid-value>)"]" 
+
+    sp "test*create-computed-value*distance-to-leader
+        [ngs-match-to-create-context-variable <s> sample-pool CategoryC:<pool>]
+        [ngs-bind <s> my-pos leader-pos]
+    -->
+        [ngs-create-computed-val <pool> distance-to-leader {
+                { <my-pos> x }
+                { <my-pos> y }
+                { <leader-pos> x lx }
+                { <leader-pos> y ly }
+        }]"
+
+    # Shows that you can link to structure, not just atomic values, though I'm not sure
+    #  why you'd want to do this
+    sp "test*create-linked-position
+        [ngs-match-to-create-context-variable <s> sample-pool CategoryC:<pool>]
+        [ngs-bind <s> my-pos]
+    -->
+        [ngs-create-computed-val <pool> my-pos-linked {{<s> my-pos}}]"
+
+    sp "test
+        [ngs-match-goal <s> GoalWithContextVariables <g>]
+        [ngs-bind <s> rapid-value my-pos]
+        [ngs-bind-ctx <s> sample-pool CategoryC {
+            my-pos-linked::<my-pos>
+            distance-to-leader:>:2.0
+        }]
+        [ngs-bind-goal-ctx <g> CategoryC { passthrough-example::<rapid-value> }]
+    -->
         (pass)"
 }
