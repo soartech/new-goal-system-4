@@ -385,7 +385,7 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
         [ngs-bind $var_id src-obj src-attr]
         [ngs-neq  $var_id value <name>]
         [ngs-stable-gte-lt <src-obj> <src-attr> <cur-min> <cur-max>]
-        (<src-obj> ^<src-attr> <src-val>)
+        [ngs-ex <src-obj> <src-attr>]
     -->
         [ngs-create-attribute-by-operator <s> $var_id value <name>]"
 
@@ -396,7 +396,7 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
         [ngs-bind $var_id src-obj src-attr]
         [ngs-neq  $var_id value <name>]
         [ngs-stable-gte <src-obj> <src-attr> <cur-min>]
-        (<src-obj> ^<src-attr> <src-val>)
+        [ngs-ex <src-obj> <src-attr>]
      -->
         [ngs-create-attribute-by-operator <s> $var_id value <name>]"
 
@@ -407,7 +407,7 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
         [ngs-bind $var_id src-obj src-attr]
         [ngs-neq  $var_id value <name>]
         [ngs-stable-lt <src-obj> <src-attr> <cur-max>]
-        (<src-obj> ^<src-attr> <src-val>)
+        [ngs-ex <src-obj> <src-attr>]
     -->
         [ngs-create-attribute-by-operator <s> $var_id value <name>]"
                         

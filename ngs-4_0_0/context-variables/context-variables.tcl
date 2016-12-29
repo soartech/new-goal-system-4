@@ -3,6 +3,23 @@
 #
 # @created jacobcrossman 20161222
 
+# Creates LHS bindings for a context variable's source value. 
+#
+# This macros is mainly for use internally by the context variable code, but
+#  it can be used by user-defined context variables if they follow the
+#  SingleSourceVariable pattern (see type-declarations.tcl).
+#
+# var_id - Variable bound to a context variable identifier
+# source_val - Variable to be bound to the current value of the source
+#
+proc ngs-ctx-var-source-val { var_id source_val } {
+    set src_obj_id [CORE_GenVarName "src-obj"]
+    set src_attr   [CORE_GenVarName "src-obj"]
+
+    return "($var_id ^src-obj $src_obj_id ^src-attr $src_attr)
+            ($src_obj_id ^$src_attr $source_val)"
+}
+
 # Creates a global context variable pool
 #
 # A context variable is a value that is derived from some logical or sampling process on 

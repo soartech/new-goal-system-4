@@ -171,8 +171,7 @@ proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
         $root_bind
         [ngs-nex $var_id value]
         [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
-        [ngs-bind $var_id src-obj src-attr]
-        (<src-obj> ^<src-attr> <src-val>)
+        [ngs-ctx-var-source-val $var_id <src-val>]
      -->
         [ngs-create-attribute-by-operator <s> $var_id value <src-val>]"
 
@@ -183,7 +182,7 @@ proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
         [ngs-or [ngs-nex $var_id value] \
                 [ngs-lt <src-obj> <src-attr> <min-bound>] \
                 [ngs-gt <src-obj> <src-attr> <max-bound>]]
-        (<src-obj> ^<src-attr> <src-val>)
+        [ngs-bind <src-obj> <src-attr>:<src-val>]
      -->
         [ngs-create-attribute-by-operator <s> $var_id value <src-val>]"
 }

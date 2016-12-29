@@ -126,3 +126,61 @@ NGS_DeclareType DynamicBin {
 NGS_DeclareType ComputedValue {
     type { ContextVariable MultiSourceVariable }
 }
+
+# Time delayed context variable
+# 
+# Time delayed values sample a source after it is stable for a given delay time
+#
+# global-delay - The global delay factor (in milliseconds) that is used whenever a conditional delay is not available
+# global-delay-src/attr - (Optional) Location from which to read the global delay value
+#
+# conditional-delays - (Optional) A set of delay specifications for specific values
+# custom-delay - (Computed) Set when a conditional delay is active
+# next-sample-time - (Computed) The next time (from [ngs-time <s> <time>]) that the source will be sampled 
+# next-sample-val - (Computed) The next value that will be sampled
+#           
+# time-last-sampled - (Computed) Time the source was last sampled
+# value-age - (Computed) Age of the value attribute (amount of time since last sampled)
+# is-consistent-with-source - (Computed) NGS_YES if the current value is the same as the sourc evalue,
+#          NGS_NO otherwise       
+#                                                                                                  
+NGS_DeclareType TimeDelayedValue {
+    type { ContextVariable SingleSourceVariable }
+    
+    global-delay ""
+    global-delay-src ""
+    global-delay-attr ""
+
+    conditional-delays ""
+    custom-delay ""
+
+    next-sample-time ""
+    next-sample-val ""
+
+    time-last-sampled ""
+    value-age ""
+    is-consistent-with-source ""
+}
+
+# Conditiona delay information
+#
+# This is used by Time Delayed Values
+#
+# delay - Delay (in milleseconds) to use under this condition
+# delay-src/attr - (Optional) Location fromw which to read the delay
+#
+# comparison-value - (Optional) Make this delay active when the TimeDelayedValue's value 
+#                       attribute equals this
+# range-min/max - (Optional) Make this delay active when the TimeDelayedValue's value
+#                       is between these two values [range-min, range-max). If only
+#                       one of these is present it acts as a >= and < respectively.
+# 
+NGS_DeclareType ConditionalDelay {
+    delay ""
+    delay-src ""
+    delay-attr ""
+
+    comparison-value ""
+    range-min ""
+    range-max ""
+}

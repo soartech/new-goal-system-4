@@ -347,6 +347,8 @@ test time-delayed-values {
     -->
         [ngs-create-time-delayed-value <pool> moving <s> leader-moving 1000 {{ halted 3000 }}]"
 
+
+
     sp "test*lead-velocity*init
         [ngs-match-top-state <s>]
         [ngs-time-range <s> 0 1000]
@@ -389,10 +391,17 @@ test time-delayed-values {
     -->
         [ngs-create-attribute-by-operator <s> <s> lead-velocity 0.0]"
 
+    sp "test*delay-source
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-create-attribute <s> my-global-delay 500]"
+
     sp "test*leader-velocity
         [ngs-match-to-create-context-variable <s> sample-pool CategoryC:<pool>]    
     -->
-        [ngs-create-time-delayed-value <pool> leader-velocity <s> lead-velocity 500]"
+        [ngs-create-time-delayed-value <pool> leader-velocity <s> lead-velocity { <s> my-global-delay }]"
+
+
 
 
     sp "test*user-location
@@ -444,11 +453,16 @@ test time-delayed-values {
     -->
         [ngs-create-attribute-by-operator <s> <s> my-velocity 3.0]"
 
+    sp "test*custom-delay
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-create-attribute <s> my-custom-delay 2000]"
+
     sp "test*my-velocity
         [ngs-match-top-state <s> my-agent.state.vehicle:<pool>]    
     -->
         [ngs-create-time-delayed-value <pool> my-velocity <s> my-velocity 500 {
-            {{< 0.1} 2000}
+            {{< 0.1} {<s> my-custom-delay}}
             {{0.1 1.0} 1000}
             {{1.0 2.0} 500}
             {{2.0 3.0} 200}

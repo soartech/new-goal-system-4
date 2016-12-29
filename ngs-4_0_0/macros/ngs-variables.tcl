@@ -50,9 +50,9 @@ CORE_CreateMacroVar NGS_ACTIVATION_STATUS_RET_VAL "ngs*activation-status"
 CORE_CreateMacroVar NGS_TAG_PREFIX "__tagged*"
 
 # Standard boolean and trilean values
-CORE_CreateMacroVar NGS_YES "*yes*"
-CORE_CreateMacroVar NGS_NO "*no*"
-CORE_CreateMacroVar NGS_UNKNOWN "*unknown*"
+CORE_CreateMacroVar NGS_YES "*YES*"
+CORE_CreateMacroVar NGS_NO "*NO*"
+CORE_CreateMacroVar NGS_UNKNOWN "*UNKNOWN*"
 
 # Methods of creating objects
 CORE_CreateMacroVar NGS_REPLACE_IF_EXISTS "ngs-replace"
