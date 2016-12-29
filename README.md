@@ -267,8 +267,8 @@ NGS typed objects are created using NGS macros. Several macros exist to support 
 **Creating Typed Objects as Substate Return Values**
 
 * ngs-create-typed-object-by-operator: Used to create a new, o-supported, typed object.
-* ngs-icreate-typed-object-in-place: Used to create a new i-supported typed object and any sub-structure under that object.
-* ngs-ocreate-typed-object-in-place: Used to create sub-structure under objects that you create using ngs-create-typed-object-by-operator.
+* ngs-create-typed-object: Used to create a new i-supported typed object and any sub-structure under that object.
+* ngs-create-typed-sub-object-by-operator: Used to create sub-structure under objects that you create using ngs-create-typed-object-by-operator.
 
 ### Atomic Values and Shallow Links
 
@@ -620,8 +620,8 @@ An NGS typed object is a set of WMEs that share the same root id (i.e. left hand
 
 Typed objects are collections of WMEs that share the same left-most identifier. They are identical to "plain old data structures" in object oriented programming. NGS typed objects are created using one of the following macros:
 * `ngs-create-typed-object-by-operator`: Used to create a new, o-supported, typed object.
-* `ngs-icreate-typed-object-in-place`: Used to create a new i-supported typed object and any sub-structure under that object.
-* `ngs-ocreate-typed-object-in-place`: Used to create sub-structure under objects that you create using ngs-create-typed-object-by-operator.
+* `ngs-create-typed-object`: Used to create a new i-supported typed object and any sub-structure under that object.
+* `ngs-create-typed-sub-object-by-operator`: Used to create sub-structure under objects that you create using ngs-create-typed-object-by-operator.
 
 Here's an example of creating an o-supported typed object. Note you don't have to write the apply rule (application is handled for you internally). Note that by default, this will replace any existing object. If you wish to add to a multi-attribute set, pass `NGS_ADD_TO_SET` as the last parameter to `ngs-create-typed-object-by-operator`. By default the operator preferences are `+ =`, but this can also be overridden.
 ```tcl
@@ -656,7 +656,7 @@ sp "example
       ^type MyObjectType)
 ```
 
-If you wish to create deeper objects, you can combine `ngs-create-typed-object-by-operator` with `ngs-ocreate-typed-object-in-place`. However, note that currently this is limited to 5 levels deep (you will get a warning if you try to go deeper):
+If you wish to create deeper objects, you can combine `ngs-create-typed-object-by-operator` with `ngs-create-typed-sub-object-by-operator`. However, note that currently this is limited to 5 levels deep (you will get a warning if you try to go deeper):
 ```tcl
 NGS_DeclareType MyObjectType {my-string foo my-number 12}
 NGS_DeclareType MyObjectType2 {}
@@ -665,7 +665,7 @@ sp "example
    [ngs-nex <s> my-object] # so the operator proposal goes away after the object is created
 -->
    [ngs-create-typed-object-by-operator <s> <s> my-object MyObjectType <myobj> { another-attr another-val }]
-   [ngs-ocreate-typed-object-in-place <myobj> next-level MyObjectType2 <myobj2> { deeper-attr deeper-val }]
+   [ngs-create-typed-sub-object-by-operator <myobj> next-level MyObjectType2 <myobj2> { deeper-attr deeper-val }]
 "
 
 # This will create an object in working memory that looks like this:
@@ -694,7 +694,7 @@ NGS_DeclareType MyObjectType {my-string foo my-number 12}
 sp "example
    [ngs-match-top-state <s>]
 -->
-   [ngs-icreate-typed-object-in-place <s> my-object MyObjectType <myobj> { another-attr another-val }]
+   [ngs-create-typed-object <s> my-object MyObjectType <myobj> { another-attr another-val }]
 "
 
 # This will create an object in working memory that looks like this:

@@ -8,7 +8,7 @@ variable WM_CTX_GLOBAL_POOLS
 sp "ngs*core*goals*elaborate-goal-set-on-top-state
   (state <s> ^superstate nil)
 -->
-  [ngs-icreate-typed-object-in-place <s> $WM_GOAL_SET NGSGoalSet <gs>]
+  [ngs-create-typed-object <s> $WM_GOAL_SET NGSGoalSet <gs>]
 "
 
 # Marks a goal with the NGS_GS_ACTIVE tag after that

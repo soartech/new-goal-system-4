@@ -42,6 +42,6 @@ proc ngs-create-user-defined-context-variable { pool_id variable_name variable_i
 
     CORE_SetIfEmpty typename "UserContextValue"
     set attribute_list "name $variable_name $attribute_list"
-    return "[ngs-icreate-typed-object-in-place $pool_id $variable_name $typename $variable_id $attribute_list]"
+    return "[ngs-create-typed-object $pool_id $variable_name $typename $variable_id $attribute_list]"
 
 }

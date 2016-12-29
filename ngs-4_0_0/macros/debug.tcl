@@ -175,7 +175,7 @@ proc ngs-dtp-on { } {
     sp "ngs*debug-trace-pool*create-root
         [ngs-match-top-state <s>]
     -->
-        [ngs-icreate-typed-object-in-place <s> debug-trace-pools Bag <dtp>]"
+        [ngs-create-typed-object <s> debug-trace-pools Bag <dtp>]"
 }
 
 # Turn off debug trace pools (the default).
@@ -209,7 +209,7 @@ proc ngs-create-debug-trace-pool { pool_name path pool_root_id } {
         [ngs-match-top-state <s> debug-trace-pools]
         [ngs-bind <s> $path]
     -->
-        [ngs-icreate-typed-object-in-place <debug-trace-pools> $pool_name Bag $pool_id]
+        [ngs-create-typed-object <debug-trace-pools> $pool_name Bag $pool_id]
         [ngs-create-attribute $pool_id root-id $pool_root_id]"
 
     sp "ngs*debug-trace-pool*$pool_name*not-exists

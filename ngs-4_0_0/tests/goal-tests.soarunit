@@ -151,7 +151,7 @@ test create-layered-value {
 sp "test*setup-shallow-copy-object
   (state <s> ^superstate nil)
 -->
-  [ngs-icreate-typed-object-in-place <s> sub-structure Foo <new-obj> { existing-attribute-set {1 2} } ]"
+  [ngs-create-typed-object <s> sub-structure Foo <new-obj> { existing-attribute-set {1 2} } ]"
 
 # [ngs-is-attr-not-constructed <s> complex]
 sp "test*create-new-object-1
@@ -161,7 +161,7 @@ sp "test*create-new-object-1
     (<s> -^complex)  
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } ]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
 
 #[ngs-is-attr-constructed <s> complex <complex>]
 sp "test*step1*done
@@ -184,7 +184,7 @@ sp "test*create-new-object-2
      }
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { primitive1 bar already-exists <sub-structure> } ]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
 
 sp "test*step2*done
     (state <s> ^superstate nil
@@ -211,7 +211,7 @@ sp "test*create-new-object-3
      }
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <new-obj> { already-exists <sub-structure> } $NGS_ADD_TO_SET]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepType <deep> { copy-me-set {1 2 3} } ]"
 
 sp "test
     (state <s> ^superstate nil
@@ -240,14 +240,14 @@ sp "test*create-new-object-1
     (<s> -^complex)
 -->
     [ngs-create-typed-object-by-operator <s> <s> complex ComplexObject2 <new-obj>]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeB <deep2>]
-    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeA <deep21>]
-    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeB <deep22>]
-    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeA <deep211>]
-    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeB <deep212>]
-    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeA <deep2111>]
-    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeB <deep2112>]"
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepTypeA <deep1>]
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepTypeB <deep2>]
+    [ngs-create-typed-sub-object-by-operator <deep1> deep-structure DeepTypeA <deep21>]
+    [ngs-create-typed-sub-object-by-operator <deep1> deep-structure DeepTypeB <deep22>]
+    [ngs-create-typed-sub-object-by-operator <deep21> deep-structure DeepTypeA <deep211>]
+    [ngs-create-typed-sub-object-by-operator <deep21> deep-structure DeepTypeB <deep212>]
+    [ngs-create-typed-sub-object-by-operator <deep211> deep-structure DeepTypeA <deep2111>]
+    [ngs-create-typed-sub-object-by-operator <deep211> deep-structure DeepTypeB <deep2112>]"
 
 sp "test
     (state <s> ^complex <complex>)
@@ -297,7 +297,7 @@ test stress-copy-levels {
 sp "test*setup-shallow-copy-object
   (state <s> ^superstate nil)
 -->
-  [ngs-icreate-typed-object-in-place <s> sub-structure Foo <new-obj> { existing-attribute-set {1 2} }]"
+  [ngs-create-typed-object <s> sub-structure Foo <new-obj> { existing-attribute-set {1 2} }]"
 
 
 sp "test*create-new-object-1
@@ -307,11 +307,11 @@ sp "test*create-new-object-1
     (<s> -^complex)
 -->
 	[ngs-create-typed-object-by-operator <s> <s> complex ComplexObject <level1> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
-    [ngs-ocreate-typed-object-in-place <level1> deep-structure ComplexObject <level2> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
-    [ngs-ocreate-typed-object-in-place <level2> deep-structure ComplexObject <level3> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
-    [ngs-ocreate-typed-object-in-place <level3> deep-structure ComplexObject <level4> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
-    [ngs-ocreate-typed-object-in-place <level4> deep-structure ComplexObject <level5> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
-    [ngs-ocreate-typed-object-in-place <level5> deep-structure ComplexObject <level6> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]"
+    [ngs-create-typed-sub-object-by-operator <level1> deep-structure ComplexObject <level2> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-create-typed-sub-object-by-operator <level2> deep-structure ComplexObject <level3> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-create-typed-sub-object-by-operator <level3> deep-structure ComplexObject <level4> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-create-typed-sub-object-by-operator <level4> deep-structure ComplexObject <level5> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]
+    [ngs-create-typed-sub-object-by-operator <level5> deep-structure ComplexObject <level6> { already-exists <sub-structure> primitive2 {} set-val {1 2} }]"
 
 sp "test
     (state <s> ^superstate nil
@@ -374,12 +374,12 @@ test shallow-copy-with-set-values {
 sp "test*setup-shallow-copy-object*1
   (state <s> ^superstate nil)
 -->
-  [ngs-icreate-typed-object-in-place <s> set-item-1 DeepTypeA <new-obj>]"
+  [ngs-create-typed-object <s> set-item-1 DeepTypeA <new-obj>]"
 
 sp "test*setup-shallow-copy-object*2
   (state <s> ^superstate nil)
 -->
-  [ngs-icreate-typed-object-in-place <s> set-item-2 DeepTypeB <new-obj>]"
+  [ngs-create-typed-object <s> set-item-2 DeepTypeB <new-obj>]"
 
 # I purposely don't declare ComplexObject3 to see that it prints out a warning
 sp "test*create-new-object-1
@@ -475,7 +475,7 @@ sp "test*create-value-to-replace*initial
     [ngs-is-attr-not-constructed <s> value-to-replace <val>]
 -->
 	[ngs-create-typed-object-by-operator <s> <s> value-to-replace MyFavoriteValue <new-obj> { attribute {a b} } ]
-    [ngs-ocreate-typed-object-in-place <new-obj> nested-item Location <new-loc>]"
+    [ngs-create-typed-sub-object-by-operator <new-obj> nested-item Location <new-loc>]"
 
 sp "test*create-achievement-goal
     [ngs-match-goalpool <s> <goals> TestMaintenanceGoal]
@@ -502,7 +502,7 @@ sp "test*construct-replacement-value
  	[ngs-is-attr-not-constructed <ss> new-value <val>]
 -->
 	[ngs-create-typed-object-by-operator <ss> <ss> new-value MyFavoriteValue <new-val> { attribute { 2 3 4 } }]
-    [ngs-ocreate-typed-object-in-place <new-val> nested-item Location <new-loc> { x 1 y 2 z 0 }]"
+    [ngs-create-typed-sub-object-by-operator <new-val> nested-item Location <new-loc> { x 1 y 2 z 0 }]"
   
 sp "test*move-replacement-value-to-return-set
     [ngs-match-to-set-return-val <ss> TestMaintenanceGoal <g> replacement-value]
@@ -906,14 +906,14 @@ test operator-side-effects {
     [ngs-is-not-tagged <s> first-tag]
   -->
     [ngs-create-typed-object-by-operator <s> <s> first-object ComplexObject2 <new-obj> {val 1}]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeB <deep2>]
-    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeA <deep21>]
-    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeB <deep22>]
-    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeA <deep211>]
-    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeB <deep212>]
-    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeA <deep2111>]
-    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeB <deep2112>]"
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepTypeA <deep1>]
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepTypeB <deep2>]
+    [ngs-create-typed-sub-object-by-operator <deep1> deep-structure DeepTypeA <deep21>]
+    [ngs-create-typed-sub-object-by-operator <deep1> deep-structure DeepTypeB <deep22>]
+    [ngs-create-typed-sub-object-by-operator <deep21> deep-structure DeepTypeA <deep211>]
+    [ngs-create-typed-sub-object-by-operator <deep21> deep-structure DeepTypeB <deep212>]
+    [ngs-create-typed-sub-object-by-operator <deep211> deep-structure DeepTypeA <deep2111>]
+    [ngs-create-typed-sub-object-by-operator <deep211> deep-structure DeepTypeB <deep2112>]"
 
   sp "test*create-first-side-effect
     [ngs-match-proposed-operator <s> <o>]
@@ -936,14 +936,14 @@ test operator-side-effects {
     [ngs-is-not-tagged <s> third-tag]
   -->
     [ngs-create-typed-object-by-operator <s> <s> third-object ComplexObject2 <new-obj> {val 2}]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeA <deep1>]
-    [ngs-ocreate-typed-object-in-place <new-obj> deep-structure DeepTypeB <deep2>]
-    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeA <deep21>]
-    [ngs-ocreate-typed-object-in-place <deep1> deep-structure DeepTypeB <deep22>]
-    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeA <deep211>]
-    [ngs-ocreate-typed-object-in-place <deep21> deep-structure DeepTypeB <deep212>]
-    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeA <deep2111>]
-    [ngs-ocreate-typed-object-in-place <deep211> deep-structure DeepTypeB <deep2112>]
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepTypeA <deep1>]
+    [ngs-create-typed-sub-object-by-operator <new-obj> deep-structure DeepTypeB <deep2>]
+    [ngs-create-typed-sub-object-by-operator <deep1> deep-structure DeepTypeA <deep21>]
+    [ngs-create-typed-sub-object-by-operator <deep1> deep-structure DeepTypeB <deep22>]
+    [ngs-create-typed-sub-object-by-operator <deep21> deep-structure DeepTypeA <deep211>]
+    [ngs-create-typed-sub-object-by-operator <deep21> deep-structure DeepTypeB <deep212>]
+    [ngs-create-typed-sub-object-by-operator <deep211> deep-structure DeepTypeA <deep2111>]
+    [ngs-create-typed-sub-object-by-operator <deep211> deep-structure DeepTypeB <deep2112>]
     [ngs-add-tag-side-effect $NGS_SIDE_EFFECT_ADD <s> third-tag]
     [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD <s> second-object 5 $NGS_ADD_TO_SET]"
 

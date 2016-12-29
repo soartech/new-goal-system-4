@@ -63,7 +63,7 @@ proc ngs-create-computed-val { pool_id
     
     set srcs_id "<sources>"
 
-    set rhs_ret  "[ngs-icreate-typed-object-in-place $pool_id $variable_name ComputedValue $variable_id "name $variable_name"]
+    set rhs_ret  "[ngs-create-typed-object $pool_id $variable_name ComputedValue $variable_id "name $variable_name"]
                   [ngs-create-attribute $variable_id sources Set $srcs_id]"
 
     foreach source $sources_list {
@@ -72,7 +72,7 @@ proc ngs-create-computed-val { pool_id
 
         set src_id  [CORE_GenVarName source]
         set rhs_ret "$rhs_ret
-                     [ngs-icreate-typed-object-in-place $srcs_id source SourceDescription $src_id "src $first_item attr $second_item"]"
+                     [ngs-create-typed-object $srcs_id source SourceDescription $src_id "src $first_item attr $second_item"]"
         
         if { [llength $source] == 2 } {
             set rhs_ret "$rhs_ret

@@ -65,7 +65,7 @@ proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { de
     variable NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE
     CORE_SetIfEmpty delta_type $NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE ;# could also be NGS_CTX_VAR_DELTA_TYPE_PERCENT
 
-    set root_obj "[ngs-icreate-typed-object-in-place $pool_id $variable_name StableValue $variable_id \
+    set root_obj "[ngs-create-typed-object $pool_id $variable_name StableValue $variable_id \
         "name $variable_name src-obj $src_obj src-attr $src_attr delta-type $delta_type"]"
     
     return "$root_obj

@@ -73,13 +73,13 @@ proc ngs-create-time-delayed-value { pool_id variable_name src_obj src_attr glob
 
     }
 
-    set root_obj "[ngs-icreate-typed-object-in-place $pool_id $variable_name TimeDelayedValue $variable_id \
+    set root_obj "[ngs-create-typed-object $pool_id $variable_name TimeDelayedValue $variable_id \
                     "name $variable_name src-obj $src_obj src-attr $src_attr $global_delay_creation"]"
 
     # Handle the specialized delay list (if it exists)
     if { $specialized_delay_list != "" } {
         set delay_set_id [CORE_GenVarName "delay-set"]
-        set cond_delays [ngs-icreate-typed-object-in-place $variable_id conditional-delays Set $delay_set_id]
+        set cond_delays [ngs-create-typed-object $variable_id conditional-delays Set $delay_set_id]
     } else {
         set cond_delays ""
     }
@@ -98,7 +98,7 @@ proc ngs-create-time-delayed-value { pool_id variable_name src_obj src_attr glob
                                
         if { [llength $condition] == 1 } {
             set cond_delays "$cond_delays
-                             [ngs-icreate-typed-object-in-place $delay_set_id condition ConditionalDelay $delay_id \
+                             [ngs-create-typed-object $delay_set_id condition ConditionalDelay $delay_id \
                                     "comparison-value $condition $delay_creation"]"
         } else {
             set first_item [lindex $condition 0]
@@ -106,16 +106,16 @@ proc ngs-create-time-delayed-value { pool_id variable_name src_obj src_attr glob
         
             if { [string is integer $first_item] == 1 || [string is double $first_item] == 1} {
                 set cond_delays "$cond_delays
-                                 [ngs-icreate-typed-object-in-place $delay_set_id condition ConditionalDelay $delay_id \
+                                 [ngs-create-typed-object $delay_set_id condition ConditionalDelay $delay_id \
                                     "$delay_creation range-min $first_item range-max $second_item"]"
             } else {
                 if { $first_item == "<" } {
                     set cond_delays "$cond_delays
-                                     [ngs-icreate-typed-object-in-place $delay_set_id condition ConditionalDelay $delay_id \
+                                     [ngs-create-typed-object $delay_set_id condition ConditionalDelay $delay_id \
                                          "$delay_creation range-max $second_item"]"
                 } elseif { $first_item == ">=" } {
                     set cond_delays "$cond_delays
-                                     [ngs-icreate-typed-object-in-place $delay_set_id condition ConditionalDelay $delay_id \
+                                     [ngs-create-typed-object $delay_set_id condition ConditionalDelay $delay_id \
                                          "$delay_creation range-min $second_item"]"
                 } else {
                     echo "Time Delayed Values only support < and >= conditions ($variable_name from $src_obj.$src_attr)"

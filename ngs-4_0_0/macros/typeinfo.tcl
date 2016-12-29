@@ -53,7 +53,7 @@
 # sp "ProductionName
 #   ...
 # -->
-#   [ngs-icreate-typed-object-in-place ... <new-obj-id>  {lat 49.123456 lon 48.55555}]"
+#   [ngs-create-typed-object ... <new-obj-id>  {lat 49.123456 lon 48.55555}]"
 #
 ########################################################################
 

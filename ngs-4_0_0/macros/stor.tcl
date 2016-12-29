@@ -36,7 +36,7 @@ proc ngs-icreate-typed-object-from-stor { parent_id parent_attr stor } {
     set key ""
     set val ""
 
-    set create_line "[ngs-icreate-typed-object-in-place $parent_id [ngs-expand-tags $parent_attr] $obj_type $new_obj_id]"
+    set create_line "[ngs-create-typed-object $parent_id [ngs-expand-tags $parent_attr] $obj_type $new_obj_id]"
 
     # For each attribute of an object, create it
     # We can't iterate using "dict for" because it eliminates multi-valued attributes

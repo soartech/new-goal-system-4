@@ -259,11 +259,11 @@ proc ngs-remove-attribute { parent_obj_id
 #
 # Use this on the right-hand side of a production to create a typed object
 #  using i-support. If you need to construct an object in-place on an operator, 
-#  then use ngs-ocreate-typed-object-in-place.
+#  then use ngs-create-typed-sub-object-by-operator.
 #
 # NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
 #
-# [ngs-icreate-typed-object-in-place parent_obj_id attribute type new_obj_id (attr_list)]
+# [ngs-create-typed-object parent_obj_id attribute type new_obj_id (attr_list)]
 #
 # parent_obj_id - Variable bound to the object that will link to the newly constructed object
 # attribute - Name of the attribute that should hold the new object
@@ -271,7 +271,7 @@ proc ngs-remove-attribute { parent_obj_id
 # new_obj_id - Variable that will beind to the new object's identifier
 # attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
 #                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
-proc ngs-icreate-typed-object-in-place { parent_obj_id
+proc ngs-create-typed-object { parent_obj_id
 									     attribute
 										 type
 										 new_obj_id
@@ -311,25 +311,28 @@ proc ngs-icreate-typed-object-in-place { parent_obj_id
 # new_obj_id - Variable that will beind to the new object's identifier
 # attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
 #                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
-proc ngs-icreate-typed-tag-in-place { parent_obj_id
-                                      tag_name
-                                      type
-                                      new_obj_id
-                                      {attribute_list ""} } {
-    
-  return [ngs-icreate-typed-object-in-place $parent_obj_id [ngs-tag-for-name $tag_name] \
-                 $type $new_obj_id $attribute_list]
-}
+# DEPRECATED
+#proc ngs-icreate-typed-tag-in-place { parent_obj_id
+#                                      tag_name
+#                                      type
+#                                      new_obj_id
+#                                      {attribute_list ""} } {
+#    
+#  return [ngs-create-typed-object $parent_obj_id [ngs-tag-for-name $tag_name] \
+#                 $type $new_obj_id $attribute_list]
+#}
 
 # Creates an object in a form appropriate for o-support
 #
-# Use this on the right-hand side of a production to create a typed object
-#  that you want to elaborate onto an operator. If you need to construct an  
-#  i-supported object, then use ngs-icreate-typed-object-in-place.
+# Use this on the right-hand side of a production to create a typed object that will form the
+#  substructure of a typed object you are creating using ngs-create-typed-object-by-operator
+#  If you need to construct an i-supported object, then use ngs-create-typed-object.
+#
+# DO NOT USE THIS TO CREATE I-SUPPORTED SUBSTRUCTURE
 #
 # NOTE: before you can create a typed object you must declare it using NGS_DeclareType. 
 #
-# E.g. [ngs-ocreate-typed-object-in-place parent_obj_id attribute type new_obj_id (attr_list)]
+# E.g. [ngs-create-typed-sub-object-by-operator parent_obj_id attribute type new_obj_id (attr_list)]
 #
 # parent_obj_id - Variable bound to the object that will link to the newly constructed object
 # attribute - Name of the attribute that should hold the new object
@@ -337,7 +340,7 @@ proc ngs-icreate-typed-tag-in-place { parent_obj_id
 # new_obj_id - Variable that will beind to the new object's identifier
 # attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
 #                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
-proc ngs-ocreate-typed-object-in-place { parent_obj_id
+proc ngs-create-typed-sub-object-by-operator { parent_obj_id
 									     attribute
 										 type
 										 new_obj_id
@@ -370,22 +373,23 @@ proc ngs-ocreate-typed-object-in-place { parent_obj_id
 # new_obj_id - Variable that will beind to the new object's identifier
 # attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
 #                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
-proc ngs-ocreate-typed-tag-in-place { parent_obj_id
-                                         tag_name
-                                         type
-                                         new_obj_id
-                                         {attribute_list ""} } {
-   return [ngs-ocreate-typed-object-in-place $parent_obj_id [ngs-tag-for-name $tag_name] \
-                                             $type $new_obj_id $attribute_list]
-
-}
+# DEPRECATED
+#proc ngs-ocreate-typed-tag-in-place { parent_obj_id
+#                                         tag_name
+#                                         type
+#                                         new_obj_id
+#                                         {attribute_list ""} } {
+#   return [ngs-create-typed-sub-object-by-operator $parent_obj_id [ngs-tag-for-name $tag_name] \
+#                                             $type $new_obj_id $attribute_list]
+#
+#}
 
 # Create a typed object using an operator
 #
 # Use this procedure when you want to link a newly constructed
 #  object to your state (or some substructure on the state). This
 #  macro is for creating the initial object and link. Use
-#  ngs-ocreate-typed-object-in-place to create a composed (nested)
+#  ngs-create-typed-sub-object-by-operator to create a composed (nested)
 #  object that is linked to the newly created object.
 #
 # [ngs-create-typed-object-by-operator state_id parent_obj_id attribute type new_obj_id (attribute_list) (replacement_behavior) (add_prefs)]
@@ -429,7 +433,7 @@ proc ngs-create-typed-object-by-operator { state_id
                   ^replacement-behavior $replacement_behavior)
           [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
           [ngs-tag $op_id $NGS_TAG_OP_CREATE_TYPED_OBJECT]
-          [ngs-ocreate-typed-object-in-place $op_id new-obj $type $new_obj_id $attribute_list]
+          [ngs-create-typed-sub-object-by-operator $op_id new-obj $type $new_obj_id $attribute_list]
           [core-trace NGS_TRACE_O_TYPED_OBJECTS "O CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
 }
 
@@ -1004,7 +1008,7 @@ proc ngs-add-primitive-side-effect { action dest_obj dest_attr value {replacemen
     set val_text "$value"
   }
 
-  return "[ngs-ocreate-typed-object-in-place $op_id side-effect $NGS_OP_SIDE_EFFECT $se_id $attr_list]
+  return "[ngs-create-typed-sub-object-by-operator $op_id side-effect $NGS_OP_SIDE_EFFECT $se_id $attr_list]
           [core-trace NGS_TRACE_SIDE_EFFECTS "O SIDE-EFFECT on | $NGS_OP_ID |, $action (| $dest_obj |.$attr_text $val_text)."]"
 }
 
@@ -1283,7 +1287,7 @@ proc ngs-irequest-decision { goal_id
    set decision_id [CORE_GenVarName "_decision"]
    set attr_list "name $decision_name destination-object $dec_obj destination-attribute $dec_attr replacement-behavior $replacement_behavior" 
 
-   return "[ngs-icreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR $NGS_TYPE_DECISION_STRUCTURE $decision_id $attr_list]
+   return "[ngs-create-typed-object $goal_id $NGS_DECISION_ATTR $NGS_TYPE_DECISION_STRUCTURE $decision_id $attr_list]
            [core-trace NGS_TRACE_DECISIONS "I REQUEST-DECISION, $decision_name, for goal | $goal_id | result to (| $dec_obj |.$dec_attr)."]"
 }
 
@@ -1331,7 +1335,7 @@ proc ngs-orequest-decision { goal_id
    set decision_id [CORE_GenVarName "_decision"]
    set attr_list "name $decision_name destination-object $dec_obj destination-attribute $dec_attr replacement-behavior $replacement_behavior" 
 
-   return "[ngs-ocreate-typed-object-in-place $goal_id $NGS_DECISION_ATTR $NGS_TYPE_DECISION_STRUCTURE $decision_id $attr_list]
+   return "[ngs-create-typed-sub-object-by-operator $goal_id $NGS_DECISION_ATTR $NGS_TYPE_DECISION_STRUCTURE $decision_id $attr_list]
            [core-trace NGS_TRACE_DECISIONS "o REQUEST-DECISION, $decision_name, for goal | $goal_id | result to (| $dec_obj |.$dec_attr)."]"
 }
 
@@ -1425,7 +1429,7 @@ proc ngs-create-ret-val-in-place { ret_val_name
       set attr_list "$attr_list value $new_val"
     } 
 
-    return [ngs-icreate-typed-object-in-place $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $attr_list]
+    return [ngs-create-typed-object $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $attr_list]
 }
 
 # Creates a return tag on an operator
@@ -1578,7 +1582,7 @@ proc ngs-create-typed-object-for-ret-val { state_id
    return  "[ngs-create-atomic-operator $state_id $op_name $op_id]
                   ($op_id ^replacement-behavior $NGS_REPLACE_IF_EXISTS
                           ^ret-val-name         $ret_val_name)
-            [ngs-ocreate-typed-object-in-place $op_id new-obj $type_name $new_obj_id $attribute_list]
+            [ngs-create-typed-sub-object-by-operator $op_id new-obj $type_name $new_obj_id $attribute_list]
             [ngs-tag $op_id $NGS_TAG_INTELLIGENT_CONSTRUCTION]
             [ngs-tag $op_id $NGS_TAG_OP_RETURN_VALUE]
             [ngs-tag $op_id $NGS_TAG_OP_CREATE_TYPED_OBJECT]

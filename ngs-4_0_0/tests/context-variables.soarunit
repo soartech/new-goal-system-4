@@ -53,9 +53,9 @@ test stable-value {
     sp "test*user-location
         [ngs-match-top-state <s>]
     -->
-        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
-        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
-        [ngs-icreate-typed-object-in-place <state> times Bag <distances>]"
+        [ngs-create-typed-object <s> my-agent Bag <agent>]
+        [ngs-create-typed-object <agent> state Bag <state>]
+        [ngs-create-typed-object <state> times Bag <distances>]"
 
     sp "test*create-delta
         [ngs-match-top-state <s>]
@@ -133,9 +133,9 @@ test dynamic-binned-value {
     sp "test*user-location
         [ngs-match-top-state <s>]
     -->
-        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
-        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
-        [ngs-icreate-typed-object-in-place <state> distances Bag <distances>]"
+        [ngs-create-typed-object <s> my-agent Bag <agent>]
+        [ngs-create-typed-object <agent> state Bag <state>]
+        [ngs-create-typed-object <state> distances Bag <distances>]"
 
     sp "test*rapid-sample-value
         [ngs-match-top-state <s>]
@@ -255,9 +255,9 @@ test computed-values {
     sp "test*user-location
         [ngs-match-top-state <s>]
     -->
-        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
-        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
-        [ngs-icreate-typed-object-in-place <state> distances Bag <distances>]"
+        [ngs-create-typed-object <s> my-agent Bag <agent>]
+        [ngs-create-typed-object <agent> state Bag <state>]
+        [ngs-create-typed-object <state> distances Bag <distances>]"
  
     sp "test*rapid-sample-value
         [ngs-match-top-state <s>]
@@ -273,8 +273,8 @@ test computed-values {
     sp "test*create-positions
         [ngs-match-top-state <s>]
     -->
-        [ngs-icreate-typed-object-in-place <s> my-pos Bag <my-pos>]
-        [ngs-icreate-typed-object-in-place <s> leader-pos Bag <l-pos>]"  
+        [ngs-create-typed-object <s> my-pos Bag <my-pos>]
+        [ngs-create-typed-object <s> leader-pos Bag <l-pos>]"  
 
     sp "test*update-positions
         [ngs-match-top-state <s> rapid-value]
@@ -413,9 +413,9 @@ test time-delayed-values {
     sp "test*user-location
         [ngs-match-top-state <s>]
     -->
-        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
-        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
-        [ngs-icreate-typed-object-in-place <state> vehicle Bag <distances>]"
+        [ngs-create-typed-object <s> my-agent Bag <agent>]
+        [ngs-create-typed-object <agent> state Bag <state>]
+        [ngs-create-typed-object <state> vehicle Bag <distances>]"
 
     sp "test*my-velocity*init
         [ngs-match-top-state <s>]
@@ -498,9 +498,9 @@ test user-defined-context-variables {
     sp "test*user-location
         [ngs-match-top-state <s>]
     -->
-        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
-        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
-        [ngs-icreate-typed-object-in-place <state> vehicle Bag <distances> \
+        [ngs-create-typed-object <s> my-agent Bag <agent>]
+        [ngs-create-typed-object <agent> state Bag <state>]
+        [ngs-create-typed-object <state> vehicle Bag <distances> \
                 { state moving speed fast acceleration slowing-quickly } ]"
 
     sp "test*user-context*maneuver-type

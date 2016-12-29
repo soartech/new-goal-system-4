@@ -275,7 +275,7 @@ proc NGS_CreateGlobalContextVariablePool { pool_name { list_of_categories "" } }
     sp "ctxvar*elaborate*construct-global-pool*$pool_name
         [ngs-match-top-state <s> $WM_CTX_GLOBAL_POOLS:<pools>]
     -->
-        [ngs-icreate-typed-object-in-place <pools> $pool_name NGSContextVariablePool <pool>]"
+        [ngs-create-typed-object <pools> $pool_name NGSContextVariablePool <pool>]"
 
     if { $list_of_categories != "" } {
         NGS_CreateContextPoolCategories $pool_name $list_of_categories
@@ -315,7 +315,7 @@ proc NGS_CreateContextPoolCategories { pool_name_or_goal_type list_of_categories
     foreach category_name $list_of_categories {
         set name_suffix "$name_suffix*$category_name"
         set rhs_code "$rhs_code
-                      [ngs-icreate-typed-object-in-place <pool> $category_name NGSContextVariableCategory <$category_name>]"
+                      [ngs-create-typed-object <pool> $category_name NGSContextVariableCategory <$category_name>]"
     }
 
     sp "ctxvar*elaborate*categories$name_suffix

@@ -91,9 +91,9 @@ proc ngs-create-dyn-bin-value { pool_id
 
     CORE_GenVarIfEmpty variable_id "variable"
 
-    set root_obj "[ngs-icreate-typed-object-in-place $pool_id $variable_name DynamicBinnedValue $variable_id \
+    set root_obj "[ngs-create-typed-object $pool_id $variable_name DynamicBinnedValue $variable_id \
                     "name $variable_name src-obj $src_obj src-attr $src_attr"]
-                  [ngs-icreate-typed-object-in-place $variable_id bins Set $bin_set_id]"
+                  [ngs-create-typed-object $variable_id bins Set $bin_set_id]"
 
     if { $delta != "" } {
 
@@ -141,7 +141,7 @@ proc ngs-add-dyn-bin { bin_set_id
 
     set new_bin_id [CORE_GenVarName bin]
  
-    set lhs_ret "[ngs-icreate-typed-object-in-place $bin_set_id bin DynamicBin $new_bin_id "name $bin_name"]"
+    set lhs_ret "[ngs-create-typed-object $bin_set_id bin DynamicBin $new_bin_id "name $bin_name"]"
 
     if { $prev_bin != "" } {
         set lhs_ret "$lhs_ret
