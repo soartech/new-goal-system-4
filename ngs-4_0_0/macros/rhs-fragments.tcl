@@ -818,7 +818,7 @@ proc ngs-create-atomic-operator { state_id
 #  productions, instead they trigger an operator no change.
 #
 # In the resulting sub-state the operator's actions can be determined and sequenced. Return
-#  values are set via the ngs-add-ret-val macro. If an operator needs to set static
+#  values are set via the ngs-create-ret-val-in-place macro. If an operator needs to set static
 #  flags or return values in order to properly return, these can be passed into the 
 #  substate via the ret_val_list parameter.
 #
@@ -1392,10 +1392,10 @@ proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
 #  the value for the return value.
 # ret_val_set_id - Variable bound to the return value set on the operator. You bind this variable using the
 #                    ngs-create-function-operator macro.
-# dest_obj_id - Variable bound to the id of the object that should recieve the return value. If not passed,
-#                  the destination object is not set (used internally by NGS)
-# attribute - (Optional) Name of the attribute to which the return value should be bound. If not passed, the
-#                  destination attribute remains unset (can be used internally by NGS)
+# dest_obj_id - Variable bound to the id of the object that should recieve the return value. End users should always
+#                  set this value (NGS may not set it internally).
+# attribute - Name of the attribute to which the return value should be bound. End users should always
+#                  set this value (NGS may not set it internally).
 # new_val - (Optional) The value of the return value. You only set this if you are creating hour own return
 #             value. Leave this empty if you are specifying where to put a return value that will be created
 #             in the sub-state
