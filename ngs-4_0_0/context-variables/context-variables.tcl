@@ -346,13 +346,18 @@ proc ngs-ctx-bind-internal { pool_bindings pool_id category_bindings } {
             if { $val_id != "" } {
 	            if { [string index $var_compare 0] == "~" } {
  	              switch -exact $var_compare {
-	                "~<" { set val_test "-($var_id ^value >= $val_id)" }
-	                "~<=" { set val_test "-($var_id ^value > $val_id)" }
-	                "~>" { set val_test "-($var_id ^value <= $val_id)" }                        
-	                "~>=" { set val_test "-($var_id ^value < $val_id)" }
+	                "~<" { set val_test "-($var_id ^value {>= $val_id})" }
+	                "~<=" { set val_test "-($var_id ^value {> $val_id})" }
+	                "~>" { set val_test "-($var_id ^value {<= $val_id})" }                        
+	                "~>=" { set val_test "-($var_id ^value {< $val_id})" }
 	              }
               } else {
-                set val_test "($var_id ^value $var_compare $val_id)"
+                if {$var_compare != ""} {
+                    set attr_test "\{$var_compare $val_id\}"
+                } else {
+                    set attr_test $val_id
+                }
+                set val_test "($var_id ^value $attr_test)"
               }
               set var_test "$var_test
                             $val_test"

@@ -36,7 +36,7 @@ proc ngs-icreate-typed-object-from-stor { parent_id parent_attr stor } {
     set key ""
     set val ""
 
-    set create_line "[ngs-icreate-typed-object-in-place $parent_id $parent_attr $obj_type $new_obj_id]"
+    set create_line "[ngs-icreate-typed-object-in-place $parent_id [ngs-expand-tags $parent_attr] $obj_type $new_obj_id]"
 
     # For each attribute of an object, create it
     # We can't iterate using "dict for" because it eliminates multi-valued attributes
@@ -50,11 +50,11 @@ proc ngs-icreate-typed-object-from-stor { parent_id parent_attr stor } {
             if { [llength $val] == 1 } {
                 # create an atomic attribute
                 set create_line "$create_line
-                                 [ngs-create-attribute $new_obj_id $key $val]"
+                                 [ngs-create-attribute $new_obj_id [ngs-expand-tags $key] $val]"
             } else {
                 # recursive call to create sub-object
                 set create_line "$create_line
-                                 [ngs-icreate-typed-object-from-stor $new_obj_id $key $val]"
+                                 [ngs-icreate-typed-object-from-stor $new_obj_id [ngs-expand-tags $key] $val]"
             }
 
             # prepare for next key

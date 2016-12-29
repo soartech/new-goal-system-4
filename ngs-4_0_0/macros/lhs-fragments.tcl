@@ -509,7 +509,13 @@ proc ngs-bind { obj_id args } {
       }
 
       # Add the given attribute test to the Soar code
-      set wme_test "($obj ^$attr_name $comparitor $attr_var)"
+      if {$comparitor != ""} {
+        set attr_test "\{$comparitor $attr_var\}"
+      } else {
+        set attr_test $attr_var
+      }
+
+      set wme_test "($obj ^$attr_name $attr_test)"
       if { $lhs_ret == "" } {
         set lhs_ret  $negator$wme_test
       } else {
