@@ -166,7 +166,6 @@ proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
     # elaboration of new bounds
 
     variable NGS_CTX_VAR_SUPPRESS_SAMPLING
-
     sp "ctxvar*propose*stable-value*init-value*$production_name_suffix
         $root_bind
         [ngs-nex $var_id value]

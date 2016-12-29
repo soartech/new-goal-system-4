@@ -145,6 +145,9 @@ proc ngs-construct { object_id typename { attribute_list "" } } {
 
 	lappend attribute_list my-type $typename
 	
+    # Expand tags in the attribute list (prefixed with @)
+    set attribute_list [ngs-expand-tags $attribute_list]
+
 	# These are the values that were passed in (if any)
 	set new_vals [expand_variables $attribute_list]
 

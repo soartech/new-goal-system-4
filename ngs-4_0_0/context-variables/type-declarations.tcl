@@ -13,6 +13,15 @@ NGS_DeclareType ContextVariable {
     value ""
 }
 
+# Empty context variable for use 
+#  for user-defined values.
+#
+# See user-defined-context-variable.tcl
+#
+NGS_DeclareType UserContextValue {
+    type ContextVariable
+}
+
 # A context variable that gets or computes its value from a single source
 #
 # src-obj - the identifier for the source value
@@ -22,6 +31,7 @@ NGS_DeclareType SingleSourceVariable {
     src-obj ""
     src-attr ""
 }
+
 
 # A context variable that computes its value from one or more sources
 #

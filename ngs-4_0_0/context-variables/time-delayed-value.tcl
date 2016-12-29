@@ -206,8 +206,10 @@ proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name 
         [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id next-sample-time "(+ <time> <global-delay>)"]"
 
     # Change the value after the time limit changes
+    variable NGS_CTX_VAR_SUPPRESS_SAMPLING
     sp "ctxvar*time-delayed-value*propose*resample*$production_name_suffix
         $root_bind
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
         [ngs-time <s> <time>]
         [ngs-bind $var_id value:<>:<next-val> next-val next-sample-time:<:<time>]
     -->
@@ -217,6 +219,7 @@ proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name 
     sp "ctxvar*time-delayed-value*propose*initialize*$production_name_suffix
         $root_bind
         [ngs-nex $var_id value]
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
         [ngs-time <s> <time>]
         [ngs-ctx-var-source-val $var_id <src-val>]
     -->

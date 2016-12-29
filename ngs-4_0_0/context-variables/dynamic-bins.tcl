@@ -379,8 +379,10 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
 
     ############### PROPOSALS ####################################
     # When in bounds, propose operator to change the value
+    variable NGS_CTX_VAR_SUPPRESS_SAMPLING
     sp "ctxvar*dyn-bins*propose*set-value*$production_name_suffix*min-and-max
         $root_bind
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
         [ngs-bind $bin_id name cur-min cur-max]
         [ngs-bind $var_id src-obj src-attr]
         [ngs-neq  $var_id value <name>]
@@ -391,6 +393,7 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
 
     sp "ctxvar*dyn-bins*propose*set-value*$production_name_suffix*min-only
         $root_bind
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
         [ngs-bind $bin_id name cur-min]
         [ngs-nex $bin_id cur-max]
         [ngs-bind $var_id src-obj src-attr]
@@ -402,6 +405,7 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
 
     sp "ctxvar*dyn-bins*propose*set-value*$production_name_suffix*max-only
         $root_bind
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
         [ngs-bind $bin_id name cur-max]
         [ngs-nex $bin_id cur-min]
         [ngs-bind $var_id src-obj src-attr]

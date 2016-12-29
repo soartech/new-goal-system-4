@@ -102,10 +102,17 @@ test stable-value {
     -->
         [ngs-create-stable-value <pool> slow-value-delta-src-pct <s> rapid-value { <s> delta-pct } $NGS_CTX_VAR_DELTA_TYPE_PERCENT]"
 
+    sp "test*slow-value-single-delta
+        [ngs-match-top-state <s>]
+        [ngs-bind-global-ctx <s> sample-pool categoryA slow-value-single-delta]
+        [ngs-time <s> 2000 <time> $NGS_TEST_GREATER_THAN]
+    -->
+        [ngs-suppress-context-variable-sampling <slow-value-single-delta>]"
+
     sp "test
         [ngs-match-top-state <s> my-agent.state.times]
         [ngs-bind-global-ctx <s> sample-pool categoryA {
-            slow-value-single-delta::4.25
+            slow-value-single-delta::1.1
             slow-value-min-max:>=:4.15
             slow-value-delta-src:~>=:4.75
             slow-value-single-delta-pct:>:4.8
@@ -218,7 +225,6 @@ test dynamic-binned-value {
         [ngs-add-dyn-bin <bins> florida-weather 95.0 nice]
         [ngs-add-dyn-bin <bins> desert 110.0 florida-weather]
         [ngs-add-dyn-bin <bins> i-am-melting {} desert]"
-
 
     sp "test
         [ngs-match-goal <s> GoalWithContextVariables <g>]
@@ -480,3 +486,59 @@ test time-delayed-values {
         (pass)"
 
 }
+
+test user-defined-context-variables {
+    
+    sp "test*rapid-sample-value
+        [ngs-match-top-state <s>]
+        [ngs-time <s> <time>]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> time-in-seconds "(/ <time> 1000)" {} "+ < ="]"
+
+    sp "test*user-location
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-icreate-typed-object-in-place <s> my-agent Bag <agent>]
+        [ngs-icreate-typed-object-in-place <agent> state Bag <state>]
+        [ngs-icreate-typed-object-in-place <state> vehicle Bag <distances> \
+                { state moving speed fast acceleration slowing-quickly } ]"
+
+    sp "test*user-context*maneuver-type
+        [ngs-match-top-state <s> my-agent.state.vehicle]
+    -->
+        [ngs-create-user-defined-context-variable <vehicle> maneuver-type <ctx-var>]"
+
+    sp "test*user-context*maneuver-type*update
+        [ngs-match-top-state <s> my-agent.state.vehicle]
+        [ngs-bind <vehicle> state:moving speed:fast acceleration:slowing-quickly]
+        [ngs-bind-user-ctx <vehicle> maneuver-type]
+    -->
+        [ngs-ctx-var-set-val <maneuver-type> high-speed-braking-maneuver]"
+
+    sp "test*time-to-go
+        [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]
+    -->
+        [ngs-create-user-defined-context-variable <pool> what-time-is-it <ctx-var> {} \
+                                            "src-obj <s> src-attr time-in-seconds"]"
+
+    sp "test*time-to-go*update*time-to-work
+        [ngs-match-top-state <s>]
+        [ngs-bind-global-ctx <s> sample-pool categoryA what-time-is-it]
+        [ngs-ctx-var-source-val <what-time-is-it> "{ < 1.0 }"]
+    -->
+        [ngs-ctx-var-set-val <what-time-is-it> time-to-work]"
+
+    sp "test*time-to-go*update*time-to-go
+        [ngs-match-top-state <s>]
+        [ngs-bind-global-ctx <s> sample-pool categoryA what-time-is-it]
+        [ngs-ctx-var-source-val <what-time-is-it> "{ >= 1.0 }"]
+    -->
+        [ngs-ctx-var-set-val <what-time-is-it> time-to-go]"
+
+    sp "test
+        [ngs-match-top-state <s> my-agent.state.vehicle]
+        [ngs-bind-user-ctx <vehicle> maneuver-type::high-speed-braking-maneuver]
+        [ngs-bind-global-ctx <s> sample-pool categoryA what-time-is-it::time-to-go]
+    --> 
+        (pass)"
+}    

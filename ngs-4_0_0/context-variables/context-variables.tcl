@@ -3,104 +3,6 @@
 #
 # @created jacobcrossman 20161222
 
-# Creates LHS bindings for a context variable's source value. 
-#
-# This macros is mainly for use internally by the context variable code, but
-#  it can be used by user-defined context variables if they follow the
-#  SingleSourceVariable pattern (see type-declarations.tcl).
-#
-# var_id - Variable bound to a context variable identifier
-# source_val - Variable to be bound to the current value of the source
-#
-proc ngs-ctx-var-source-val { var_id source_val } {
-    set src_obj_id [CORE_GenVarName "src-obj"]
-    set src_attr   [CORE_GenVarName "src-obj"]
-
-    return "($var_id ^src-obj $src_obj_id ^src-attr $src_attr)
-            ($src_obj_id ^$src_attr $source_val)"
-}
-
-# Creates a global context variable pool
-#
-# A context variable is a value that is derived from some logical or sampling process on 
-#  another variable. There are several classes of context variable:
-#
-# * StableValue - a numeric value that stays stable unless its underlying source moves outside of a given range
-# * TimeSampledValue - a numeric value sampled from a source very N milliseconds
-# * SimpleBinnedValue - a symbolic value derived by binning a numeric value
-# * DynamicBinnedValue - a symbolic value derived from binning a numeric value. The current bin expands by a
-#     a specified amount
-# * ChoiceValue - a value that is selected from among multiple possible other values
-# * ConditionallySampledValue - a numeric or symbolic value that is sampled based on an arbitrary condition
-# * PsuedoFuzzyBinnedValue - a binned value that can have overlapping bins (not implemented yet)
-# * FuzzyBinnedValue - binned value that includes membership functions (not implemented yet)
-#
-# Context variables are stored in pools that are elaborated in a global pool linked off of the top-state or
-#  in a local pool linked off of a goal. Because a goal IS a pool, you don't need to create pools for goals.
-#  However, you need to explicitly declare your global pool(s).
-#
-# [NGS_CreateGlobalContextVariablePool pool_name (list_of_categories) ]
-#
-# pool_name: The name of the pool to create. It should be a valid Soar attribute name
-# categories: (Optional) If provided, this list is passed to NGS_CreateContextPoolCategories to create
-#     categories within the pool.
-#
-proc NGS_CreateGlobalContextVariablePool { pool_name { list_of_categories "" } } {
-
-    variable WM_CTX_GLOBAL_POOLS
-
-    sp "ctxvar*elaborate*construct-global-pool*$pool_name
-        [ngs-match-top-state <s> $WM_CTX_GLOBAL_POOLS:<pools>]
-    -->
-        [ngs-icreate-typed-object-in-place <pools> $pool_name NGSContextVariablePool <pool>]"
-
-    if { $list_of_categories != "" } {
-        NGS_CreateContextPoolCategories $pool_name $list_of_categories
-    }
-}
-
-# Creates a context variable pool category
-#
-# All context variables must be stored under categories. You declare the categories you would like
-#  for each pool or goal type using this macro.
-#
-# Each context variable is then indexible using its pool-name (or goal type), category name, and
-#  variable name (see ngs-bind-global-ctx-var)
-#
-# pool_name_or_goal_type: For goal pools, this should be the type of the
-#    goal that you want go create the category under (it can be a goal's based type or "my-type"). 
-#    For global pools, this should be the name of the pool in which to create the category.
-# list_of_categories: Simple TCL list of category names that you'd like to create.
-#
-proc NGS_CreateContextPoolCategories { pool_name_or_goal_type list_of_categories} {
-
-    variable WM_CTX_GLOBAL_POOLS
- 
-    # If we can find a type declared for this pool, then we assume it is for a goal, otherwise
-    #  it must be the name of a global pool
-    variable NGS_TYPEINFO_$pool_name_or_goal_type
-    if {[info exists NGS_TYPEINFO_$pool_name_or_goal_type] != 0} {
-        set root_bind "[ngs-match-goal <s> $pool_name_or_goal_type <pool>]"
-        set rhs_code "[ngs-create-attribute <pool> type NGSContextVariablePool]
-                      [ngs-create-attribute <pool> type HierarchicalBag]"
-    } else {
-        set root_bind "[ngs-match-top-state <s> $WM_CTX_GLOBAL_POOLS.$pool_name_or_goal_type:<pool>]"
-        set rhs_code ""
-    }
-
-    set name_suffix $pool_name_or_goal_type
-    foreach category_name $list_of_categories {
-        set name_suffix "$name_suffix*$category_name"
-        set rhs_code "$rhs_code
-                      [ngs-icreate-typed-object-in-place <pool> $category_name NGSContextVariableCategory <$category_name>]"
-    }
-
-    sp "ctxvar*elaborate*categories$name_suffix
-        $root_bind
-    -->
-        $rhs_code"
-}
-
 # Bind to global context categories and/or variables
 #
 # Use this macro to bind to the global context in many flexible ways.
@@ -269,6 +171,50 @@ proc ngs-match-goal-to-create-context-variable { state_id goal_type goal_id cate
             [ngs-bind-goal-ctx $goal_id $category_name]"
 }
 
+# Creates LHS bindings for a context variable's source value. 
+#
+# This macros is mainly for use internally by the context variable code, but
+#  it can be used by user-defined context variables if they follow the
+#  SingleSourceVariable pattern (see type-declarations.tcl).
+#
+# var_id - Variable bound to a context variable identifier
+# source_val - Variable to be bound to the current value of the source
+#
+proc ngs-ctx-var-source-val { var_id source_val } {
+    set src_obj_id [CORE_GenVarName "src-obj"]
+    set src_attr   [CORE_GenVarName "src-obj"]
+
+    return "($var_id ^src-obj $src_obj_id ^src-attr $src_attr)
+            ($src_obj_id ^$src_attr $source_val)"
+}
+
+# Sets the current value of a user defined context variable
+#
+# Call to set the value of a user defined constext variable via i-support.
+# Only use this on USER DEFINED context variables. It will conflict with
+#  built in context variables which set their values automatically.
+#
+# var_id - Variable bound to the id of the user defined context variable to set.
+# value  - New value to set
+#
+proc ngs-ctx-var-set-val { var_id value } {
+    return "[ngs-create-attribute $var_id value $value]"
+}
+
+# Sets the current value of a user defined context variable
+#
+# Call to set the value of a user defined constext variable via o-support.
+# Only use this on USER DEFINED context variables. It will conflict with
+#  built in context variables which set their values automatically.
+#
+# state_id - Variable bound to the state in which to propose the operator
+# var_id - Variable bound to the id of the user defined context variable to set.
+# value  - New value to set
+#
+proc ngs-ctx-var-set-val-by-operator { state_id var_id value } {
+    return "[ngs-create-attribute-by-operator $state_id $var_id value $value]"
+}
+
 # Suppress sampling on a context variable
 #
 # Suppressing sampling means that the underlying source variable will not be sampled
@@ -293,8 +239,93 @@ proc ngs-match-goal-to-create-context-variable { state_id goal_type goal_id cate
 #   this is asserted, the value attribute of var_id will not change.
 #
 proc ngs-suppress-context-variable-sampling { var_id } {
+    variable NGS_CTX_VAR_SUPPRESS_SAMPLING
     return [ngs-tag $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
 }
+
+# Creates a global context variable pool
+#
+# A context variable is a value that is derived from some logical or sampling process on 
+#  another variable. There are several classes of context variable:
+#
+# * StableValue - a numeric value that stays stable unless its underlying source moves outside of a given range
+# * TimeSampledValue - a numeric value sampled from a source very N milliseconds
+# * SimpleBinnedValue - a symbolic value derived by binning a numeric value
+# * DynamicBinnedValue - a symbolic value derived from binning a numeric value. The current bin expands by a
+#     a specified amount
+# * ChoiceValue - a value that is selected from among multiple possible other values
+# * ConditionallySampledValue - a numeric or symbolic value that is sampled based on an arbitrary condition
+# * PsuedoFuzzyBinnedValue - a binned value that can have overlapping bins (not implemented yet)
+# * FuzzyBinnedValue - binned value that includes membership functions (not implemented yet)
+#
+# Context variables are stored in pools that are elaborated in a global pool linked off of the top-state or
+#  in a local pool linked off of a goal. Because a goal IS a pool, you don't need to create pools for goals.
+#  However, you need to explicitly declare your global pool(s).
+#
+# [NGS_CreateGlobalContextVariablePool pool_name (list_of_categories) ]
+#
+# pool_name: The name of the pool to create. It should be a valid Soar attribute name
+# categories: (Optional) If provided, this list is passed to NGS_CreateContextPoolCategories to create
+#     categories within the pool.
+#
+proc NGS_CreateGlobalContextVariablePool { pool_name { list_of_categories "" } } {
+
+    variable WM_CTX_GLOBAL_POOLS
+
+    sp "ctxvar*elaborate*construct-global-pool*$pool_name
+        [ngs-match-top-state <s> $WM_CTX_GLOBAL_POOLS:<pools>]
+    -->
+        [ngs-icreate-typed-object-in-place <pools> $pool_name NGSContextVariablePool <pool>]"
+
+    if { $list_of_categories != "" } {
+        NGS_CreateContextPoolCategories $pool_name $list_of_categories
+    }
+}
+
+# Creates a context variable pool category
+#
+# All context variables must be stored under categories. You declare the categories you would like
+#  for each pool or goal type using this macro.
+#
+# Each context variable is then indexible using its pool-name (or goal type), category name, and
+#  variable name (see ngs-bind-global-ctx-var)
+#
+# pool_name_or_goal_type: For goal pools, this should be the type of the
+#    goal that you want go create the category under (it can be a goal's based type or "my-type"). 
+#    For global pools, this should be the name of the pool in which to create the category.
+# list_of_categories: Simple TCL list of category names that you'd like to create.
+#
+proc NGS_CreateContextPoolCategories { pool_name_or_goal_type list_of_categories} {
+
+    variable WM_CTX_GLOBAL_POOLS
+ 
+    # If we can find a type declared for this pool, then we assume it is for a goal, otherwise
+    #  it must be the name of a global pool
+    variable NGS_TYPEINFO_$pool_name_or_goal_type
+    if {[info exists NGS_TYPEINFO_$pool_name_or_goal_type] != 0} {
+        set root_bind "[ngs-match-goal <s> $pool_name_or_goal_type <pool>]"
+        set rhs_code "[ngs-create-attribute <pool> type NGSContextVariablePool]
+                      [ngs-create-attribute <pool> type HierarchicalBag]"
+    } else {
+        set root_bind "[ngs-match-top-state <s> $WM_CTX_GLOBAL_POOLS.$pool_name_or_goal_type:<pool>]"
+        set rhs_code ""
+    }
+
+    set name_suffix $pool_name_or_goal_type
+    foreach category_name $list_of_categories {
+        set name_suffix "$name_suffix*$category_name"
+        set rhs_code "$rhs_code
+                      [ngs-icreate-typed-object-in-place <pool> $category_name NGSContextVariableCategory <$category_name>]"
+    }
+
+    sp "ctxvar*elaborate*categories$name_suffix
+        $root_bind
+    -->
+        $rhs_code"
+}
+
+
+####################################################################################################
 
 # Internal procedures to expand the args for ngs-bind-global-ctx and ngs-bind-goal-ctx 
 #
@@ -344,7 +375,7 @@ proc ngs-ctx-bind-internal { pool_bindings pool_id category_bindings } {
 	        
             if { $ctxvar_length == 1 } {
 	            set var_name $name_and_var
-	            set var_id  [CORE_GenVarName $var_name]
+	            set var_id  "<$var_name>"
                 set var_compare ""
                 set val_id ""
 	          } elseif { $ctxvar_length == 2 } {
