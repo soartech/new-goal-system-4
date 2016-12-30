@@ -402,7 +402,7 @@ test time-delayed-values {
     -->
         [ngs-create-attribute <s> my-global-delay 500]"
 
-    sp "test*leader-velocity
+    sp* "test*leader-velocity
         [ngs-match-to-create-context-variable <s> sample-pool CategoryC:<pool>]    
     -->
         [ngs-create-time-delayed-value <pool> leader-velocity <s> lead-velocity { <s> my-global-delay }]"

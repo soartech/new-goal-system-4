@@ -1,5 +1,6 @@
 CORE_LoadDir macros
 
+CORE_InternalSource ngs-version.tcl
 CORE_InternalSource ngs-def-elaborations.soar
 CORE_InternalSource ngs-def-preferences.soar
 CORE_InternalSource ngs-achieved-goal-applications.soar
@@ -12,3 +13,5 @@ CORE_InternalSource ngs-standard-time-elaborations.soar
 CORE_InternalSource ngs-output-handling.soar
 
 CORE_LoadDir context-variables
+
+source "ngs-version.tcl"

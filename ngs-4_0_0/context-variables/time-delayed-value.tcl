@@ -64,68 +64,71 @@
 proc ngs-create-time-delayed-value { pool_id variable_name src_obj src_attr global_delay {specialized_delay_list ""} { variable_id "" } } {
 
     CORE_GenVarIfEmpty variable_id "variable"
-    
-    if { [llength $global_delay] == 1 } {
+    return "[ngs-create-typed-object $pool_id $variable_name TimeDelayedValue $variable_id \
+                                    "name $variable_name src-obj $src_obj src-attr $src_attr"]
+            [ngs-ctx-var-help-construct-time-based-varible delay $variable_id $global_delay $specialized_delay_list]"
+}
+
+# Helper to construct the detailed elements of a time-period based context variable
+#
+# For internal use only
+proc ngs-ctx-var-help-construct-time-based-varible { time_descriptor variable_id global_time_param specialized_param_list } {
+
+    if { [llength $global_time_param] == 1 } {
         # It's just a constant value
-        set global_delay_creation "global-delay $global_delay"
+        set global_constructs "[ngs-create-attribute $variable_id global-$time_descriptor $global_time_param]"
     } else {
-        set global_delay_creation "global-delay-src  [lindex $global_delay 0] global-delay-attr [lindex $global_delay 1]"
-
+        set global_constructs "[ngs-create-attribute $variable_id global-$time_descriptor-src  [lindex $global_time_param 0]]
+                               [ngs-create-attribute $variable_id global-$time_descriptor-attr [lindex $global_time_param 1]]"
     }
-
-    set root_obj "[ngs-create-typed-object $pool_id $variable_name TimeDelayedValue $variable_id \
-                    "name $variable_name src-obj $src_obj src-attr $src_attr $global_delay_creation"]"
 
     # Handle the specialized delay list (if it exists)
-    if { $specialized_delay_list != "" } {
-        set delay_set_id [CORE_GenVarName "delay-set"]
-        set cond_delays [ngs-create-typed-object $variable_id conditional-delays Set $delay_set_id]
+    if { $specialized_param_list != "" } {
+        set cond_set_id [CORE_GenVarName "$time_descriptor-set"]
+        set global_constructs "$global_constructs
+                               [ngs-create-typed-object $variable_id conditional-${time_descriptor}s Set $cond_set_id]"
     } else {
-        set cond_delays ""
+        set conds_ret ""
     }
 
-    foreach delay_description $specialized_delay_list {
+    foreach description $specialized_param_list {
 
-        set condition [lindex $delay_description 0]
-        set delay     [lindex $delay_description 1]
-        set delay_id  [CORE_GenVarName "conditional-delay"]
+        set condition      [lindex $description 0]
+        set time_param     [lindex $description 1]
+        set time_param_id  [CORE_GenVarName "conditional-$time_descriptor"]
 
-        if { [llength $delay] == 1 } {
-            set delay_creation "delay $delay"
+        if { [llength $time_param] == 1 } {
+            set time_param_creation "$time_descriptor $time_param"
         } else {
-            set delay_creation "delay-src [lindex $delay 0] delay-attr [lindex $delay 1]"
+            set time_param_creation "$time_descriptor-src [lindex $time_param 0] $time_descriptor-attr [lindex $time_param 1]"
         }
                                
         if { [llength $condition] == 1 } {
-            set cond_delays "$cond_delays
-                             [ngs-create-typed-object $delay_set_id condition ConditionalDelay $delay_id \
-                                    "comparison-value $condition $delay_creation"]"
+            set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionalDelay $time_param_id \
+		                                             "$time_param_creation comparison-value $condition "]"
         } else {
             set first_item [lindex $condition 0]
             set second_item [lindex $condition 1]
         
             if { [string is integer $first_item] == 1 || [string is double $first_item] == 1} {
-                set cond_delays "$cond_delays
-                                 [ngs-create-typed-object $delay_set_id condition ConditionalDelay $delay_id \
-                                    "$delay_creation range-min $first_item range-max $second_item"]"
+                set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionalDelay $time_param_id \
+                                                         "$time_param_creation range-min $first_item range-max $second_item"]"
             } else {
                 if { $first_item == "<" } {
-                    set cond_delays "$cond_delays
-                                     [ngs-create-typed-object $delay_set_id condition ConditionalDelay $delay_id \
-                                         "$delay_creation range-max $second_item"]"
+                    set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionalDelay $time_param_id \
+                                                             "$time_param_creation range-max $second_item"]"
                 } elseif { $first_item == ">=" } {
-                    set cond_delays "$cond_delays
-                                     [ngs-create-typed-object $delay_set_id condition ConditionalDelay $delay_id \
-                                         "$delay_creation range-min $second_item"]"
+                    set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionalDelay $time_param_id \
+                                                             "$time_param_creation range-min $second_item"]"
                 } else {
-                    echo "Time Delayed Values only support < and >= conditions ($variable_name from $src_obj.$src_attr)"
+                    echo "Time Delayed Values only support < and >= conditions ($variable_name)"
                 }
             }
         }
     }
 
-    return "$root_obj
-            $cond_delays"
+    return "$global_constructs
+            $conds_ret"
 }
 
 # Declare and define the productions for a TimeDelayedValue
@@ -165,23 +168,6 @@ proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name 
     set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name $variable_name]
 
     variable NGS_SIDE_EFFECT_ADD
-
-    # If I have a source for the global delay, elaborate it
-    sp "ctxvar*time-delayed-value*elaborate*global-delay*$production_name_suffix
-        $root_bind
-        [ngs-bind $var_id global-delay-src global-delay-attr]
-        (<global-delay-src> ^<global-delay-attr> <global-delay-val>)
-    -->
-        [ngs-create-attribute $var_id global-delay <global-delay-val>]"
-
-    # Handle sources for conditional delays
-    sp "ctxvar*time-delayed-value*elaborate*conditional-delay*$production_name_suffix
-       $root_bind
-       [ngs-bind $var_id value conditional-delays.condition]
-       [ngs-bind <condition> delay-src delay-attr]
-       (<delay-src> ^<delay-attr> <delay-val>)
-    -->        
-       [ngs-create-attribute <condition> delay <delay-val>]"
 
     # Set up times for next sampling. Must be o-supported or the time will keep updating every time the clock ticks
     sp "ctxvar*time-delayed-value*propose*next-sample-time*$production_name_suffix*use-specific
@@ -226,7 +212,36 @@ proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name 
         [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
         [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
-    sp "ctxvar*time-delayed-value*elaborate*time-since-last-sampled*$production_name_suffix
+    ngs-ctx-var-help-build-time-productions time-delayed-value delay $production_name_suffix $root_bind $var_id
+
+}
+
+
+proc ngs-ctx-var-help-build-time-productions { ctxvar_type time_descriptor production_name_suffix root_bind var_id } {
+
+    ######################### PRODUCTIONS THAT HANDLE THE GLOBAL SOURCE
+    set set_attr_name "conditional-${time_descriptor}s"
+
+    # If I have a source for the global delay/period, elaborate it
+    sp "ctxvar*$ctxvar_type*elaborate*global-$time_descriptor*$production_name_suffix
+        $root_bind
+        [ngs-bind $var_id global-$time_descriptor-src global-$time_descriptor-attr]
+        (<global-$time_descriptor-src> ^<global-$time_descriptor-attr> <global-$time_descriptor-val>)
+    -->
+        [ngs-create-attribute $var_id global-$time_descriptor <global-$time_descriptor-val>]"
+
+    # Handle sources for conditional delay/period
+    sp "ctxvar*$ctxvar_type*elaborate*conditional-$time_descriptor*$production_name_suffix
+       $root_bind
+       [ngs-bind $var_id value $set_attr_name.condition]
+       [ngs-bind <condition> $time_descriptor-src $time_descriptor-attr]
+       (<$time_descriptor-src> ^<$time_descriptor-attr> <$time_descriptor-val>)
+    -->        
+       [ngs-create-attribute <condition> $time_descriptor <$time_descriptor-val>]"
+
+    ########################## PRODUCTIONS THAT HANDLE ELABORATING TIMES
+
+    sp "ctxvar*$ctxvar_type*elaborate*time-since-last-sampled*$production_name_suffix
         $root_bind
         [ngs-time <s> <time>]
         [ngs-bind $var_id time-last-sampled]
@@ -236,50 +251,51 @@ proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name 
     variable NGS_YES
     variable NGS_NO
 
-    sp "ctxvar*time-delayed-value*elaborate*value-is-consistent*$production_name_suffix
+    sp "ctxvar*$ctxvar_type*elaborate*value-is-consistent*$production_name_suffix
         $root_bind
         [ngs-bind $var_id value:<src-val>]
         [ngs-ctx-var-source-val $var_id <src-val>]
     -->
         [ngs-create-attribute $var_id is-consistent-with-source $NGS_YES]"
 
-    sp "ctxvar*time-delayed-value*elaborate*value-is-not-consistent*$production_name_suffix
+    sp "ctxvar*$ctxvar_type*elaborate*value-is-not-consistent*$production_name_suffix
         $root_bind
         [ngs-bind $var_id value:<>:<src-val>]
         [ngs-ctx-var-source-val $var_id <src-val>]
     -->
         [ngs-create-attribute $var_id is-consistent-with-source $NGS_NO]"
 
+
     ############## PRODUCTIONS TO HANDLE CONDITIONAL DELAYS BASED ON THE VALUE OF SRC
 
-    sp "ctxvar*time-delayed-value*elaborate*custom-delay*for-equality*$production_name_suffix
+    sp "ctxvar*$ctxvar_type*elaborate*custom-$time_descriptor*for-equality*$production_name_suffix
         $root_bind
-        [ngs-bind $var_id value conditional-delays.condition]
-        [ngs-bind <condition> comparison-value:<value> delay]
+        [ngs-bind $var_id value $set_attr_name.condition]
+        [ngs-bind <condition> comparison-value:<value> $time_descriptor]
     -->
-        [ngs-create-attribute $var_id custom-delay <delay>]"
+        [ngs-create-attribute $var_id custom-$time_descriptor <$time_descriptor>]"
 
-    sp "ctxvar*time-delayed-value*elaborate*custom-delay*for-range*$production_name_suffix
+    sp "ctxvar*$ctxvar_type*elaborate*custom-$time_descriptor*for-range*$production_name_suffix
         $root_bind
-        [ngs-bind $var_id value conditional-delays.condition]
-        [ngs-bind <condition> range-min:<=:<value> range-max:>:<value> delay]
+        [ngs-bind $var_id value $set_attr_name.condition]
+        [ngs-bind <condition> range-min:<=:<value> range-max:>:<value> $time_descriptor]
     -->
-        [ngs-create-attribute $var_id custom-delay <delay>]"
+        [ngs-create-attribute $var_id custom-$time_descriptor <$time_descriptor>]"
 
-    sp "ctxvar*time-delayed-value*elaborate*custom-delay*for-lte*$production_name_suffix
+    sp "ctxvar*$ctxvar_type*elaborate*custom-$time_descriptor*for-lte*$production_name_suffix
         $root_bind
-        [ngs-bind $var_id value conditional-delays.condition]
-        [ngs-bind <condition> range-max:>:<value> delay]
+        [ngs-bind $var_id value $set_attr_name.condition]
+        [ngs-bind <condition> range-max:>:<value> $time_descriptor]
         [ngs-nex <condition> range-min]
     -->
-        [ngs-create-attribute $var_id custom-delay <delay>]"
+        [ngs-create-attribute $var_id custom-$time_descriptor <$time_descriptor>]"
 
-    sp "ctxvar*time-delayed-value*elaborate*custom-delay*for-gt*$production_name_suffix
+    sp "ctxvar*$ctxvar_type*elaborate*custom-$time_descriptor*for-gt*$production_name_suffix
         $root_bind
-        [ngs-bind $var_id value conditional-delays.condition]
-        [ngs-bind <condition> range-min:<=:<value> delay]
+        [ngs-bind $var_id value $set_attr_name.condition]
+        [ngs-bind <condition> range-min:<=:<value> $time_descriptor]
         [ngs-nex <condition> range-max]
     -->
-        [ngs-create-attribute $var_id custom-delay <delay>]"
+        [ngs-create-attribute $var_id custom-$time_descriptor <$time_descriptor>]"
 
-}    
+}
