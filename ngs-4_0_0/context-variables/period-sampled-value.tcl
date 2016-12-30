@@ -3,50 +3,45 @@
 #
 # @created jacobcrossman 20161230
 
-# Create a TimeDelayedValue object
+# Create a PeriodicSampledValue object
 #
-# Time delayed values are copies of another value, sampled after the source value is unchanged for a given time.
-# The sampling process can use a single value (i.e. a "global delay") or can use delay factors that depend
-#  on the current time delayed value. TimeDelayedValues are a way to create stable values for decision making.
-#  They throw out transient noise and only sample a value if it steady.
+# Periodic sampled values are copies of another value, sampled at a given frequency.
+# The sampling process can use a single period value (i.e. a "global period") or can use custom periods
+#  that depend on the current value of the PeriodSampledValue. PeriodSampledValue are a way to create 
+#  stable values for decision making that are guarranteed not to change faster than a given rate.
 #
-# An example for use might be to determine whether an entity is moving or stopped. If your vehicle is following
-#  the vehicle you don't want to oscillate between moving and stopping due to noise in sensing. Therefore, you
-#  may wish to first create a dynamic binned value indicating whether the entity is moving or stopped, then
-#  delay sample this binned value. If the vehicle is in the stopped state for more than some time (e.g. 3s) you
-#  might consider it really stopped and take appropriate action. 
+# If your are worried about eliminating small transient noise, see time-delayed-values.tcl
 #
-# In aother example, you might want to know when a vehicle begins to "cruise" (i.e. have a steady velocity), so
-#  you could create a TimeDelayedValue that samples a StableValue. This time delayed value would wait for the
-#  StableValue to become steady, then set the cruise speed. You could then use the flag "is-consistent-with-source"
-#  to determine if the vehicle is currently cruising and the value of the TimeDelayedValue to know the cruise speed.
+# An example for use might be sampling the velocity of a vehicle. The velocity is likely to change
+#  fairly frequently (possibly at 100Hz or more). The value can be sampled in the input processing code to
+#  give you the maximum possible sampling frequency that you may ever want, but you may wan to further
+#  slow sampling, using the maximum rate at different speeds. For example, you might wan to use the 
+#  maximum sampling rate (e.g. 10hz) when the vehicle is moving fast, but would rather use a slower sampling rate
+#  for slower speeds. You can do this with periodic sampled values using custom delays as follows:
 #
-# Custom (per value) delays
-#
-# You may want to change the delays based on the current value of the TimeDelayedValue. For example, you may want
-#  to change from "moving" to "stopped" if the stopped state lasts for 5s. However, you may want to change from
-#  "stopped" back to "moving" only if the entity is "moving" for 2s. To do this, you specify a specalized delay
-#  list which is just a list of { condition delay } pairs.
+# A custom set of periodic sampling values is just a list of condition, sample-period pairs. In the example
+#  just described we could set it up as follows:
 # 
-# For the given example, this list would be as follows: { { moving 5000 } { stopped 2000 } }; i.e. sample
-#  after 5s if the value is currently set to moving and sample after 2s if the value is current set to stopped.
+# { { { < 0.1 } 1000} { {0.1 3.0} 500 } { { >= 3.0 } 250 } } 
 #
-# These conditions can be more complex. If you are sampling a numeric value you can specify the condition in four ways
-#   equality: { 5 2000 }, delay 2s if the value is 5
-#   range:    { {5 10} 2000}, delay 2s if the value is >= 5 and < 10
-#   min:      { {>= 5} 2000}, delay 2s if the value is >= 5 (NOTE: strict > is not currently allowed) 
-#   max:      { {< 10} 2000}, delay 2s if the value is < 10 (NOTE: <= is not currently allowed)
+# Here sampling gets more frequent the faster the vehicle goes (from 1 hz to 2 hz to 4 hz)
 #
-# Finally, the custom delays can also use a source. So, for example if you wan to use a dynamically changing
-#  delay when the vehicle is stopped you could use the following:
+# These value conditions can four different forms
+#   equality: { 5 2000 }, sample every 2s if the value is 5
+#   range:    { {5 10} 2000}, sample every 2s if the value is >= 5 and < 10
+#   min:      { {>= 5} 2000}, sample every 2s if the value is >= 5 (NOTE: strict > is not currently allowed) 
+#   max:      { {< 10} 2000}, sample every 2s if the value is < 10 (NOTE: <= is not currently allowed)
 #
-#  { stopped { <obj> my-stopped-delay } } which would set the delay to whatever the value of <obj>.my-stopped-delay
-#       currently is.
+# Finally, the custom periods can also use a source. So, for example if you wan to use a dynamically changing
+#  sampling when the vehicle is stopped you could use the following:
 #
-# NOTE: you should never sample a continously varying value using a TimeDelayedValue. It will never get reset.
-#    TimeDelay should only be used on values that are normally steady, but can have transients in them.
+#  { { < 0.1 } { <obj> my-stopped-sample-period } } which would set the delay to whatever the value of 
+#     <obj>.my-stopped-sample-period currently is.
 #
-# [ngs-create-time-delayed-value pool_id variable_name src_obj src_attr global_delay (specialized_delay_list) (variable_ie)
+# NOTE: you should never set the sampling period so low that all the system does is sample the value. Future
+#        work may allow sampling rates of 0 to simply pass the value through (but this is not available yet).
+#
+# [ngs-create-periodic-sampled-value pool_id variable_name src_obj src_attr global_period (specialized_period_list) (variable_id)
 #
 # pool_id - Variable bound to the identifier for the category pool into which to place the new
 #             stable value. Bind to this pool using one of the following macros:
@@ -54,10 +49,10 @@
 # variable_name - Name of the context variable that should be constructed
 # src_obj - Variable bound to the object containing the value to be sampled
 # src_attribute - Name of the attribute to sample (do NOT bind to this in the LHS)
-# global_delay - Either a constant/variable indicating the amount of time the source value must remain steady
-#          before sampling, or the source id and soure attribute for a WME that provides this value
-# specialized_delay_list - (Optional). A list of conditional delays (see examples above).
-# variable_id - (Optional) If provided, a variable that is bound to the newly created stable value.
+# global_period - Either a constant/variable indicating the sampling period or the source id and source attribute
+#                   for a WME that provides this value
+# specialized_period_list - (Optional). A list of conditional periods (see examples above).
+# variable_id - (Optional) If provided, a variable that is bound to the newly created periodic sampled value.
 #                You can use this, for exmaple, to tag the variable.
 # 
 proc ngs-create-periodic-sampled-value { pool_id variable_name src_obj src_attr global_period {specialized_period_list ""} { variable_id "" } } {
@@ -70,13 +65,13 @@ proc ngs-create-periodic-sampled-value { pool_id variable_name src_obj src_attr 
 
 
 
-# Declare and define the productions for a TimeDelayedValue
+# Declare and define the productions for a PeriodicSampledValue
 # 
-# Use this macro to declare and define the productions for a time delayed value. See
-#  ngs-create-time-delayed-value for more information on these values.
+# Use this macro to declare and define the productions for a periodic sampled value. See
+#  ngs-create-periodic-sampled-value for more information on these values.
 #
 # This macro instantiates productions that do the sampling of the source value at the given
-#   global and/or specialized delays. It also elaborates a few useful attributes:
+#   global and/or specialized sampling rates. It also elaborates a few useful attributes:
 #
 # time-last-sampled - (Computed) Time the source was last sampled
 # value-age - (Computed) Age of the value attribute (amount of time since last sampled)
@@ -85,10 +80,10 @@ proc ngs-create-periodic-sampled-value { pool_id variable_name src_obj src_attr 
 #
 # You can test these value in your productions to respond to different sampling situations.
 #
-# You must call this macro for every time delayed value you wish to use in your program or
+# You must call this macro for every periodic sampled value you wish to use in your program or
 #  that value will not properly update.
 #
-# NGS_DefineTimeDelayedValue pool_goal_or_path category_name variable_name
+# NGS_DefinePeriodicSampledValue pool_goal_or_path category_name variable_name
 #
 # pool_goal_or_path - A global context variable pool name, a goal type, or an arbitrary path rooted at the top state.
 #  This is the location where the context variable will be stored.
@@ -107,9 +102,19 @@ proc NGS_DefinePeriodicSampledValue { pool_goal_or_path category_name variable_n
     set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name $variable_name]
 
     variable NGS_SIDE_EFFECT_ADD
+    variable NGS_CTX_VAR_SUPPRESS_SAMPLING
+
+    sp "ctxvar*periodic-sampled-value*propose*initialize*$production_name_suffix
+        $root_bind
+        [ngs-nex $var_id value]
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+        [ngs-time <s> <time>]
+        [ngs-ctx-var-source-val $var_id <src-val>]
+    -->
+        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
+        [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
     # Change the value after the time limit changes
-    variable NGS_CTX_VAR_SUPPRESS_SAMPLING
     sp "ctxvar*periodic-sampled-value*propose*resample*global*$production_name_suffix
         $root_bind
         [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
@@ -131,15 +136,6 @@ proc NGS_DefinePeriodicSampledValue { pool_goal_or_path category_name variable_n
         [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
         [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
-    sp "ctxvar*periodic-sampled-value*propose*initialize*$production_name_suffix
-        $root_bind
-        [ngs-nex $var_id value]
-        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
-        [ngs-time <s> <time>]
-        [ngs-ctx-var-source-val $var_id <src-val>]
-    -->
-        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
-        [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
     ngs-ctx-var-help-build-time-productions periodic-sampled-value period $production_name_suffix $root_bind $var_id
 

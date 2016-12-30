@@ -521,10 +521,9 @@ proc ngs-ctx-var-help-construct-time-based-varible { time_descriptor variable_id
         set cond_set_id [CORE_GenVarName "$time_descriptor-set"]
         set global_constructs "$global_constructs
                                [ngs-create-typed-object $variable_id conditional-${time_descriptor}s Set $cond_set_id]"
-    } else {
-        set conds_ret ""
-    }
+    } 
 
+    set conds_ret ""
     foreach description $specialized_param_list {
 
         set condition      [lindex $description 0]
@@ -538,21 +537,25 @@ proc ngs-ctx-var-help-construct-time-based-varible { time_descriptor variable_id
         }
                                
         if { [llength $condition] == 1 } {
-            set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
+            set conds_ret   "$conds_ret
+                             [ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
                                                      "$time_param_creation comparison-value $condition "]"
         } else {
             set first_item [lindex $condition 0]
             set second_item [lindex $condition 1]
         
             if { [string is integer $first_item] == 1 || [string is double $first_item] == 1} {
-                set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
+                set conds_ret   "$conds_ret
+                                 [ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
                                                          "$time_param_creation range-min $first_item range-max $second_item"]"
             } else {
                 if { $first_item == "<" } {
-                    set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
+                    set conds_ret   "$conds_ret
+                                     [ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
                                                              "$time_param_creation range-max $second_item"]"
                 } elseif { $first_item == ">=" } {
-                    set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
+                    set conds_ret   "$conds_ret
+                                     [ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
                                                              "$time_param_creation range-min $second_item"]"
                 } else {
                     echo "Time Delayed Values only support < and >= conditions ($variable_name)"
@@ -591,6 +594,15 @@ proc ngs-ctx-var-help-build-time-productions { ctxvar_type time_descriptor produ
        [ngs-create-attribute <condition> $time_descriptor <$time_descriptor-val>]"
 
     ########################## PRODUCTIONS THAT HANDLE ELABORATING TIMES
+
+    variable NGS_TAG_TIME_VARS_PASSTHROUGH_MODE
+
+    sp "ctxvar*$ctxvar_type*elaborate*passthrough-mode*$production_name_suffix
+        $root_bind
+        [ngs-or [ngs-bind $var_id value custom-$time_descriptor:0] \
+                [ngs-and [ngs-bind $var_id value global-$time_descriptor:0] [ngs-nex $var_id custom-$time_descriptor]]]
+    -->
+        [ngs-tag $var_id $NGS_TAG_TIME_VARS_PASSTHROUGH_MODE]"
 
     sp "ctxvar*$ctxvar_type*elaborate*time-since-last-sampled*$production_name_suffix
         $root_bind

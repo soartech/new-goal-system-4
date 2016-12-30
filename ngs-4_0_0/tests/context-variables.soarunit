@@ -636,6 +636,7 @@ test periodic-sampled-variables {
     -->
         [ngs-create-attribute-by-operator <s> <s> my-velocity 3.0]"
 
+
     sp "test*custom-delay
         [ngs-match-top-state <s>]
     -->

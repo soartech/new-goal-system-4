@@ -19,3 +19,5 @@ CORE_CreateMacroVar NGS_CTX_VAR_DELTA_TYPE_PERCENT  "percent"
 # Tags
 CORE_CreateMacroVar NGS_TAG_DYN_BIN_VAL_CUSTOM_DELTA "override-global-delta"
 CORE_CreateMacroVar NGS_TAG_DYN_BINS_IS_STATIC "is-static-bin"
+
+CORE_CreateMacroVar NGS_TAG_TIME_VARS_PASSTHROUGH_MODE "passthrough-mode"
