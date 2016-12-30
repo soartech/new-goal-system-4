@@ -402,7 +402,7 @@ test time-delayed-values {
     -->
         [ngs-create-attribute <s> my-global-delay 500]"
 
-    sp* "test*leader-velocity
+    sp "test*leader-velocity
         [ngs-match-to-create-context-variable <s> sample-pool CategoryC:<pool>]    
     -->
         [ngs-create-time-delayed-value <pool> leader-velocity <s> lead-velocity { <s> my-global-delay }]"
@@ -477,7 +477,7 @@ test time-delayed-values {
 
     sp "test
         [ngs-match-goal <s> GoalWithContextVariables <g>]
-        [ngs-time <s> 6.0 <time> $NGS_TEST_GREATER_THAN_OR_EQUAL]
+        [ngs-time <s> 6000 <time> $NGS_TEST_GREATER_THAN_OR_EQUAL]
         [ngs-bind-goal-ctx <g> categoryA { moving::moving }]
         [ngs-bind-global-ctx <s> sample-pool CategoryC leader-velocity:<=:0.0]
         [ngs-bind <s> my-agent.state.vehicle]
@@ -486,6 +486,184 @@ test time-delayed-values {
         (pass)"
 
 }
+
+test periodic-sampled-variables {
+
+    NGS_DefinePeriodicSampledValue GoalWithContextVariables categoryA moving
+    NGS_DefinePeriodicSampledValue sample-pool CategoryC leader-velocity
+    NGS_DefinePeriodicSampledValue my-agent.state.vehicle $NGS_CTX_VAR_USER_LOCATION my-velocity
+
+    sp "test*rapid-sample-value
+        [ngs-match-top-state <s>]
+        [ngs-time <s> <time>]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> time-in-seconds "(/ <time> 1000)" {} "+ < ="]"
+
+    sp "test*set-moving*initially
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 0 1000]
+        [ngs-nex <s> leader-moving]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> leader-moving moving]"
+        
+    sp "test*set-halt
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 2000 2500]
+        [ngs-eq <s> leader-moving moving]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> leader-moving halted]"
+
+    sp "test*set-moving*again
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 2500 3000]
+        [ngs-eq <s> leader-moving halted]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> leader-moving moving]"
+
+    # This test should not resample agin after it samples halting
+    sp "test*moving
+        [ngs-match-goal-to-create-context-variable <s> GoalWithContextVariables <g> categoryA:<pool>]
+    -->
+        [ngs-create-periodic-sampled-value <pool> moving <s> leader-moving 500 {{ halted 6000 }}]"
+
+
+
+
+
+    sp "test*lead-velocity*init
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 0 1000]
+        [ngs-nex <s> lead-velocity]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> lead-velocity 1.05]"
+
+    sp "test*lead-velocity*second
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 1000 1600]
+        [ngs-neq <s> lead-velocity 0.95]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> lead-velocity 0.95]"
+
+    sp "test*lead-velocity*third
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 1600 2500]
+        [ngs-neq <s> lead-velocity 0.90]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> lead-velocity 0.90]"
+
+    sp "test*lead-velocity*fourth
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 2500 2600]
+        [ngs-neq <s> lead-velocity 2.0]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> lead-velocity 2.0]"
+
+    sp "test*lead-velocity*fifth
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 2600 2800]
+        [ngs-neq <s> lead-velocity 3.0]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> lead-velocity 3.0]"
+
+    sp "test*lead-velocity*sixth
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 2800 3000]
+        [ngs-neq <s> lead-velocity 0.0]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> lead-velocity 0.0]"
+
+    sp "test*period-source
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-create-attribute <s> my-global-sample-period 1000]"
+
+    sp "test*leader-velocity
+        [ngs-match-to-create-context-variable <s> sample-pool CategoryC:<pool>]    
+    -->
+        [ngs-create-periodic-sampled-value <pool> leader-velocity <s> lead-velocity { <s> my-global-sample-period }]"
+    
+
+
+
+
+
+    sp "test*user-location
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-create-typed-object <s> my-agent Bag <agent>]
+        [ngs-create-typed-object <agent> state Bag <state>]
+        [ngs-create-typed-object <state> vehicle Bag <distances>]"
+
+    sp "test*my-velocity*init
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 0 300]
+        [ngs-nex <s> my-velocity]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> my-velocity 3.01]"
+
+    sp "test*my-velocity*second
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 300 600]
+        [ngs-neq <s> my-velocity 0.0]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> my-velocity 0.0]"
+
+    sp "test*my-velocity*third
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 600 1000]
+        [ngs-neq <s> my-velocity 0.90]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> my-velocity 0.90]"
+
+    sp "test*my-velocity*fourth
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 3000 3500]
+        [ngs-neq <s> my-velocity 1.5]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> my-velocity 1.5]"
+
+    sp "test*my-velocity*fifth
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 4500 5000]
+        [ngs-neq <s> my-velocity 2.5]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> my-velocity 2.5]"
+
+    sp "test*my-velocity*sixth
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 5500 6000]
+        [ngs-neq <s> my-velocity 3.0]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> my-velocity 3.0]"
+
+    sp "test*custom-delay
+        [ngs-match-top-state <s>]
+    -->
+        [ngs-create-attribute <s> my-custom-sample-period 500]"
+
+    sp "test*my-velocity
+        [ngs-match-top-state <s> my-agent.state.vehicle:<pool>]    
+    -->
+        [ngs-create-periodic-sampled-value <pool> my-velocity <s> my-velocity 500 {
+            {{< 0.1} {<s> my-custom-sample-period}}
+            {{0.1 1.0} 1000}
+            {{1.0 2.0} 500}
+            {{2.0 3.0} 250}
+            {{>= 3.0} 100}
+        }]"
+
+
+    sp "test
+        [ngs-match-goal <s> GoalWithContextVariables <g>]
+        [ngs-time <s> 7000 <time> $NGS_TEST_GREATER_THAN_OR_EQUAL]
+        [ngs-bind-goal-ctx <g> categoryA moving::halted]
+        [ngs-bind-global-ctx <s> sample-pool CategoryC leader-velocity:<=:0.0]
+        [ngs-bind <s> my-agent.state.vehicle]
+        [ngs-bind-user-ctx <vehicle> my-velocity::3.0]
+    -->
+        (pass)"
+}
+
 
 test user-defined-context-variables {
     

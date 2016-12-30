@@ -1,8 +1,7 @@
 ##!
 # @file
 #
-# @created jacobcrossman 20161228
-
+# @created jacobcrossman 20161230
 
 # Create a TimeDelayedValue object
 #
@@ -61,12 +60,12 @@
 # variable_id - (Optional) If provided, a variable that is bound to the newly created stable value.
 #                You can use this, for exmaple, to tag the variable.
 # 
-proc ngs-create-time-delayed-value { pool_id variable_name src_obj src_attr global_delay {specialized_delay_list ""} { variable_id "" } } {
+proc ngs-create-periodic-sampled-value { pool_id variable_name src_obj src_attr global_period {specialized_period_list ""} { variable_id "" } } {
 
     CORE_GenVarIfEmpty variable_id "variable"
-    return "[ngs-create-typed-object $pool_id $variable_name TimeDelayedValue $variable_id \
+    return "[ngs-create-typed-object $pool_id $variable_name PeriodicSampledValue $variable_id \
                                     "name $variable_name src-obj $src_obj src-attr $src_attr"]
-            [ngs-ctx-var-help-construct-time-based-varible delay $variable_id $global_delay $specialized_delay_list]"
+            [ngs-ctx-var-help-construct-time-based-varible period $variable_id $global_period $specialized_period_list]"
 }
 
 
@@ -97,7 +96,7 @@ proc ngs-create-time-delayed-value { pool_id variable_name src_obj src_attr glob
 #   are placing the context variable in an arbitrary location specified by a path (see parameter pool_goal_or_path)
 # variable_name - Name of the variable
 #
-proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name } {
+proc NGS_DefinePeriodicSampledValue { pool_goal_or_path category_name variable_name } {
     
     set var_id  <variable>
 
@@ -109,40 +108,30 @@ proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name 
 
     variable NGS_SIDE_EFFECT_ADD
 
-    # Set up times for next sampling. Must be o-supported or the time will keep updating every time the clock ticks
-    sp "ctxvar*time-delayed-value*propose*next-sample-time*$production_name_suffix*use-specific
-        $root_bind
-        [ngs-neq $var_id next-val <src-val>]
-        [ngs-time <s> <time>]
-        [ngs-bind $var_id custom-delay]
-        [ngs-ctx-var-source-val $var_id <src-val>]
-    -->
-        [ngs-create-attribute-by-operator <s> $var_id next-val <src-val>]
-        [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id next-sample-time "(+ <time> <custom-delay>)"]"
-
-    sp "ctxvar*time-delayed-value*propose*next-sample-time*$production_name_suffix*use-general
-        $root_bind
-        [ngs-neq $var_id next-val <src-val>]
-        [ngs-time <s> <time>]
-        [ngs-bind $var_id global-delay]
-        [ngs-nex $var_id custom-delay]
-        [ngs-ctx-var-source-val $var_id <src-val>]
-    -->
-        [ngs-create-attribute-by-operator <s> $var_id next-val <src-val>]
-        [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id next-sample-time "(+ <time> <global-delay>)"]"
-
     # Change the value after the time limit changes
     variable NGS_CTX_VAR_SUPPRESS_SAMPLING
-    sp "ctxvar*time-delayed-value*propose*resample*$production_name_suffix
+    sp "ctxvar*periodic-sampled-value*propose*resample*global*$production_name_suffix
         $root_bind
         [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+        [ngs-bind $var_id value global-period value-age:>=:<global-period>]
+        [ngs-nex  $var_id custom-period]
+        [ngs-ctx-var-source-val $var_id <src-val>]
         [ngs-time <s> <time>]
-        [ngs-bind $var_id value:<>:<next-val> next-val next-sample-time:<:<time>]
     -->
-        [ngs-create-attribute-by-operator <s> $var_id value <next-val>]
+        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
         [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
-    sp "ctxvar*time-delayed-value*propose*initialize*$production_name_suffix
+    sp "ctxvar*periodic-sampled-value*propose*resample*custom*$production_name_suffix
+        $root_bind
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+        [ngs-bind $var_id value custom-period value-age:>=:<custom-period>]
+        [ngs-ctx-var-source-val $var_id <src-val>]
+        [ngs-time <s> <time>]
+    -->
+        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
+        [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
+
+    sp "ctxvar*periodic-sampled-value*propose*initialize*$production_name_suffix
         $root_bind
         [ngs-nex $var_id value]
         [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
@@ -152,7 +141,7 @@ proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name 
         [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
         [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
-    ngs-ctx-var-help-build-time-productions time-delayed-value delay $production_name_suffix $root_bind $var_id
+    ngs-ctx-var-help-build-time-productions periodic-sampled-value period $production_name_suffix $root_bind $var_id
 
 }
 

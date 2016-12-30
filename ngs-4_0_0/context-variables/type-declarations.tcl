@@ -137,25 +137,49 @@ NGS_DeclareType ComputedValue {
     type { ContextVariable MultiSourceVariable }
 }
 
-# Time delayed context variable
+# Base type for all time periodic context variables
 # 
-# Time delayed values sample a source after it is stable for a given delay time
+# NOTE: the variables with the -timedesc suffic will actually appear as a slightly different variable
+#  depending on the context variable.
 #
-# global-delay - The global delay factor (in milliseconds) that is used whenever a conditional delay is not available
-# global-delay-src/attr - (Optional) Location from which to read the global delay value
+# TimeDelayedValue:   timedesc = delay
+# PeriodSampledValue: timedesc = period
 #
-# conditional-delays - (Optional) A set of delay specifications for specific values
-# custom-delay - (Computed) Set when a conditional delay is active
-# next-sample-time - (Computed) The next time (from [ngs-time <s> <time>]) that the source will be sampled 
-# next-sample-val - (Computed) The next value that will be sampled
+# global-timedesc - The global time factor (in milliseconds) that is used whenever a conditional time is not available
+# global-timedesc-src/attr - (Optional) Location from which to read the global time value
+#
+# conditional-timedesc - (Optional) A set of time specifications for specific values
+# custom-timedesc - (Computed) Set when a conditional time is active
 #           
 # time-last-sampled - (Computed) Time the source was last sampled
 # value-age - (Computed) Age of the value attribute (amount of time since last sampled)
 # is-consistent-with-source - (Computed) NGS_YES if the current value is the same as the sourc evalue,
-#          NGS_NO otherwise       
-#                                                                                                  
+#          NGS_NO otherwise
+#       
+NGS_DeclareType TimePeriodicVariable {
+
+    global-timedesc ""
+    global-timedesc-src ""
+    global-timedesc-attr ""
+
+    conditional-timedescs ""
+    custom-timedesc ""
+
+    time-last-sampled ""
+    value-age ""
+    is-consistent-with-source ""
+
+}
+
+# Time delayed context variable
+# 
+# Time delayed values sample a source after it is stable for a given delay time
+#
+# next-sample-time - (Computed) The next time (from [ngs-time <s> <time>]) that the source will be sampled 
+# next-sample-val - (Computed) The next value that will be sampled
+#           
 NGS_DeclareType TimeDelayedValue {
-    type { ContextVariable SingleSourceVariable }
+    type { ContextVariable SingleSourceVariable TimePeriodicVariable }
     
     global-delay ""
     global-delay-src ""
@@ -166,18 +190,38 @@ NGS_DeclareType TimeDelayedValue {
 
     next-sample-time ""
     next-sample-val ""
+}
 
-    time-last-sampled ""
-    value-age ""
-    is-consistent-with-source ""
+# Periodic sampled context variable
+# 
+# Periodic sampled values sample a source after it is stable for a given delay time
+#
+# All attributes are variations of base class types. The attributes below
+#  show how the time period attributes are named for this type
+#           
+NGS_DeclareType PeriodicSampledValue {
+    type { ContextVariable SingleSourceVariable TimePeriodicVariable }
+    
+    global-period ""
+    global-period-src ""
+    global-period-attr ""
+
+    conditional-periods ""
+    custom-period ""
 }
 
 # Conditiona delay information
 #
-# This is used by Time Delayed Values
+# This is used by Time Delayed Values and Periodic Sampled Values
 #
-# delay - Delay (in milleseconds) to use under this condition
-# delay-src/attr - (Optional) Location fromw which to read the delay
+# NOTE: the variables with the timedesc suffic will actually appear as a slightly different variable
+#  depending on the context variable.
+#
+# TimeDelayedValue:   timedesc = delay
+# PeriodSampledValue: timedesc = period
+#
+# timedesc - Time period (in milleseconds) to use under this condition
+# timedesc-src/attr - (Optional) Location from which to read the time period
 #
 # comparison-value - (Optional) Make this delay active when the TimeDelayedValue's value 
 #                       attribute equals this
@@ -185,10 +229,10 @@ NGS_DeclareType TimeDelayedValue {
 #                       is between these two values [range-min, range-max). If only
 #                       one of these is present it acts as a >= and < respectively.
 # 
-NGS_DeclareType ConditionalDelay {
-    delay ""
-    delay-src ""
-    delay-attr ""
+NGS_DeclareType ConditionTimePeriod {
+    timedesc ""
+    timedesc-src ""
+    timedesc-attr ""
 
     comparison-value ""
     range-min ""

@@ -538,21 +538,21 @@ proc ngs-ctx-var-help-construct-time-based-varible { time_descriptor variable_id
         }
                                
         if { [llength $condition] == 1 } {
-            set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionalDelay $time_param_id \
+            set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
                                                      "$time_param_creation comparison-value $condition "]"
         } else {
             set first_item [lindex $condition 0]
             set second_item [lindex $condition 1]
         
             if { [string is integer $first_item] == 1 || [string is double $first_item] == 1} {
-                set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionalDelay $time_param_id \
+                set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
                                                          "$time_param_creation range-min $first_item range-max $second_item"]"
             } else {
                 if { $first_item == "<" } {
-                    set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionalDelay $time_param_id \
+                    set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
                                                              "$time_param_creation range-max $second_item"]"
                 } elseif { $first_item == ">=" } {
-                    set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionalDelay $time_param_id \
+                    set conds_ret   "[ngs-create-typed-object $cond_set_id condition ConditionTimePeriod $time_param_id \
                                                              "$time_param_creation range-min $second_item"]"
                 } else {
                     echo "Time Delayed Values only support < and >= conditions ($variable_name)"
