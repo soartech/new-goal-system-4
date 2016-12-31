@@ -227,8 +227,8 @@ proc ngs-ctx-var-set-val-by-operator { state_id var_id value } {
 #
 # Suppression only works for sampled variables. The following are sampled variables
 #  * Stable Values
-#  * Time Sampled Values
-#  * Conditionally Sampled Values 
+#  * Periodic Sampled Values
+#  * Time Delayed Values 
 #
 # Binned values are not sampled variables (they are inferred values), so this method does
 #  not affect them.
@@ -241,6 +241,27 @@ proc ngs-ctx-var-set-val-by-operator { state_id var_id value } {
 proc ngs-suppress-context-variable-sampling { var_id } {
     variable NGS_CTX_VAR_SUPPRESS_SAMPLING
     return [ngs-tag $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+}
+
+# Force a sampled value to pass through the value from the source without normal sampling constraints
+#
+# Use this if you want to set the context variable's value directly from the source
+#  under certain conditions. While this flag is set, the variable will use i-support
+#  to just link the value to the source value.
+#
+# Passthrough only works for sampled variables. The following are sampled variables
+#  * Stable Values
+#  * Periodic Sampled Values
+#  * Time Delayed Values 
+#
+# RIGHT NOW THIS ONLY WORKS FOR PERIODIC SAMPLED VALUES
+#
+# var_id - Variable bound to the id of the context variable that should stop sampling and
+#           just passthrough its source value
+#
+proc ngs-force-value-passthrough { var_id } {
+    variable NGS_CTX_VAR_PASSTHROUGH_MODE
+    return [ngs-tag $var_id $NGS_CTX_VAR_PASSTHROUGH_MODE]
 }
 
 # Creates a global context variable pool
@@ -594,15 +615,6 @@ proc ngs-ctx-var-help-build-time-productions { ctxvar_type time_descriptor produ
        [ngs-create-attribute <condition> $time_descriptor <$time_descriptor-val>]"
 
     ########################## PRODUCTIONS THAT HANDLE ELABORATING TIMES
-
-    variable NGS_TAG_TIME_VARS_PASSTHROUGH_MODE
-
-    sp "ctxvar*$ctxvar_type*elaborate*passthrough-mode*$production_name_suffix
-        $root_bind
-        [ngs-or [ngs-bind $var_id value custom-$time_descriptor:0] \
-                [ngs-and [ngs-bind $var_id value global-$time_descriptor:0] [ngs-nex $var_id custom-$time_descriptor]]]
-    -->
-        [ngs-tag $var_id $NGS_TAG_TIME_VARS_PASSTHROUGH_MODE]"
 
     sp "ctxvar*$ctxvar_type*elaborate*time-since-last-sampled*$production_name_suffix
         $root_bind

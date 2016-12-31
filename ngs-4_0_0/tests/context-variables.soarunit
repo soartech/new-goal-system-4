@@ -636,11 +636,23 @@ test periodic-sampled-variables {
     -->
         [ngs-create-attribute-by-operator <s> <s> my-velocity 3.0]"
 
+    sp "test*my-velocity*seventh
+        [ngs-match-top-state <s>]
+        [ngs-time-range <s> 6000 6200]
+        [ngs-neq <s> my-velocity 3.1]
+    -->
+        [ngs-create-attribute-by-operator <s> <s> my-velocity 3.1]"
 
     sp "test*custom-delay
         [ngs-match-top-state <s>]
     -->
         [ngs-create-attribute <s> my-custom-sample-period 500]"
+
+    sp "test*force-passthrough
+        [ngs-match-top-state <s> my-agent.state.vehicle.my-velocity]
+        [ngs-gte <s> my-velocity 3.0]
+    -->
+        [ngs-force-value-passthrough <my-velocity>]"
 
     sp "test*my-velocity
         [ngs-match-top-state <s> my-agent.state.vehicle:<pool>]    

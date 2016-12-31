@@ -103,39 +103,56 @@ proc NGS_DefinePeriodicSampledValue { pool_goal_or_path category_name variable_n
 
     variable NGS_SIDE_EFFECT_ADD
     variable NGS_CTX_VAR_SUPPRESS_SAMPLING
+    variable NGS_CTX_VAR_PASSTHROUGH_MODE
 
     sp "ctxvar*periodic-sampled-value*propose*initialize*$production_name_suffix
         $root_bind
-        [ngs-nex $var_id value]
+        [ngs-nex $var_id sampled-value]
         [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_PASSTHROUGH_MODE]
         [ngs-time <s> <time>]
         [ngs-ctx-var-source-val $var_id <src-val>]
     -->
-        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
+        [ngs-create-attribute-by-operator <s> $var_id sampled-value <src-val>]
         [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
     # Change the value after the time limit changes
     sp "ctxvar*periodic-sampled-value*propose*resample*global*$production_name_suffix
         $root_bind
         [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
-        [ngs-bind $var_id value global-period value-age:>=:<global-period>]
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_PASSTHROUGH_MODE]
+        [ngs-bind $var_id global-period value-age:>=:<global-period>]
         [ngs-nex  $var_id custom-period]
         [ngs-ctx-var-source-val $var_id <src-val>]
         [ngs-time <s> <time>]
     -->
-        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
+        [ngs-create-attribute-by-operator <s> $var_id sampled-value <src-val>]
         [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
     sp "ctxvar*periodic-sampled-value*propose*resample*custom*$production_name_suffix
         $root_bind
         [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
-        [ngs-bind $var_id value custom-period value-age:>=:<custom-period>]
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_PASSTHROUGH_MODE]
+        [ngs-bind $var_id custom-period value-age:>=:<custom-period>]
         [ngs-ctx-var-source-val $var_id <src-val>]
         [ngs-time <s> <time>]
     -->
-        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]
+        [ngs-create-attribute-by-operator <s> $var_id sampled-value <src-val>]
         [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD $var_id time-last-sampled <time>]"
 
+    sp "ctxvar*periodic-sampled-value*elaborate*value-from-sampled-value*$production_name_suffix
+        $root_bind
+        [ngs-bind $var_id sampled-value]
+        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_PASSTHROUGH_MODE]
+    -->
+        [ngs-create-attribute $var_id value <sampled-value>]"
+
+    sp "ctxvar*periodic-sampled-value*elaborate*value-from-source*$production_name_suffix
+        $root_bind
+        [ngs-is-tagged $var_id $NGS_CTX_VAR_PASSTHROUGH_MODE]
+        [ngs-ctx-var-source-val $var_id <src-val>]
+    -->
+        [ngs-create-attribute $var_id value <src-val>]"
 
     ngs-ctx-var-help-build-time-productions periodic-sampled-value period $production_name_suffix $root_bind $var_id
 
