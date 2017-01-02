@@ -32,7 +32,17 @@
 ## use macro expansion to define these universally
 
 ## echo "\n ... Loading file: [pwd]/standard-variables.tcl";
- 
+
+# determine if we're using jsoar or csoar
+# we do this by looking to see if the script command is defined, as it's special to jsoar and unlikely to ever be implemented in csoar
+CORE_CreateMacroVar CSOAR csoar
+CORE_CreateMacroVar JSOAR jsoar
+if { [info command script] eq "" } {
+    CORE_CreateMacroVar SOAR_IMPLEMENTATION $CSOAR
+} else {
+    CORE_CreateMacroVar SOAR_IMPLEMENTATION $JSOAR
+}
+
 # Binding variables to use to reference common working memory items
 CORE_CreateMacroVar WM_STATE "state"
 CORE_CreateMacroVar WM_TOP_STATE "top-state"

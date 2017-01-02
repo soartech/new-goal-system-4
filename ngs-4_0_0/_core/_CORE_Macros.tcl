@@ -273,8 +273,56 @@ proc sp* { production_body } {
     echo $production_body
     echo "--------------------------------------------------------------------------------------------------"
     echo "\n"
-	
-	# Call Soar's "sp" command
-	sp $production_body
+    
+    # Call Soar's "sp" command
+    sp $production_body
 
+}
+
+# Use this to capture the output of a command in a tcl var
+# Currently in csoar results in echoing "Output of command successfully written to file." to the trace
+proc CORE_GetCommandOutput { args } {
+    variable SOAR_IMPLEMENTATION
+    variable JSOAR
+    variable CSOAR
+
+    set FILENAME ngs-temp.txt
+
+    # basic approach is to write the command output to a file and then read the file into a variable
+
+    if { $SOAR_IMPLEMENTATION eq $JSOAR } {
+
+        # disable echoing to the trace
+        script javascript { 
+            var nullWriterType = Java.type("org.jsoar.util.NullWriter");
+            var nullWriter = new nullWriterType;
+            soar.agent.getPrinter().pushWriter(nullWriter);
+        }
+
+        # log the command to a file
+        clog "$FILENAME"
+        eval $args
+        clog --close
+
+        # reenable echoing to the trace
+        script javascript { 
+            soar.agent.getPrinter().popWriter();
+        }
+
+        # read the file contents into a tcl var
+        set fp [open "$FILENAME" r]
+        set result [read $fp]
+        close $fp
+    } else {
+
+        # log the command to a file
+        output command-to-file $FILENAME {*}$args
+
+        # read the file contents into a tcl var
+        set fp [open "$FILENAME" r]
+        set result [read $fp]
+        close $fp 
+    }
+
+    return $result
 }
