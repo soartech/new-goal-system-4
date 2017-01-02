@@ -9,7 +9,7 @@
 # AttributeList = { AttributeName AttributeAtomicValue } |
 #                 { AttributeName Object }
 #
-# You can use rs-icreate-typed-object-from-stor to create the Soar code for constructing
+# You can use ngs-create-typed-object-from-stor to create the Soar code for constructing
 #  an i-supported (or :o-support) version of the object in the STOR
 #
 # This representation is primarily used to pass Soar data that is used in testing or setting up the agent
@@ -27,7 +27,7 @@ proc ngs-attr-list-from-stor { stor } {
 # Creates code to construct an NGS 4 typed object from a STOR, assigning the object to
 #  the given parent_id and parent_attr
 #
-proc ngs-icreate-typed-object-from-stor { parent_id parent_attr stor } {
+proc ngs-create-typed-object-from-stor { parent_id parent_attr stor } {
     set stor [strip_comments $stor]
 
     set obj_type   [ngs-type-from-stor $stor]
@@ -54,7 +54,7 @@ proc ngs-icreate-typed-object-from-stor { parent_id parent_attr stor } {
             } else {
                 # recursive call to create sub-object
                 set create_line "$create_line
-                                 [ngs-icreate-typed-object-from-stor $new_obj_id [ngs-expand-tags $key] $val]"
+                                 [ngs-create-typed-object-from-stor $new_obj_id [ngs-expand-tags $key] $val]"
             }
 
             # prepare for next key
