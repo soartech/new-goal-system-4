@@ -122,7 +122,7 @@ proc CORE_RefMacroVars { } {
 }
 
 ##!
-# @brief Create a globally-avialable variable
+# @brief Create a globally-available variable
 proc CORE_CreateMacroVar { variable_name variable_value } {
    
    variable CORE_macro_var_list
