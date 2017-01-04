@@ -33,7 +33,7 @@
 # Examples:
 #
 # Bind to a category (typically useful when creating new context variables - though you should consider
-#    using ngs-match-to-create-ctx-var or ngs-match-goal-to-create-ctx-var instead):
+#    using ngs-match-to-create-context-variable or ngs-match-goal-to-create-context-variable instead):
 #
 # [ngs-bind-global-ctx <s> my-agent-pool agent-state]  -  the category will bind to the Soar variable <agent-state>
 #
