@@ -5,10 +5,6 @@
     <member path="" />
     <member path="ngs-4_0_0/_core" />
     <member path="ngs-4_0_0/macros" />
-    <member path="ngs-4_0_0/tests" />
-    <member path="ngs-4_0_0/context-variables/context-variables.tcl" />
-    <member path="ngs-4_0_0/context-variables/load.soar" />
-    <member path="ngs-4_0_0/context-variables/stable-value.tcl" />
     <member path="ngs-4_0_0/load.soar" />
     <member path="ngs-4_0_0/ngs-achieved-goal-applications.soar" />
     <member path="ngs-4_0_0/ngs-def-elaborations.soar" />
@@ -20,6 +16,7 @@
     <member path="ngs-4_0_0/ngs-side-effects.soar" />
     <member path="ngs-4_0_0/ngs-standard-time-elaborations.soar" />
     <member path="ngs-4_0_0/ngs-sub-state-management.soar" />
+    <member path="ngs-4_0_0/context-variables" />
   </members>
 </soaragent>
 
