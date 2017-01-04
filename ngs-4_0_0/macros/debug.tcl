@@ -1,5 +1,131 @@
 # NOTE: These methods don't work as well as I'd hoped. Need to rethink the dashboard processes
 
+proc nps2 { } {
+
+    set top_state   [CORE_GetCommandOutput print s1]
+    set goal_set_id [ngs-debug-get-id-for-attribute $top_state goals]
+
+    return [ngs-debug-get-all-attributes-for-id $goal_set_id]
+}
+
+proc ngs-debug-get-set-of-ids-for-attribute { identifier attribute } {
+
+}
+
+proc np2 { args } {
+
+    if { [llength $args] == 0} {
+        echo "+---------------------------------------+"
+        echo "Usage: np (depth=2) id1 id2 id3 ..."
+    }
+
+    set depth 1
+    set first [lindex $args 0]
+
+    if { [string is integer [string index $first 0]] == 1 } {
+        set depth $first
+        set args [lreplace $args 0 0]
+    }
+
+    foreach id $args {
+        echo "+---------------------------------------+"
+        echo "+ OBJECT: $id"
+        print --tree --depth $depth $id
+    }
+    echo "+---------------------------------------+"
+
+}
+
+proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
+
+    set print_string [string trim [CORE_GetCommandOutput print -e "($identifier ^$attribute *)"]]
+    if {$print_string != ""} {
+        set elements [split $print_string " "]
+        return [string trim [lindex $elements 2] " )"]
+    }
+
+    return ""
+}
+
+proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
+
+    variable NGS_TAG_PREFIX
+    variable NGS_TAG_CONSTRUCTED
+    variable NGS_TAG_I_SUPPORTED
+    variable NGS_YES
+    variable NGS_NO
+    variable NGS_UNKNOWN
+
+    set print_string     [string trim [CORE_GetCommandOutput p $identifier] " ()"]
+    set end_of_print     [expr [string length $print_string] - 1]
+    set print_string     [string range $print_string 0 $end_of_print]
+    set attr_value_pairs [split $print_string " ^"]
+
+    set is_attribute 1
+    set attribute_info ""
+    # all, internal, tags, attributes, types, my-type
+    set ret_val ""
+    set cur_key ""
+    foreach attr_val [lrange $attr_value_pairs 1 [llength $attr_value_pairs]] {
+        set attr_val [string trim $attr_val]
+        if { $attr_val != "" } {
+            if { $is_attribute == 1 } {
+
+                if { $attr_val == [ngs-tag-for-name $NGS_TAG_CONSTRUCTED] || $attr_val == [ngs-tag-for-name $NGS_TAG_I_SUPPORTED]} {
+                    set cur_key "internal"
+                    lappend attribute_info [string range $attr_val [string length $NGS_TAG_PREFIX] end]
+                } elseif { [string first $NGS_TAG_PREFIX $attr_val] > -1 } {
+                    set cur_key "tags"
+                    lappend attribute_info [string range $attr_val [string length $NGS_TAG_PREFIX] end]
+                } elseif { $attr_val == "type"} {
+                    set cur_key "types"
+                    lappend attribute_info $attr_val
+                } elseif { $attr_val == "my-type"} {
+                    set cur_key "my-type"
+                    lappend attribute_info $attr_val
+                } else {
+                    set cur_key "attributes"
+                    lappend attribute_info $attr_val
+                }
+        
+                set is_attribute 0
+            } else {
+
+                lappend attribute_info $attr_val
+                set first_letter [string index $attr_val 0]
+                set the_rest     [string range $attr_val 1 end]
+
+                if { [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1 } {
+                    # This is an identifier
+                    lappend attribute_info "identifier"
+                    lappend attribute_info [ngs-debug-get-single-id-for-attribute $attr_val "my-type"]
+                } elseif { [string is integer $attr_val] == 1 } {
+                    lappend attribute_info "integer"
+                } elseif { [string is double $attr_val] == 1 } {
+                    lappend attribute_info "double"
+                } elseif { $attr_val == $NGS_YES || $attr_val == $NGS_NO || $attr_val == $NGS_UNKNOWN } {
+                    lappend attribute_info "boolean"
+                } else {
+                    lappend attribute_info "string"
+                }
+
+                if { $cur_key == "my-type" } {
+                    dict set ret_val $cur_key $attr_val
+                } else {
+                    if { $attribute == "" || $attribute == [lindex $attribute_info 0] } {
+                        dict lappend ret_val $cur_key $attribute_info
+                    }
+                }
+                set attribute_info ""
+                set is_attribute 1
+            }
+            
+        }
+    }
+    return $ret_val
+}
+
+
 # Print out the goal stacks
 #
 # Use to print out all goal stacks. Because this must be implemented

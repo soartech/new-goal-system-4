@@ -270,6 +270,12 @@ proc ngs-tag-nex { object_id tag_name } {
 # This macro does not handle general "or" conditions. It only handles
 #  disjunctions of constant values
 #
+# You can optionally pass a soar variable to bind to as well. If you do this
+#  make it the first variable. The macro will output the following code in this
+#  case:
+#
+# { <variable> << test-val-1 test-val-2 ... >> }
+#
 # For more complex predicate logic "or" use ngs-or and ngs-and
 #
 # args - a list of constants to turn into a disjunction. Args can be
@@ -282,13 +288,22 @@ proc ngs-anyof { args } {
     set $args [lindex args 0]
   }
 
-  set lhs_ret "<< "
-  foreach item $args {
-    set lhs_ret "$lhs_ret $item"
+  set first_item [lindex $args 0]
+  if { [string index $first_item 0] == "<" } {
+    set prefix "\{ $first_item <<"
+    set suffix ">> \}"
+    set args [lrange $args 1 end]
+  } else {
+    set prefix "<<"
+    set suffix ">>"
   }
 
-  set lhs_ret "$lhs_ret >>"
-  return $lhs_ret
+  set disjunctive_tests ""
+  foreach item $args {
+    set disjunctive_tests "$disjunctive_tests $item"
+  }
+
+  return "$prefix$disjunctive_tests $suffix"
 }
 
 # Use this to construct a Soar test that binds a variable not equal to another variable.

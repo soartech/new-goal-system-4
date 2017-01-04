@@ -524,7 +524,7 @@ test periodic-sampled-variables {
     sp "test*moving
         [ngs-match-goal-to-create-context-variable <s> GoalWithContextVariables <g> categoryA:<pool>]
     -->
-        [ngs-create-periodic-sampled-value <pool> moving <s> leader-moving 500 {{ halted 6000 }}]"
+        [ngs-create-periodic-sampled-value <pool> moving <s> leader-moving 500 {{ halted 7000 }}]"
 
 
 
@@ -672,7 +672,7 @@ test periodic-sampled-variables {
         [ngs-bind-goal-ctx <g> categoryA moving::halted]
         [ngs-bind-global-ctx <s> sample-pool CategoryC leader-velocity:<=:0.0]
         [ngs-bind <s> my-agent.state.vehicle]
-        [ngs-bind-user-ctx <vehicle> my-velocity::3.0]
+        [ngs-bind-user-ctx <vehicle> my-velocity::3.1]
     -->
         (pass)"
 }
