@@ -1085,6 +1085,46 @@ proc ngs-add-tag-side-effect { action dest_obj tag_name {value ""} {replacement_
   return "[ngs-add-primitive-side-effect $action $dest_obj [ngs-tag-for-name $tag_name] $value $replacement_behavior $op_id]"
 }
 
+# Adds a side-effect to an operator
+#
+# This version works for writing to the trace when the operator is applied.
+#
+# A side effect is an additional action that can be taken for most operators.
+# 
+# NOTE: Side effects cannot use the identifier generated through a create-X macro
+#  in the same productions. The reason for this limitation is the fact that any
+#  identifier linked to an object being created in the same production is temporary.
+#  The final identifier for the object will not be created until the last phase
+#  of the construction process and is not accessible to a variable in the production.
+#
+# [ngs-add-write-side-effect text (op_id)]
+#
+# text  - The text to write to the trace. This can contain Soar variables, which will be substituted.
+#           For example, if text is "Doing something to object <obj>", <obj> will be treated as a Soar
+#           variable whose value will get substituted in the text at runtime. There is no need to use
+#           Soar syntax with pipes to achieve this like you would in raw Soar code.
+# op_id - (Optional) A variable bound to the operator to which to add the side effect. By default the 
+#            variable used is $NGS_OP_ID (which is used for all ngs macros). You will need to use this
+#            parameter if you are elaborating the side effect onto the operator separately from the 
+#            production that created it.
+#
+proc ngs-add-write-side-effect { text {op_id ""}} {
+  variable NGS_OP_ID
+  variable NGS_SIDE_EFFECT_WRITE
+  CORE_SetIfEmpty op_id $NGS_OP_ID
+  set se_id [CORE_GenVarName "side-effect"]
+
+  # we need to find all soar vars, surround them with pipes, and then concat the whole text together
+
+  # this regex says to find "<" followed by one or more non-whitespace chars followed by ">"
+  set regex {\<(\S+)\>}
+  # surround all found soar variables with pipes
+  set textWithVars [regsub -all $regex $text {|<\1>|}]
+
+  return "($op_id ^side-effect $se_id)
+          ($se_id ^action $NGS_SIDE_EFFECT_WRITE ^text (concat |$textWithVars|))"
+}
+
 # Create an i-supported goal
 #
 # Use this macro to create i-supported goals. I-supported goals should be configured

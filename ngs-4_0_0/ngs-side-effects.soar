@@ -5,6 +5,7 @@ variable NGS_ADD_TO_SET
 variable NGS_SIDE_EFFECT_REMOVE
 variable NGS_TAG_OP_DEEP_COPY
 variable NGS_TAG_OP_REMOVE_ATTRIBUTE
+variable NGS_SIDE_EFFECT_WRITE
 
 # Execute side-effects on selected operators
 #
@@ -139,3 +140,12 @@ sp "ngs*core*apply*side-effects*intelligent-construction*removal-or-deep-copy*ex
 -->
   (<destination-object> ^<destination-attribute> <value> -)"
 
+
+################## WRITE
+
+sp "ngs*core*apply*side-effects*write
+  [ngs-match-selected-operator <s> <o>]
+  [ngs-has-side-effect <o> <se>]
+  [ngs-bind <se> action:$NGS_SIDE_EFFECT_WRITE text]
+-->
+  (write (crlf) <text>)"
