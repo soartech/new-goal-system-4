@@ -2032,7 +2032,7 @@ proc ngs-match-proposed-substate-operator { state_id
                                             {op_name ""}
                                             {goal_id ""}
                                             {op_tags ""}} {
-  variable NGS_OP_FUNCTION
+  variable NGS_OP_SUBSTATE
 
   set lhs_ret "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
                [ngs-is-type $op_id $NGS_OP_SUBSTATE]"
