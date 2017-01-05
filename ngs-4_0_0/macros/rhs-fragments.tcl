@@ -783,8 +783,26 @@ proc ngs-create-operator { state_id
                                                           #
 proc ngs-prefer-operator { state_id better_op_id worse_op_id } {
     return "($state_id ^operator $better_op_id > $worse_op_id)"
-}                                                                                                                  
-                                                               
+}
+
+# Create a unary preference on an operator
+#
+# A unary preference can be used to indicate best, worst, indifferent, rejection, etc.
+# Multiple unary preferences may be specified.
+#
+# Use one of the ngs-match-proposed-*operator macros to bind the operator on the left
+#  hand side.
+#
+# [ngs-prefer-operator state_id better_op_id worse_op_id]
+#
+# state_id - variable bound to the state in which the operators are proposed
+# better_op_id - Variable bound to the operator that is better (and should be selected) 
+# worse_op_id - Variable bound to the operator that is worse (not be be selected) 
+                                                          #
+proc ngs-prefer-operator-unary { state_id op_id preferences } {
+    return "($state_id ^operator $op_id $preferences)"
+}
+                                                              
 # Create an atomic operator
 #
 # An atomic operator has the type set to NGS_OP_ATOMIC. Atomic
