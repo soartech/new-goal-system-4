@@ -1,0 +1,145 @@
+#
+# Behaviour explanation
+#
+# 
+#
+# Example:
+# NGS_CreateExplanationOutput "test-agent"
+#
+
+#
+# Match the explanation structure
+# This should only be called by behaviour explanation code and unit tests.
+#
+proc ngs-match-explanation { state_id explanation_id } {
+    variable NGS_EXPLANATION_ATTRIBUTE
+
+    return "
+    [ngs-match-top-state $state_id]
+	[ngs-output-link $state_id <ol>]
+	[ngs-bind <ol> $NGS_EXPLANATION_ATTRIBUTE:${explanation_id}]"
+}
+
+proc ngs-explain-root-goal { goal_id } {
+	return "[ngs-tag $goal_id root-goal]"
+}
+
+proc ngs-explain-goal { goal_id } {
+	return "[ngs-tag $goal_id should-explain]"
+}
+
+proc ngs-explain-recursive { goal_id } {
+	return "[ngs-tag $goal_id explain-recursive]"
+}
+
+proc ngs-never-explain { goal_id } {
+    return "[ngs-tag $goal_id never-explain]"
+}
+
+#
+# Create productions that put explanations on the output link.
+#
+proc NGS_CreateExplanationOutput { agent_id } {
+    variable NGS_EXPLANATION_ATTRIBUTE
+    variable NGS_ALL_GOAL_TYPES
+
+sp "ngs*behavior-explanation*create-root-output*${agent_id}
+	[ngs-match-top-state <s>]
+	[ngs-output-link <s> <ol>]
+-->
+	[ngs-create-typed-object-from-stor <ol> $NGS_EXPLANATION_ATTRIBUTE "
+        NGS_Explanation {
+            agent-id $agent_id
+            context-variables { Set {} }
+            current-goal-hierarchy { NGS_ExplanationGoalHierarchy {
+                roots { Set {} }
+                goals { Set {} }
+            } }
+            task-awareness { NGS_ExplanationTaskAwareness {} }
+            internal-operating-picture { NGS_ExplanationInternalOperatingPicture {} }
+        }
+    "]
+"
+
+foreach goal_type $NGS_ALL_GOAL_TYPES {
+
+echo "Creating explanation code for $goal_type"
+
+# Propagate explain-recursive to subgoals
+sp "ngs*behavior-explanation*goal*${goal_type}*tag-subgoal*explain-recursive
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-is-tagged <goal-id> explain-recursive]
+	[ngs-is-not-tagged <goal-id> never-explain]
+	[ngs-is-subgoal <goal-id> <subgoal-id>]
+-->
+	[ngs-tag <subgoal-id> explain-recursive]
+"
+
+# Determine whether to explain this goal
+sp "ngs*behavior-explanation*goal*${goal_type}*tag*should-explain
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-or [ngs-is-tagged <goal-id> root-goal] \
+            [ngs-is-tagged <goal-id> explain-recursive] ]
+	[ngs-not [ngs-is-tagged <goal-id> never-explain] ]
+-->
+	[ngs-tag <goal-id> should-explain]
+"
+
+# Create an explanation structure on the goal
+sp "ngs*behavior-explanation*goal*${goal_type}*create-explanation
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-is-tagged <goal-id> should-explain]
+-->
+	[ngs-create-typed-object-from-stor <goal-id> explanation "
+        NGS_ExplanationGoal {
+            id <goal-id>
+            goal-my-type ${goal_type}
+            goal-types { Set {} }
+            children { Set {} }
+            reasons { Set {} }
+        }
+    "]
+"
+# Elaborate types
+sp "ngs*behavior-explanation*goal*${goal_type}*elaborate-types
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-bind <goal-id> explanation.goal-types]
+	[ngs-is-type <goal-id> <type>]
+-->
+	[ngs-create-attribute <goal-types> type <type>]
+"
+
+# Elaborate children
+sp "ngs*behavior-explanation*goal*${goal_type}*elaborate-children
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-bind <goal-id> explanation.children]
+	[ngs-is-subgoal <goal-id> <child-goal-id>]
+-->
+	[ngs-create-attribute <children> goal-id <child-goal-id>]
+"
+
+# Elaborate the explanation onto the output
+sp "ngs*behavior-explanation*goal*${goal_type}*output-explanation
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-match-explanation <s> <explain>]
+	[ngs-bind <explain> current-goal-hierarchy.goals]
+	[ngs-bind <goal-id> explanation]
+-->
+	[ngs-create-attribute <goals> goal <explanation>]
+"
+
+# Tag if this is a root goal
+sp "ngs*behavior-explanation*goal*${goal_type}*output-root
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-is-tagged <goal-id> root-goal]
+	[ngs-match-explanation <s> <explain>]
+	[ngs-bind <explain> current-goal-hierarchy.roots!Set]
+-->
+	[ngs-create-attribute <roots> goal-id <goal-id>]
+"
+
+}
+# foreach goal_type ...
+
+}
+# NGS_CreateExplanationOutput

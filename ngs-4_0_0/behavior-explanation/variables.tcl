@@ -1,0 +1,1 @@
+CORE_CreateMacroVar NGS_EXPLANATION_ATTRIBUTE "explanation"
