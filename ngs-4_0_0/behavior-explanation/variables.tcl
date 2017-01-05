@@ -1,1 +1,3 @@
-CORE_CreateMacroVar NGS_EXPLANATION_ATTRIBUTE "explanation"
+CORE_CreateMacroVar NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "ngs*explain*explanation"
+
+CORE_CreateMacroVar NGS_EXPLAIN_TAG_SHOULD_EXPLAIN "ngs*explain*should-explain"

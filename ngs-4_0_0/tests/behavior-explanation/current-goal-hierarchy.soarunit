@@ -8,8 +8,6 @@ sp "test*create-goal*root
 	[ngs-match-goalpool <s> <pool> RootGoal]
 -->
 	[ngs-create-goal-in-place <pool> RootGoal $NGS_GB_ACHIEVE <goal>]
-	[ngs-explain-root-goal <goal>]
-	[ngs-explain-recursive <goal>]
 "
 
 sp "test*create-goal*subgoal
@@ -18,7 +16,9 @@ sp "test*create-goal*subgoal
 	[ngs-create-goal-in-place <pool> ChildGoal $NGS_GB_ACHIEVE <subgoal> <goal>]
 "
 
-NGS_CreateExplanationOutput "test-agent"
+NGS_Explain_Initialize "test-agent"
+NGS_Explain_ExplainGoal RootGoal
+NGS_Explain_ExplainGoal ChildGoal
 }
 
 

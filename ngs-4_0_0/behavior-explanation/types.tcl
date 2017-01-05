@@ -1,4 +1,4 @@
-NGS_DeclareType NGS_Explanation {
+NGS_DeclareType NGS_Explain_Explanation {
 	agent-id ""
 	context-variables ""
 	current-goal-hierarchy ""
@@ -6,7 +6,7 @@ NGS_DeclareType NGS_Explanation {
 	internal-operating-picture ""
 }
 
-NGS_DeclareType NGS_ExplanationVariable {
+NGS_DeclareType NGS_Explain_Variable {
 	variable-type ""
 	scope ""
 	id ""
@@ -15,18 +15,18 @@ NGS_DeclareType NGS_ExplanationVariable {
 	value-type ""
 }
 
-NGS_DeclareType NGS_ExplanationVariableScope {
+NGS_DeclareType NGS_Explain_VariableScope {
 	scope-type ""
 	scope-id ""
 	scope-path ""
 }
 
-NGS_DeclareType NGS_ExplanationGoalHierarchy {
+NGS_DeclareType NGS_Explain_GoalHierarchy {
 	roots ""
 	goals ""
 }
 
-NGS_DeclareType NGS_ExplanationGoal {
+NGS_DeclareType NGS_Explain_Goal {
 	id ""
 	selected ""
 	goal-my-type ""
@@ -35,7 +35,7 @@ NGS_DeclareType NGS_ExplanationGoal {
 	reasons ""
 }
 
-NGS_DeclareType NGS_ExplanationTaskAwareness {
+NGS_DeclareType NGS_Explain_TaskAwareness {
 }
 
-NGS_DeclareType NGS_ExplanationInternalOperatingPicture {}
+NGS_DeclareType NGS_Explain_InternalOperatingPicture {}

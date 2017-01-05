@@ -1,17 +1,19 @@
 setup {
 source common.soar
+
+NGS_Explain_Initialize "test-agent"
 }
 
 test create-output-command {
 sp "test
 	[ngs-match-top-state <s>]
 	[ngs-output-link <s> <ol>]
-	[ngs-bind <ol> ${NGS_EXPLANATION_ATTRIBUTE}!NGS_Explanation:<explanation>]
+	[ngs-bind <ol> ngs*explain*explanation!NGS_Explain_Explanation:<explanation>]
 	[ngs-eq <explanation> agent-id test-agent]
 	[ngs-bind <explanation> context-variables!Set]
-	[ngs-bind <explanation> current-goal-hierarchy!NGS_ExplanationGoalHierarchy]
-	[ngs-bind <explanation> task-awareness!NGS_ExplanationTaskAwareness]
-	[ngs-bind <explanation> internal-operating-picture!NGS_ExplanationInternalOperatingPicture]
+	[ngs-bind <explanation> current-goal-hierarchy!NGS_Explain_GoalHierarchy]
+	[ngs-bind <explanation> task-awareness!NGS_Explain_TaskAwareness]
+	[ngs-bind <explanation> internal-operating-picture!NGS_Explain_InternalOperatingPicture]
 -->
 	(pass)
 "
