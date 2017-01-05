@@ -10,6 +10,10 @@
 #  NGS_DeclareGoal MygoalType2 { attr1 foo attr2 $NGS_YES attr3 { 1 2 3} }
 # ...
 
+# Declare a global list of all goals
+#
+CORE_CreateMacroVar NGS_ALL_GOAL_TYPES ""
+
 # Declares a goal with a given type, setting up productions to
 #  create a goal pool for that goal type and creates other maintenance
 #  productions which manage the O-supported goal lifetimes
@@ -38,6 +42,10 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   variable NGS_DECISION_ITEM_RET_VAL_NAME
   variable NGS_ACTIVATION_STATUS_RET_VAL
   variable NGS_TAG_SELECTION_STATUS
+  variable NGS_ALL_GOAL_TYPES
+
+  # Add to the global list of goals
+  lappend NGS_ALL_GOAL_TYPES $goal_type
 
   # This is not technically necessary, as NGS_DeclareType already does this and its the only thing referencing attribute_list,
   # but this is just in case we ever use attribute_list elsewhere in this proc in the future.
