@@ -74,6 +74,7 @@ CORE_CreateMacroVar NGS_OP_FUNCTION "no-change-function"
 # Operations used for side effects. 
 CORE_CreateMacroVar NGS_SIDE_EFFECT_REMOVE "remove"
 CORE_CreateMacroVar NGS_SIDE_EFFECT_ADD    "create"
+CORE_CreateMacroVar NGS_SIDE_EFFECT_WRITE  "write"
 
 # Substate Tags
 CORE_CreateMacroVar NGS_TAG_SUBSTATE_RESULT_RETURNED "ngs*substate-result-returned"
