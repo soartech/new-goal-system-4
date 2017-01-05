@@ -691,8 +691,7 @@ test user-defined-context-variables {
     -->
         [ngs-create-typed-object <s> my-agent Bag <agent>]
         [ngs-create-typed-object <agent> state Bag <state>]
-        [ngs-create-typed-object <state> vehicle Bag <distances> \
-                { state moving speed fast acceleration slowing-quickly } ]"
+        [ngs-create-typed-object <state> vehicle Bag <distances> { state moving speed fast acceleration slowing-quickly } ]"
 
     sp "test*user-context*maneuver-type
         [ngs-match-top-state <s> my-agent.state.vehicle]
@@ -709,8 +708,7 @@ test user-defined-context-variables {
     sp "test*time-to-go
         [ngs-match-to-create-context-variable <s> sample-pool categoryA:<pool>]
     -->
-        [ngs-create-user-defined-context-variable <pool> what-time-is-it <ctx-var> {} \
-                                            "src-obj <s> src-attr time-in-seconds"]"
+        [ngs-create-user-defined-context-variable <pool> what-time-is-it <ctx-var> {} "src-obj <s> src-attr time-in-seconds"]"
 
     sp "test*time-to-go*update*time-to-work
         [ngs-match-top-state <s>]
