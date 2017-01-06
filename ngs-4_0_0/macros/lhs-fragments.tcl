@@ -51,7 +51,7 @@ proc ngs-create-tag-test-list { obj_id tag_list } {
                     [ngs-is-tagged $obj_id $tag]"
     } else {
        set lhs_ret "$lhs_ret
-                    [ngs-is-not-tagged $obj_id $tag]"
+                    [ngs-is-not-tagged $obj_id [string range $tag 1 end]]"
     }
   }
   return $lhs_ret
