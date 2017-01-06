@@ -29,6 +29,7 @@ proc ngs-match-explanation { state_id explanation_id } {
 #
 proc NGS_Explain_Initialize { agent_id } {
     variable NGS_ALL_GOAL_TYPES
+    variable NGS_CTX_ALL_VARIABLES
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
     variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
 
@@ -55,6 +56,13 @@ sp "ngs*explain*create-root-output*${agent_id}
 # Create productions for all explainable types
 foreach goal_type $NGS_ALL_GOAL_TYPES {
     NGS_Explain_CreateProductionsForGoal $goal_type
+}
+
+foreach context_variable $NGS_CTX_ALL_VARIABLES {
+    set pool [dict get $context_variable pool]
+    set category [dict get $context_variable category]
+    set name [dict get $context_variable name]
+    NGS_Explain_CreateProductionsForVariable $pool $category $name
 }
 
 }
