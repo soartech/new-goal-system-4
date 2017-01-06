@@ -57,7 +57,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   sp "ngs*core*goals*elaborate-goal-set-category*$goal_type
     [ngs-match-goalpool <s> <goals>]
   -->
-    (<goals> ^$goal_type <g>)
+    [ngs-create-typed-object <goals> $goal_type Set <g>]
     [ngs-tag <g> $NGS_TAG_CONSTRUCTED]
     [ngs-tag <g> $NGS_TAG_TYPE_POOL]"
   

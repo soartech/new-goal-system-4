@@ -1,41 +1,149 @@
 # NOTE: These methods don't work as well as I'd hoped. Need to rethink the dashboard processes
 
-proc nps2 { } {
 
-    set top_state   [CORE_GetCommandOutput print s1]
-    set goal_set_id [ngs-debug-get-id-for-attribute $top_state goals]
-
-    return [ngs-debug-get-all-attributes-for-id $goal_set_id]
-}
-
-proc ngs-debug-get-set-of-ids-for-attribute { identifier attribute } {
-
-}
-
-proc np2 { args } {
+# NGS Print 
+#
+# This is a specialized version of Soar's p (or print) command.
+# It defaults to printing as a tree and to depth 2. You can pass 
+#  an optional depth number to change the printing depth.
+#
+# Usage: np s1 (print the top state to depth 2)
+# Usage: np 3 s1 (print the top state to depth 3)
+# Usage: np i2 i3 (print input and output links to depth 2)
+# Usage: np 3 i2 i3 (print the input and output linkks to depth 3)
+#
+# args - An optional depth (integer) followed by identifiers. If the
+#          depth is not provided, a default print depth of 2 is used.
+#
+proc np { args } {
 
     if { [llength $args] == 0} {
         echo "+---------------------------------------+"
         echo "Usage: np (depth=2) id1 id2 id3 ..."
     }
 
+    set prev_id_list ""
     set depth 1
     set first [lindex $args 0]
 
     if { [string is integer [string index $first 0]] == 1 } {
         set depth $first
-        set args [lreplace $args 0 0]
+        set args [lrange $args 1 end]
     }
 
+    set print_this ""
     foreach id $args {
-        echo "+---------------------------------------+"
-        echo "+ OBJECT: $id"
-        print --tree --depth $depth $id
+        set id [string toupper $id]
+        echo "+----------------------------------------------------------------------------------------------------------------------------------------------+"
+        set print_this "+ OBJECT:"
+        if {[CORE_GetCommandOutput print $id] == "No production named $id"} {
+            echo "$print_this $id does not exist"
+        } else {
+	        set print_this "$print_this [ngs-print-identfiers-attributes-details $id 1 $depth prev_id_list]"
+	        echo $print_this
+        }
     }
-    echo "+---------------------------------------+"
-
+    echo "+----------------------------------------------------------------------------------------------------------------------------------------------+"
 }
 
+# Helps pretty print the WME tree
+proc ngs-debug-tree-view-prefix { level } {
+
+    set ret_val ""
+    set final_level [expr $level - 1]
+    for {set i 0} { $i < $final_level } {incr i} {
+        set ret_val "${ret_val}|   "
+    }
+
+    return "${ret_val}+--" 
+}
+
+# Prints out the WME tree (recursively called)
+proc ngs-print-identfiers-attributes-details { id level target_level prev_id_dict } {
+
+    upvar $prev_id_dict id_dict
+    dict set id_dict $id $id
+
+    set prefix [ngs-debug-tree-view-prefix $level]
+    set print_this "$id ("
+
+    set attributes [ngs-debug-get-all-attributes-for-id $id]
+
+    if { [dict exists $attributes "my-type"] == 1 } {
+        set my_type    [dict get $attributes my-type]
+        set print_this "$print_this$my_type"
+    } else {
+        set my_type [ngs-debug-get-single-id-for-attribute $id "name"]
+        if { $my_type != "" } {
+            set print_this "$print_this$my_type"
+        }
+    }
+
+    if { [dict exists $attributes types] == 1 } {
+        foreach type_props [dict get $attributes types] {
+            set type_name [lindex $type_props 1]
+            if { $type_name != $my_type } {
+                set print_this "$print_this, $type_name"
+            }
+        }
+    }
+    set print_this "$print_this)"
+
+    if { [dict exists $attributes attributes] == 1 } {
+        foreach attr_props [dict get $attributes attributes] {
+            set attr_name  [lindex $attr_props 0]
+            set attr_value [lindex $attr_props 1]
+            set attr_type  [lindex $attr_props 2]
+        
+            if { $level == $target_level || [dict exists $id_dict $attr_value] == 1 ||
+                 $attr_type == "string" || $attr_type == "double" || $attr_type == "integer" || $attr_type == "boolean" } {
+               set print_this "$print_this\n$prefix $attr_name: $attr_value ($attr_type)"
+            } else {
+               set print_this "$print_this\n$prefix $attr_name: [ngs-print-identfiers-attributes-details $attr_value \
+                                                [expr $level + 1] $target_level id_dict]"
+            }
+        }
+    }
+
+    if { [dict exists $attributes operators] == 1 } {
+        foreach op_props [dict get $attributes operators] {
+            set op_attr  [lindex $op_props 0]
+            set op_value [lindex $op_props 1]
+            set op_name  [lindex $op_props 2]
+
+            if { [lindex $op_props 3] == "+" } {
+                set op_attr "OPERATOR (PROPOSAL)"
+            } else {
+                set op_attr "OPERATOR (SELECTED)"
+            }
+            if { $level == $target_level || [dict exists $id_dict $op_value] == 1 } {
+               set print_this "$print_this\n$prefix $op_attr: $op_value ($op_name)"
+            } else {
+               set print_this "$print_this\n$prefix $op_attr: [ngs-print-identfiers-attributes-details $op_value \
+                                                [expr $level + 1] $target_level id_dict]"
+            }
+        }
+    }
+
+    if { [dict exists $attributes tags] == 1 } {
+        foreach tag_props [dict get $attributes tags] {
+            set tag_name  [lindex $tag_props 0]
+            set tag_value [lindex $tag_props 1]
+            set tag_type  [lindex $tag_props 2]
+            if { $level == $target_level || [dict exists $id_dict $tag_value] == 1 ||
+                 $tag_type == "string" || $tag_type == "double" || $tag_type == "integer" || $tag_type == "boolean"} {
+               set print_this "$print_this\n$prefix TAG: $tag_name: $tag_value ($tag_type)"
+            } else {
+               set print_this "$print_this\n$prefix TAG: $tag_name: [ngs-print-identfiers-attributes-details $tag_value \
+                                                [expr $level + 1] $target_level id_dict]"
+            }
+        }
+    }
+
+    return $print_this
+} 
+
+# Grab a single attribute from an identifier
 proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
 
     set print_string [string trim [CORE_GetCommandOutput print -e "($identifier ^$attribute *)"]]
@@ -47,6 +155,23 @@ proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
     return ""
 }
 
+# Pull out all attributes as a dictionary of categories
+#
+# Categories:
+#
+# internal
+# tags
+# attributes
+# operatrors
+# types
+# my-type (a single string value)
+#
+# Each category contains a list of tuples (except my-type)
+# 1 - the name of the attribute
+# 2 - the value of the attribute
+# 3 - the type of the attribute (or name of the operator)
+# 4 - operator preference (if attribute is an operator)
+#
 proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 
     variable NGS_TAG_PREFIX
@@ -63,13 +188,27 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 
     set is_attribute 1
     set attribute_info ""
-    # all, internal, tags, attributes, types, my-type
+
+    # internal, tags, attributes, types, my-type
     set ret_val ""
     set cur_key ""
     foreach attr_val [lrange $attr_value_pairs 1 [llength $attr_value_pairs]] {
         set attr_val [string trim $attr_val]
+
         if { $attr_val != "" } {
-            if { $is_attribute == 1 } {
+
+            if { $is_attribute == 1 && $attr_val != "+"} {
+
+                # Insert the last vqlue before starting a new one
+                if { $cur_key == "my-type" } {
+                    dict set ret_val $cur_key [lindex $attribute_info 1]
+                } elseif { $cur_key != "" } {
+                    if { $attribute == "" || $attribute == [lindex $attribute_info 0] } {
+                        dict lappend ret_val $cur_key $attribute_info
+                    }
+                }
+
+                set attribute_info ""
 
                 if { $attr_val == [ngs-tag-for-name $NGS_TAG_CONSTRUCTED] || $attr_val == [ngs-tag-for-name $NGS_TAG_I_SUPPORTED]} {
                     set cur_key "internal"
@@ -83,22 +222,34 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                 } elseif { $attr_val == "my-type"} {
                     set cur_key "my-type"
                     lappend attribute_info $attr_val
+                } elseif { $attr_val == "operator" } {
+                    set cur_key "operators"
+                    lappend attribute_info $attr_val
                 } else {
                     set cur_key "attributes"
                     lappend attribute_info $attr_val
                 }
         
                 set is_attribute 0
+
             } else {
 
                 lappend attribute_info $attr_val
                 set first_letter [string index $attr_val 0]
                 set the_rest     [string range $attr_val 1 end]
 
-                if { [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1 } {
+                if { $attr_val == "+" } {
+                    lappend attribute_info "+"
+                } elseif { [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1 } {
                     # This is an identifier
-                    lappend attribute_info "identifier"
-                    lappend attribute_info [ngs-debug-get-single-id-for-attribute $attr_val "my-type"]
+                    set identifier_type [ngs-debug-get-single-id-for-attribute $attr_val "my-type"]
+                    if { $identifier_type == "" } {
+                        set identifier_type [ngs-debug-get-single-id-for-attribute $attr_val "name"]
+                        if { $identifier_type == "" } {
+                            set identifier_type identifier
+                        }
+                    }
+                    lappend attribute_info $identifier_type
                 } elseif { [string is integer $attr_val] == 1 } {
                     lappend attribute_info "integer"
                 } elseif { [string is double $attr_val] == 1 } {
@@ -109,21 +260,14 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                     lappend attribute_info "string"
                 }
 
-                if { $cur_key == "my-type" } {
-                    dict set ret_val $cur_key $attr_val
-                } else {
-                    if { $attribute == "" || $attribute == [lindex $attribute_info 0] } {
-                        dict lappend ret_val $cur_key $attribute_info
-                    }
-                }
-                set attribute_info ""
                 set is_attribute 1
-            }
+            } 
             
         }
     }
     return $ret_val
 }
+
 
 
 # Print out the goal stacks
@@ -241,43 +385,7 @@ proc nps { args } {
 	excise debug*print-goal-stack*4
 }
 
-# NGS Print 
-#
-# This is a specialized version of Soar's p (or print) command.
-# It defaults to printing as a tree and to depth 2. You can pass 
-#  an optional depth number to change the printing depth.
-#
-# Usage: np s1 (print the top state to depth 2)
-# Usage: np 3 s1 (print the top state to depth 3)
-# Usage: np i2 i3 (print input and output links to depth 2)
-# Usage: np 3 i2 i3 (print the input and output linkks to depth 3)
-#
-# args - An optional depth (integer) followed by identifiers. If the
-#          depth is not provided, a default print depth of 2 is used.
-#
-proc np { args } {
 
-	if { [llength $args] == 0} {
-		echo "+---------------------------------------+"
-		echo "Usage: np (depth=2) id1 id2 id3 ..."
-	}
-
-	set depth 1
-	set first [lindex $args 0]
-
-	if { [string is integer [string index $first 0]] == 1 } {
-		set depth $first
-		set args [lreplace $args 0 0]
-	}
-
-	foreach id $args {
-		echo "+---------------------------------------+"
-		echo "+ OBJECT: $id"
-		print --tree --depth $depth $id
-	}
-	echo "+---------------------------------------+"
-
-}
 
 
 ##########################################################################################################3
