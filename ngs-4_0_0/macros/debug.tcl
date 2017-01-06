@@ -389,7 +389,7 @@ proc nps { args } {
 
 
 ##########################################################################################################3
-# Debut Trace Pool support
+# Debug Trace Pool support
 #
 # The debug trace pool is a pool of wmes stored on the top-state under the debug-trace-pools attribute.
 # You use these pools to gather and print the state of the system for use when debugging.

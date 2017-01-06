@@ -38,7 +38,7 @@
 # tag_list - A list of tags to test for on the object. Each of the listed tags must be present on 
 #            the object for it to match. You can prefix a tag with the "-" character
 #            to specify that the given tag should NOT be on the operator.
-#            E.g. ngs-create-tag-test-list <s> <obj> "$NGS_TAG_XYZ-my-tag" ...]
+#            E.g. ngs-create-tag-test-list <s> <obj> "$NGS_TAG_XYZ -my-tag" ...]
 #            where the object <obj> must be tagged with NGS_TAG_XYZ and not my-tag.
 # 
 proc ngs-create-tag-test-list { obj_id tag_list } {

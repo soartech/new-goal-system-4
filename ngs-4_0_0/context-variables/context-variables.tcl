@@ -272,7 +272,7 @@ proc ngs-force-value-passthrough { var_id } {
 # * StableValue - a numeric value that stays stable unless its underlying source moves outside of a given range
 # * TimeSampledValue - a numeric value sampled from a source very N milliseconds
 # * SimpleBinnedValue - a symbolic value derived by binning a numeric value
-# * DynamicBinnedValue - a symbolic value derived from binning a numeric value. The current bin expands by a
+# * DynamicBinnedValue - a symbolic value derived from binning a numeric value. The current bin expands by
 #     a specified amount
 # * ChoiceValue - a value that is selected from among multiple possible other values
 # * ConditionallySampledValue - a numeric or symbolic value that is sampled based on an arbitrary condition
@@ -308,7 +308,7 @@ proc NGS_CreateGlobalContextVariablePool { pool_name { list_of_categories "" } }
 # All context variables must be stored under categories. You declare the categories you would like
 #  for each pool or goal type using this macro.
 #
-# Each context variable is then indexible using its pool-name (or goal type), category name, and
+# Each context variable is then indexable using its pool-name (or goal type), category name, and
 #  variable name (see ngs-bind-global-ctx-var)
 #
 # pool_name_or_goal_type: For goal pools, this should be the type of the
