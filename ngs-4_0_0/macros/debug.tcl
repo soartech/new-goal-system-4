@@ -59,7 +59,7 @@ proc ngs-debug-tree-view-prefix { level } {
 }
 
 # Prints out the WME tree (recursively called)
-proc ngs-print-identfiers-attributes-details { id level target_level prev_id_dict } {
+proc ngs-print-identifiers-attributes-details { id level target_level prev_id_dict } {
 
     upvar $prev_id_dict id_dict
     dict set id_dict $id $id
@@ -99,7 +99,7 @@ proc ngs-print-identfiers-attributes-details { id level target_level prev_id_dic
                  $attr_type == "string" || $attr_type == "double" || $attr_type == "integer" || $attr_type == "boolean" } {
                set print_this "$print_this\n$prefix $attr_name: $attr_value ($attr_type)"
             } else {
-               set print_this "$print_this\n$prefix $attr_name: [ngs-print-identfiers-attributes-details $attr_value \
+               set print_this "$print_this\n$prefix $attr_name: [ngs-print-identifiers-attributes-details $attr_value \
                                                 [expr $level + 1] $target_level id_dict]"
             }
         }
@@ -119,7 +119,7 @@ proc ngs-print-identfiers-attributes-details { id level target_level prev_id_dic
             if { $level == $target_level || [dict exists $id_dict $op_value] == 1 } {
                set print_this "$print_this\n$prefix $op_attr: $op_value ($op_name)"
             } else {
-               set print_this "$print_this\n$prefix $op_attr: [ngs-print-identfiers-attributes-details $op_value \
+               set print_this "$print_this\n$prefix $op_attr: [ngs-print-identifiers-attributes-details $op_value \
                                                 [expr $level + 1] $target_level id_dict]"
             }
         }
@@ -134,7 +134,7 @@ proc ngs-print-identfiers-attributes-details { id level target_level prev_id_dic
                  $tag_type == "string" || $tag_type == "double" || $tag_type == "integer" || $tag_type == "boolean"} {
                set print_this "$print_this\n$prefix TAG: $tag_name: $tag_value ($tag_type)"
             } else {
-               set print_this "$print_this\n$prefix TAG: $tag_name: [ngs-print-identfiers-attributes-details $tag_value \
+               set print_this "$print_this\n$prefix TAG: $tag_name: [ngs-print-identifiers-attributes-details $tag_value \
                                                 [expr $level + 1] $target_level id_dict]"
             }
         }
@@ -204,7 +204,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 
             if { $is_attribute == 1 && $attr_val != "+"} {
 
-                # Insert the last vqlue before starting a new one
+                # Insert the last value before starting a new one
                 if { $cur_key == "my-type" } {
                     dict set ret_val $cur_key [lindex $attribute_info 1]
                 } elseif { $cur_key != "" } {
