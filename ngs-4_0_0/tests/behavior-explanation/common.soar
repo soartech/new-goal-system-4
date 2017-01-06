@@ -1,3 +1,1 @@
 source ../common.soar
-
-NGS_CreateExplanationOutput test-agent
