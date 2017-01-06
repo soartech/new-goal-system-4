@@ -10,7 +10,7 @@
 #  that depend on the current value of the PeriodSampledValue. PeriodSampledValue are a way to create 
 #  stable values for decision making that are guarranteed not to change faster than a given rate.
 #
-# If your are worried about eliminating small transient noise, see time-delayed-values.tcl
+# If you are worried about eliminating small transient noise, see time-delayed-values.tcl
 #
 # An example for use might be sampling the velocity of a vehicle. The velocity is likely to change
 #  fairly frequently (possibly at 100Hz or more). The value can be sampled in the input processing code to
@@ -19,7 +19,7 @@
 #  maximum sampling rate (e.g. 10hz) when the vehicle is moving fast, but would rather use a slower sampling rate
 #  for slower speeds. You can do this with periodic sampled values using custom delays as follows:
 #
-# A custom set of periodic sampling values is just a list of condition, sample-period pairs. In the example
+# A custom set of periodic sampling values is just a list of {condition, sample-period} pairs. In the example
 #  just described we could set it up as follows:
 # 
 # { { { < 0.1 } 1000} { {0.1 3.0} 500 } { { >= 3.0 } 250 } } 
