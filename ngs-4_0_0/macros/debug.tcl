@@ -36,7 +36,7 @@ proc np { args } {
         set id [string toupper $id]
         echo "+----------------------------------------------------------------------------------------------------------------------------------------------+"
         set print_this "+ OBJECT:"
-        if {[CORE_GetCommandOutput print $id] == "No production named $id"} {
+        if {[string index [CORE_GetCommandOutput print $id] 0] != "("} {
             echo "$print_this $id does not exist"
         } else {
 	        set print_this "$print_this [ngs-print-identfiers-attributes-details $id 1 $depth prev_id_list]"
@@ -52,10 +52,10 @@ proc ngs-debug-tree-view-prefix { level } {
     set ret_val ""
     set final_level [expr $level - 1]
     for {set i 0} { $i < $final_level } {incr i} {
-        set ret_val "${ret_val}|   "
+        set ret_val "${ret_val}|  "
     }
 
-    return "${ret_val}+--" 
+    return "${ret_val}+-" 
 }
 
 # Prints out the WME tree (recursively called)
@@ -147,7 +147,7 @@ proc ngs-print-identfiers-attributes-details { id level target_level prev_id_dic
 proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
 
     set print_string [string trim [CORE_GetCommandOutput print -e "($identifier ^$attribute *)"]]
-    if {$print_string != ""} {
+    if {$print_string != "" && [string index $print_string 0] == "(" } {
         set elements [split $print_string " "]
         return [string trim [lindex $elements 2] " )"]
     }
@@ -181,7 +181,12 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
     variable NGS_NO
     variable NGS_UNKNOWN
 
-    set print_string     [string trim [CORE_GetCommandOutput p $identifier] " ()"]
+    set print_string     [CORE_GetCommandOutput p $identifier]
+    if { [string index $print_string 0] != "(" } { 
+        return ""
+    }
+
+    set print_string     [string trim $print_string " ()"]
     set end_of_print     [expr [string length $print_string] - 1]
     set print_string     [string range $print_string 0 $end_of_print]
     set attr_value_pairs [split $print_string " ^"]
@@ -237,10 +242,11 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                 lappend attribute_info $attr_val
                 set first_letter [string index $attr_val 0]
                 set the_rest     [string range $attr_val 1 end]
+                set identifier_type ""
 
                 if { $attr_val == "+" } {
                     lappend attribute_info "+"
-                } elseif { [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1 } {
+                } elseif { $the_rest != "" && [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1 } {
                     # This is an identifier
                     set identifier_type [ngs-debug-get-single-id-for-attribute $attr_val "my-type"]
                     if { $identifier_type == "" } {
