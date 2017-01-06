@@ -1,5 +1,5 @@
 
-# 
+# Enable explanation for a goal type.
 proc NGS_Explain_ExplainGoal { goal_type } {
     echo "Explaining goal: ${goal_type}"
     variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
@@ -10,6 +10,10 @@ sp "ngs*explain*goal*${goal_type}*add-tag*should-explain
 "
 }
 
+
+#
+# Create all the productions for explaining a goal.
+#
 proc NGS_Explain_CreateProductionsForGoal { goal_type } {
 
 echo "Creating explanation code for $goal_type"

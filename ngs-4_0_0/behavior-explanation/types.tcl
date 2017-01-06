@@ -12,13 +12,21 @@ NGS_DeclareType NGS_Explain_Variable {
 	id ""
 	name ""
 	value ""
-	value-type ""
 }
 
+# There are three types of scopes.
+# The meaning of the parameters for each of the three types is as follows:
+# 
+# scope-type     : global        | goal          | user
+# scope-id       : pool_id       | goal_id       | object_id
+# scope-path     : pool name     | goal name     | full path
+# scope-category : category_name | category_name | "user-location"
+#
 NGS_DeclareType NGS_Explain_VariableScope {
 	scope-type ""
 	scope-id ""
 	scope-path ""
+    scope-category ""
 }
 
 NGS_DeclareType NGS_Explain_GoalHierarchy {
@@ -35,7 +43,8 @@ NGS_DeclareType NGS_Explain_Goal {
 	reasons ""
 }
 
-NGS_DeclareType NGS_Explain_TaskAwareness {
-}
+# TODO: Fill in
+NGS_DeclareType NGS_Explain_TaskAwareness {}
 
+# TODO: Fill in
 NGS_DeclareType NGS_Explain_InternalOperatingPicture {}
