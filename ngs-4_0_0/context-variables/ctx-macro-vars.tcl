@@ -24,4 +24,7 @@ CORE_CreateMacroVar NGS_CTX_VAR_DELTA_TYPE_PERCENT  "percent"
 CORE_CreateMacroVar NGS_TAG_DYN_BIN_VAL_CUSTOM_DELTA "override-global-delta"
 CORE_CreateMacroVar NGS_TAG_DYN_BINS_IS_STATIC "is-static-bin"
 
-
+# Scopes
+CORE_CreateMacroVar NGS_CTX_SCOPE_GLOBAL "global"
+CORE_CreateMacroVar NGS_CTX_SCOPE_GOAL "goal"
+CORE_CreateMacroVar NGS_CTX_SCOPE_USER "user"
