@@ -150,6 +150,9 @@ proc ngs-create-computed-val { pool_id
 #
 proc NGS_DefineComputedValue { pool_goal_or_path category_name variable_name value_expression { internal_expression_list "" } } {
 
+    variable NGS_CTX_ALL_VARIABLES
+    lappend NGS_CTX_ALL_VARIABLES [dict create pool $pool_goal_or_path category $category_name name $variable_name]
+
     set var_id  <variable>
 
     # Generate the root bindings shared by all productions in this macro

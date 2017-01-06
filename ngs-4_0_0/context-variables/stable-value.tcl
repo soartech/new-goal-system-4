@@ -93,6 +93,9 @@ proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { de
 #
 proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
 
+    variable NGS_CTX_ALL_VARIABLES
+    lappend NGS_CTX_ALL_VARIABLES [dict create pool $pool_goal_or_path category $category_name name $variable_name]
+
     set var_id  <variable>
 
     # Generate the root bindings shared by all productions in this macro
@@ -185,4 +188,3 @@ proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
      -->
         [ngs-create-attribute-by-operator <s> $var_id value <src-val>]"
 }
-                             

@@ -98,6 +98,9 @@ proc ngs-create-time-delayed-value { pool_id variable_name src_obj src_attr glob
 # variable_name - Name of the variable
 #
 proc NGS_DefineTimeDelayedValue { pool_goal_or_path category_name variable_name } {
+
+    variable NGS_CTX_ALL_VARIABLES
+    lappend NGS_CTX_ALL_VARIABLES [dict create pool $pool_goal_or_path category $category_name name $variable_name]
     
     set var_id  <variable>
 

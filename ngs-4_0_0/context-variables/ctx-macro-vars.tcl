@@ -3,6 +3,9 @@
 #
 # @created jacobcrossman 20161226
 
+# Global list of all context variables
+CORE_CreateMacroVar NGS_CTX_ALL_VARIABLES ""
+
 # Root pool off of the top state
 CORE_CreateMacroVar WM_CTX_GLOBAL_POOLS "ctx-var-pools"
 
