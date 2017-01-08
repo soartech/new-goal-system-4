@@ -299,10 +299,19 @@ proc CORE_GetCommandOutput { args } {
             soar.agent.getPrinter().pushWriter(nullWriter);
         }
 
-        # log the command to a file
+        # log the command to a file. Need to catch the eval in case the command is an error, so we don't terminate this proc early and leave things in a bad state.
         clog "$FILENAME"
-        eval $args
+        set error [catch "eval $args" errorMsg]
         clog --close
+
+        # reenable echoing to the trace
+        script javascript { 
+            soar.agent.getPrinter().popWriter();
+        }
+
+        if { $error } {
+            echo $errorMsg
+        }
 
         # reenable echoing to the trace
         script javascript { 
