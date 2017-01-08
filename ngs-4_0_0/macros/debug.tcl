@@ -39,7 +39,7 @@ proc np { args } {
         if {[string index [CORE_GetCommandOutput print $id] 0] != "("} {
             echo "$print_this $id does not exist"
         } else {
-	        set print_this "$print_this [ngs-print-identfiers-attributes-details $id 1 $depth prev_id_list]"
+	        set print_this "$print_this [ngs-print-identifiers-attributes-details $id 1 $depth prev_id_list]"
 	        echo $print_this
         }
     }
