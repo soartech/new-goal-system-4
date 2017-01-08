@@ -75,6 +75,17 @@ CORE_CreateMacroVar NGS_OP_FUNCTION "no-change-function"
 CORE_CreateMacroVar NGS_SIDE_EFFECT_REMOVE "remove"
 CORE_CreateMacroVar NGS_SIDE_EFFECT_ADD    "create"
 CORE_CreateMacroVar NGS_SIDE_EFFECT_WRITE  "write"
+CORE_CreateMacroVar NGS_SIDE_EFFECT_LOG    "log"
+
+# log levels for ngs-log
+CORE_CreateMacroVar NGS_TRACE "TRACE"
+CORE_CreateMacroVar NGS_DEBUG "DEBUG"
+CORE_CreateMacroVar NGS_INFO  "INFO"
+CORE_CreateMacroVar NGS_WARN  "WARN"
+CORE_CreateMacroVar NGS_ERROR "ERROR"
+
+# default log level. Change with ngs-set-log-level
+CORE_CreateMacroVar NGS_LOG_LEVEL $NGS_INFO
 
 # Substate Tags
 CORE_CreateMacroVar NGS_TAG_SUBSTATE_RESULT_RETURNED "ngs*substate-result-returned"
