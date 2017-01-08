@@ -95,8 +95,7 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set attr_value [lindex $attr_props 1]
             set attr_type  [lindex $attr_props 2]
         
-            if { $level == $target_level || [dict exists $id_dict $attr_value] == 1 ||
-                 $attr_type == "string" || $attr_type == "double" || $attr_type == "integer" || $attr_type == "boolean" } {
+            if { $level == $target_level || [dict exists $id_dict $attr_value] == 1 || [ngs-debug-is-identifier $attr_value] == 0 } {
                set print_this "$print_this\n$prefix $attr_name: $attr_value ($attr_type)"
             } else {
                set print_this "$print_this\n$prefix $attr_name: [ngs-print-identifiers-attributes-details $attr_value \
@@ -130,8 +129,7 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set tag_name  [lindex $tag_props 0]
             set tag_value [lindex $tag_props 1]
             set tag_type  [lindex $tag_props 2]
-            if { $level == $target_level || [dict exists $id_dict $tag_value] == 1 ||
-                 $tag_type == "string" || $tag_type == "double" || $tag_type == "integer" || $tag_type == "boolean"} {
+            if { $level == $target_level || [dict exists $id_dict $tag_value] == 1 ||  [ngs-debug-is-identifier $tag_value] == 0 } {
                set print_this "$print_this\n$prefix TAG: $tag_name: $tag_value ($tag_type)"
             } else {
                set print_this "$print_this\n$prefix TAG: $tag_name: [ngs-print-identifiers-attributes-details $tag_value \
@@ -142,6 +140,21 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
 
     return $print_this
 } 
+
+# Returns 1 if the given symbol is a Soar identifier, 0 otherwise
+#
+# Used by debug code
+proc ngs-debug-is-identifier { symbol } {
+
+    set first_letter [string index $symbol 0]
+    set the_rest     [string range $symbol 1 end]
+
+    if { $the_rest != "" && [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1 } {
+        return 1
+    }
+
+    return 0
+}
 
 # Grab a single attribute from an identifier
 proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
@@ -215,6 +228,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 
                 set attribute_info ""
 
+                # I don't handle attribute idenfiers in this list
                 if { $attr_val == [ngs-tag-for-name $NGS_TAG_CONSTRUCTED] || $attr_val == [ngs-tag-for-name $NGS_TAG_I_SUPPORTED]} {
                     set cur_key "internal"
                     lappend attribute_info [string range $attr_val [string length $NGS_TAG_PREFIX] end]
@@ -240,13 +254,12 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
             } else {
 
                 lappend attribute_info $attr_val
-                set first_letter [string index $attr_val 0]
-                set the_rest     [string range $attr_val 1 end]
                 set identifier_type ""
 
                 if { $attr_val == "+" } {
                     lappend attribute_info "+"
-                } elseif { $the_rest != "" && [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1 } {
+                } elseif { [ngs-debug-is-identifier $attr_val] == 1 } {
+
                     # This is an identifier
                     set identifier_type [ngs-debug-get-single-id-for-attribute $attr_val "my-type"]
                     if { $identifier_type == "" } {
@@ -256,6 +269,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                         }
                     }
                     lappend attribute_info $identifier_type
+
                 } elseif { [string is integer $attr_val] == 1 } {
                     lappend attribute_info "integer"
                 } elseif { [string is double $attr_val] == 1 } {
