@@ -67,9 +67,10 @@ sp "ngs*explain*goal*${goal_type}*output-explanation
 # Tag if this is a root goal
 sp "ngs*explain*goal*${goal_type}*output-root
 	[ngs-match-goal <s> $goal_type <goal-id>]
-	[ngs-not [ngs-is-supergoal <goal-id> <supergoal-id>] ]
 	[ngs-match-explanation <s> <explain>]
+	[ngs-not [ngs-is-supergoal <goal-id> <supergoal-id>] ]
 	[ngs-bind <explain> current-goal-hierarchy.roots!Set]
+    [ngs-bind <goal-id> explanation]
 -->
 	[ngs-create-attribute <roots> goal-id <goal-id>]
 "
