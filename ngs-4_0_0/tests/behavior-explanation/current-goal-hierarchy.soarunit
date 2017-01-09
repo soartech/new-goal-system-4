@@ -72,6 +72,7 @@ sp "test
 	# [ngs-eq <root-goal> selected ...]
 	[ngs-eq <root-goal> goal-my-type RootGoal]
 	[ngs-bind <root-goal> goal-types]
+        [ngs-eq <goal-types> goal-type RootGoal]
 	[ngs-bind <root-goal> children.goal-id:<child-goal-id>]
 	[ngs-bind <root-goal> reasons]
 
@@ -96,6 +97,7 @@ sp "test
 	# [ngs-eq <child-goal> selected ...]
 	[ngs-eq <child-goal> goal-my-type ChildGoal]
 	[ngs-bind <child-goal> goal-types]
+        [ngs-eq <goal-types> goal-type ChildGoal]
 	[ngs-bind <child-goal> children]
 	[ngs-nex <children> goal-id] # No children
 	[ngs-bind <child-goal> reasons]

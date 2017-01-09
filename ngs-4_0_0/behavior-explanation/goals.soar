@@ -42,7 +42,7 @@ sp "ngs*explain*goal*${goal_type}*elaborate-types
 	[ngs-bind <goal-id> explanation.goal-types]
 	[ngs-is-type <goal-id> <type>]
 -->
-	[ngs-create-attribute <goal-types> type <type>]
+	[ngs-create-attribute <goal-types> goal-type <type>]
 "
 
 # Elaborate children
