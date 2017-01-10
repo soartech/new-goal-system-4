@@ -304,11 +304,6 @@ proc CORE_GetCommandOutput { args } {
         set error [catch "eval $args" errorMsg]
         clog --close
 
-        # reenable echoing to the trace
-        script javascript { 
-            soar.agent.getPrinter().popWriter();
-        }
-
         if { $error } {
             echo $errorMsg
         }
