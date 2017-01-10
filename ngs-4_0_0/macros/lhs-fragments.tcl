@@ -1996,7 +1996,7 @@ proc ngs-match-proposed-function-operator { state_id
     
   if { $ret_val_id != "" } {
       set lhs_ret "$lhs_ret
-                   ($op_id return-values $ret_val_id)"
+                   ($op_id ^return-values $ret_val_id)"
   } 
 
   if { $goal_id != "" } {
