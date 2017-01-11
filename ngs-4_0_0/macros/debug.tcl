@@ -76,6 +76,8 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
         set my_type [ngs-debug-get-single-id-for-attribute $id "name"]
         if { $my_type != "" } {
             set print_this "$print_this$my_type"
+        } else {
+            set print_this "${print_this}UNDEFINED"
         }
     }
 
@@ -96,7 +98,10 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set attr_type  [lindex $attr_props 2]
         
             if { $level == $target_level || [dict exists $id_dict $attr_value] == 1 || [ngs-debug-is-identifier $attr_value] == 0 } {
-               set print_this "$print_this\n$prefix $attr_name: $attr_value ($attr_type)"
+               set print_this "$print_this\n$prefix $attr_name: $attr_value"
+               if {$attr_type != ""} {
+                    set print_this "$print_this ($attr_type)"
+               }
             } else {
                set print_this "$print_this\n$prefix $attr_name: [ngs-print-identifiers-attributes-details $attr_value \
                                                 [expr $level + 1] $target_level id_dict]"
@@ -130,7 +135,10 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set tag_value [lindex $tag_props 1]
             set tag_type  [lindex $tag_props 2]
             if { $level == $target_level || [dict exists $id_dict $tag_value] == 1 ||  [ngs-debug-is-identifier $tag_value] == 0 } {
-               set print_this "$print_this\n$prefix TAG: $tag_name: $tag_value ($tag_type)"
+               set print_this "$print_this\n$prefix TAG: $tag_name: $tag_value"
+               if {$tag_type != ""} {
+                    set print_this "$print_this ($tag_type)"
+               }
             } else {
                set print_this "$print_this\n$prefix TAG: $tag_name: [ngs-print-identifiers-attributes-details $tag_value \
                                                 [expr $level + 1] $target_level id_dict]"
@@ -179,14 +187,14 @@ proc ngs-debug-process-id-print { line } {
 	        set $pair [string trim $pair " )"]
 	        set end_of_attribute [string first " " $pair]
 	        if { $end_of_attribute > 0 } {
-	            lappend ret_list [string trim [string range $pair 0 $end_of_attribute] " "]
+	            lappend ret_list [string trim [string range $pair 0 $end_of_attribute] " )"]
 	            
-	            set value     [string trim [string range $pair $end_of_attribute end] " "]
+	            set value     [string trim [string range $pair $end_of_attribute end] " )"]
 	            if { [string index $value end] != "+" } { 
 	                lappend ret_list $value
 	            } else {
                     set end_of_value [expr [string length $value] - 2]
-	                lappend ret_list [string trim [string range $value 0 $end_of_value] " "]
+	                lappend ret_list [string trim [string range $value 0 $end_of_value] " )"]
                     lappend ret_list "+"
 	            }
 	        }
@@ -235,6 +243,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
     # internal, tags, attributes, types, my-type
     set ret_val ""
     set cur_key ""
+
     foreach attr_val $attr_value_pairs {
         set attr_val [string trim $attr_val]
 
@@ -289,20 +298,17 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                     set identifier_type [ngs-debug-get-single-id-for-attribute $attr_val "my-type"]
                     if { $identifier_type == "" } {
                         set identifier_type [ngs-debug-get-single-id-for-attribute $attr_val "name"]
-                        if { $identifier_type == "" } {
-                            set identifier_type identifier
-                        }
                     }
                     lappend attribute_info $identifier_type
 
                 } elseif { [string is integer $attr_val] == 1 } {
-                    lappend attribute_info "integer"
+                    lappend attribute_info ""
                 } elseif { [string is double $attr_val] == 1 } {
                     lappend attribute_info "double"
                 } elseif { $attr_val == $NGS_YES || $attr_val == $NGS_NO || $attr_val == $NGS_UNKNOWN } {
-                    lappend attribute_info "boolean"
+                    lappend attribute_info ""
                 } else {
-                    lappend attribute_info "string"
+                    lappend attribute_info ""
                 }
 
                 set is_attribute 1
@@ -310,6 +316,16 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
             
         }
     }
+
+    # Final insertion
+    if { $cur_key == "my-type" } {
+        dict set ret_val $cur_key [lindex $attribute_info 1]
+    } elseif { $cur_key != "" } {
+        if { $attribute == "" || $attribute == [lindex $attribute_info 0] } {
+            dict lappend ret_val $cur_key $attribute_info
+        }
+    }
+
     return $ret_val
 }
 
