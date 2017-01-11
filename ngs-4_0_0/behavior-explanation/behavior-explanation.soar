@@ -30,8 +30,13 @@ proc ngs-match-explanation { state_id explanation_id } {
 proc NGS_Explain_Initialize { agent_id } {
     variable NGS_ALL_GOAL_TYPES
     variable NGS_CTX_ALL_VARIABLES
+    variable NGS_EXPLAIN_AGENT_ID_ATTRIBUTE
+    variable NGS_EXPLAIN_CONTEXT_VARIABLES_ATTRIBUTE
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+    variable NGS_EXPLAIN_GOAL_HIERARCHY_ATTRIBUTE
+    variable NGS_EXPLAIN_INTERNAL_OPERATING_PICTURE_ATTRIBUTE
     variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
+    variable NGS_EXPLAIN_TASK_AWARENESS_ATTRIBUTE 
 
 
 # Create the root explanation object
@@ -41,14 +46,14 @@ sp "ngs*explain*create-root-output*${agent_id}
 -->
 	[ngs-create-typed-object-from-stor <ol> $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
         NGS_Explain_Explanation {
-            agent-id $agent_id
-            context-variables { Set {} }
-            current-goal-hierarchy { NGS_Explain_GoalHierarchy {
+            $NGS_EXPLAIN_AGENT_ID_ATTRIBUTE $agent_id
+            $NGS_EXPLAIN_CONTEXT_VARIABLES_ATTRIBUTE { Set {} }
+            $NGS_EXPLAIN_GOAL_HIERARCHY_ATTRIBUTE { NGS_Explain_GoalHierarchy {
                 roots { Set {} }
                 goals { Set {} }
             } }
-            task-awareness { NGS_Explain_TaskAwareness {} }
-            internal-operating-picture { NGS_Explain_InternalOperatingPicture {} }
+            $NGS_EXPLAIN_TASK_AWARENESS_ATTRIBUTE { NGS_Explain_TaskAwareness {} }
+            $NGS_EXPLAIN_INTERNAL_OPERATING_PICTURE_ATTRIBUTE { NGS_Explain_InternalOperatingPicture {} }
         }
     "]
 "
