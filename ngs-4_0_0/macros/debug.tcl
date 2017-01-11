@@ -400,6 +400,7 @@ proc ngs-print-goal-tree-recursive { goal_id forest_dict level } {
     set decision_dict [dict get $forest_dict "assigned-decision"]
 
     set prefix [ngs-debug-tree-view-prefix $level]
+    set next_level_prefix [ngs-debug-tree-view-prefix [expr $level + 1]]
 
     # First, print out the type of goal and its id
     set goal_line "$prefix [dict get $my_type_dict $goal_id]: $goal_id"
@@ -430,11 +431,11 @@ proc ngs-print-goal-tree-recursive { goal_id forest_dict level } {
         set decision_name_list [dict get $goal_decision_requests_dict $goal_id]
         foreach decision_name $decision_name_list {
             
-            set goal_line "$goal_line\n$prefix DECISION: $decision_name"
+            set goal_line "$goal_line\n$next_level_prefix DECISION: $decision_name"
 
-	        if { [dict exists $decision_dict $decision_name] == 1 } {
+	        if { [dict exists $decision_dict "$decision_name-$goal_id"] == 1 } {
                 set print_list_of_goals ""
-	            set deciding_goal_id_list [dict get $decision_dict $decision_name]
+	            set deciding_goal_id_list [dict get $decision_dict "$decision_name-$goal_id"]
 	            foreach deciding_goal_id $deciding_goal_id_list {
                     variable NGS_TAG_SELECTION_STATUS
                     variable NGS_NO
@@ -484,6 +485,9 @@ proc ngs-debug-build-goal-forest { goal_pool_id { other_attributes "" } } {
 
     foreach goal_id $list_of_goals {
         
+        set assigned_decision ""
+        set supergoal_id ""
+
         set goal_attributes [ngs-debug-get-all-attributes-for-id $goal_id]
         if {[dict exists $goal_attributes "my-type"] == 1} {
             dict set my_type_dict $goal_id [dict get $goal_attributes "my-type"]
@@ -497,9 +501,11 @@ proc ngs-debug-build-goal-forest { goal_pool_id { other_attributes "" } } {
                 set attr_val  [lindex $attribute 1]
 
                 if { $attr_name == "decides" } {
-                    dict lappend decision_dict $attr_val $goal_id
+                    # Store till the end when we have a supergoal too
+                    set assigned_decision $attr_val
                 } elseif { $attr_name == "supergoal" } {
-                    dict lappend supergoal_dict $goal_id $attr_val
+                    set supergoal_id $attr_val
+                    dict lappend supergoal_dict $goal_id $supergoal_id
                 } elseif { $attr_name == "subgoal" } {
                     dict lappend subgoal_dict $goal_id $attr_val
                 } elseif { $attr_name == "requested-decision"} {
@@ -511,6 +517,12 @@ proc ngs-debug-build-goal-forest { goal_pool_id { other_attributes "" } } {
                     dict lappend other_goal_attributes_dict $goal_id "$attr_name $attr_val"
                 }
             }
+        }
+
+        if { $assigned_decision != "" && $supergoal_id != "" } {
+            dict lappend decision_dict "$assigned_decision-$supergoal_id" $goal_id
+            set assigned_decision ""
+            set supergoal_id ""
         }
     }
 
