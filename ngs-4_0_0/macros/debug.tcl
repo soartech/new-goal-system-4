@@ -168,6 +168,34 @@ proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
     return ""
 }
 
+proc ngs-debug-process-id-print { line } {
+
+    set ret_list ""
+    set attr_value_pairs [split $line "^"]
+
+    foreach pair $attr_value_pairs {
+        if { [string index $pair 0] != "("  && $pair != " " } {
+
+	        set $pair [string trim $pair " )"]
+	        set end_of_attribute [string first " " $pair]
+	        if { $end_of_attribute > 0 } {
+	            lappend ret_list [string trim [string range $pair 0 $end_of_attribute] " "]
+	            
+	            set value     [string trim [string range $pair $end_of_attribute end] " "]
+	            if { [string index $value end] != "+" } { 
+	                lappend ret_list $value
+	            } else {
+                    set end_of_value [expr [string length $value] - 2]
+	                lappend ret_list [string trim [string range $value 0 $end_of_value] " "]
+                    lappend ret_list "+"
+	            }
+	        }
+        }
+    }
+    
+    return $ret_list
+}
+
 # Pull out all attributes as a dictionary of categories
 #
 # Categories:
@@ -199,10 +227,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
         return ""
     }
 
-    set print_string     [string trim $print_string " ()"]
-    set end_of_print     [expr [string length $print_string] - 1]
-    set print_string     [string range $print_string 0 $end_of_print]
-    set attr_value_pairs [split $print_string " ^"]
+    set attr_value_pairs [ngs-debug-process-id-print $print_string]
 
     set is_attribute 1
     set attribute_info ""
@@ -210,7 +235,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
     # internal, tags, attributes, types, my-type
     set ret_val ""
     set cur_key ""
-    foreach attr_val [lrange $attr_value_pairs 1 [llength $attr_value_pairs]] {
+    foreach attr_val $attr_value_pairs {
         set attr_val [string trim $attr_val]
 
         if { $attr_val != "" } {
@@ -289,6 +314,25 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 }
 
 
+#
+# nps task output-command
+# =========================================================================================================
+# + AchieveMission: G3, task: T14 (Mission)
+# +- AchieveAbstractWarfighterTask: G14, task: T67 (DismountedInfiltration) 
+# |  +- AchieveConcreteWarfighterTask: G21, task: T91 (TravelWithFireteam)
+# |  |  +- AchieveManeuverTask: G32, task: T105 (WaitForTeamToCatchUp), output-command: C23 (Pause)
+# |  |  +- AchieveManeuverTask: G30, task: T99 (MoveInFormation), output-command: C24 (FollowFormation)
+# |  |  |  +- AchieveWedgeFormation: G41
+# |  |  |  +- AchieveModWedgeFormation: G42
+# |  |  |  +- AchieveFileFormation: G43
+# |  |  |  +- DECISION formation (*G42* G41, G43)
+# |  |  +- AchieveSensorTask: G34, task: T107 (HorizontalSensorScan), output-command: C31 (PanCamera)
+# |  |  +- DECISION: maneuver-control (*G32*, G30)
+# |  |  +- DECISION: ptz-camera-1 (*G34*)
+# |  +- AchieveConcreteWarfighterTask: G19, task: T80 (TravelingOverwatch)
+# |  +- DECISION: robot1 (*G21*, G19)
+# +- DECISION: robot1 (*G14*)
+# =========================================================================================================
 
 # Print out the goal stacks
 #
@@ -299,117 +343,210 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 #  see an output, execute the command again.
 #
 # Usage: nps (print all goal stacks)
-# Usage: nps GoalName1 GoalName2 (print goal stacks rooted at GoalName1 and GoalName2)
+# Usage: nps attribute-name-1 attribute-name-2, etc (also print those attributes if they exist on the goal)
 #
-# args - (Optional) Pass in space-separated list of goal types to only show goal stacks
-#          that are rooted at the given goal type.
-#
+# args - (Optional) Pass in space-separated list of attributes that you would like printed. These attributes
+#         will only be printed if they are members of the goal.
+#                                                                                                    
 proc nps { args } {
 
-	if { $args != "" } {
-		set goal_constraint [ngs-is-my-type <top-goal> "<< $args >>"]
-	} else {
-		set goal_constraint ""
-	}
+    set goal_pool_id [ngs-debug-get-single-id-for-attribute S1 "goals"]
+    set forest_dict [ngs-debug-build-goal-forest $goal_pool_id [string trim $args]]
+    set list_of_goals [dict get $forest_dict "all"]
+    set subgoal_dict  [dict get $forest_dict "subgoals"]
+    set supergoal_dict [dict get $forest_dict "supergoals"]
+    
+#   echo $forest_dict
 
-	# sp some productions
-	sp "debug*print-isolated-goals
-		[ngs-match-goal <s> <any-goal-type> <top-goal>]
-		[ngs-is-not-subgoal <top-goal> <subgoal>]
-		[ngs-is-not-supergoal <top-goal> <supergoal>]
-		$goal_constraint
-	-->
-		(write (crlf) |+---------------------------------------------------------------------------+|)
-		(write (crlf) |+ ISOLATED GOAL|)
-		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)"
+    echo "================================================================================"
+    foreach goal_id $list_of_goals {
+        if { [dict exists $supergoal_dict $goal_id] != 1 } {
+            echo [ngs-print-goal-tree-recursive $goal_id $forest_dict 1]
+            echo "================================================================================"
+        }
+    }
+}
 
-	sp "debug*print-goal-stack*1
-		[ngs-match-goal <s> <any-goal-type> <top-goal>]
-		[ngs-is-not-supergoal <top-goal> <supergoal>]
-		[ngs-is-subgoal <top-goal> <sg1>]
-		[ngs-is-my-type <sg1> <sg1-type>]
-		[ngs-is-not-subgoal <sg1> <sg2>]
-		$goal_constraint
-	-->
-		(write (crlf) |+---------------------------------------------------------------------------+|)		
-		(write (crlf) |+ GOAL STACK|)
-		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)
-		(write (crlf) |+   | <sg1-type> |: | <sg1>)"
+# Return a string with the goal tree
+#
+# goal_id - root goal of the goal tree
+# forest_dict - A forest dictionary as returned by ngs-debug-build-goal-forest
+# level - The current recursion level (1 if calling from the top)
+proc ngs-print-goal-tree-recursive { goal_id forest_dict level } {
 
-	sp "debug*print-goal-stack*2
-		[ngs-match-goal <s> <any-goal-type> <top-goal>]
-		[ngs-is-not-supergoal <top-goal> <supergoal>]
-		[ngs-is-subgoal <top-goal> <sg1>]
-		[ngs-is-my-type <sg1> <sg1-type>]
-		[ngs-is-subgoal <sg1> <sg2>]
-		[ngs-is-my-type <sg2> <sg2-type>]
-		[ngs-is-not-subgoal <sg2> <sg3>]
-		$goal_constraint
-	-->
-		(write (crlf) |+---------------------------------------------------------------------------+|)		
-		(write (crlf) |+ GOAL STACK|)
-		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)
-		(write (crlf) |+   | <sg1-type> |: | <sg1>)
-		(write (crlf) |+     | <sg2-type> |: | <sg2>)"
+    # Unpack the structures so we can start printing them.
+    set my_type_dict  [dict get $forest_dict "my-type"]
+    set other_goal_attributes_dict [dict get $forest_dict "other-attributes"]
 
-	sp "debug*print-goal-stack*3
-		[ngs-match-goal <s> <any-goal-type> <top-goal>]
-		[ngs-is-not-supergoal <top-goal> <supergoal>]
-		[ngs-is-subgoal <top-goal> <sg1>]
-		[ngs-is-my-type <sg1> <sg1-type>]
-		[ngs-is-subgoal <sg1> <sg2>]
-		[ngs-is-my-type <sg2> <sg2-type>]
-		[ngs-is-subgoal <sg2> <sg3>]
-		[ngs-is-my-type <sg3> <sg3-type>]
-		[ngs-is-not-subgoal <sg3> <sg4>]
-		$goal_constraint
-	-->
-		(write (crlf) |+---------------------------------------------------------------------------+|)		
-		(write (crlf) |+ GOAL STACK|)
-		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)
-		(write (crlf) |+   | <sg1-type> |: | <sg1>)
-		(write (crlf) |+     | <sg2-type> |: | <sg2>)
-		(write (crlf) |+       | <sg3-type> |: | <sg3>)"
+    set subgoal_dict  [dict get $forest_dict "subgoals"]
+    set goal_decision_requests_dict [dict get $forest_dict "requested-decisions"]
 
-	sp "debug*print-goal-stack*4
-		[ngs-match-goal <s> <any-goal-type> <top-goal>]
-		[ngs-is-not-supergoal <top-goal> <supergoal>]
-		[ngs-is-subgoal <top-goal> <sg1>]
-		[ngs-is-my-type <sg1> <sg1-type>]
-		[ngs-is-subgoal <sg1> <sg2>]
-		[ngs-is-my-type <sg2> <sg2-type>]
-		[ngs-is-subgoal <sg2> <sg3>]
-		[ngs-is-my-type <sg3> <sg3-type>]
-		[ngs-is-subgoal <sg3> <sg4>]
-		[ngs-is-my-type <sg4> <sg4-type>]
-		[ngs-is-not-subgoal <sg4> <sg5>]
-		$goal_constraint
-	-->
-		(write (crlf) |+---------------------------------------------------------------------------+|)		
-		(write (crlf) |+ GOAL STACK|)
-		(write (crlf) |+ | <any-goal-type> |: | <top-goal>)
-		(write (crlf) |+   | <sg1-type> |: | <sg1>)
-		(write (crlf) |+     | <sg2-type> |: | <sg2>)
-		(write (crlf) |+       | <sg3-type> |: | <sg3>)
-		(write (crlf) |+         | <sg4-type> |: | <sg4>)"
+    set decision_dict [dict get $forest_dict "assigned-decision"]
 
-	# run -e 1
-	run -e 1
-	echo +---------------------------------------------------------------------------+
+    set prefix [ngs-debug-tree-view-prefix $level]
 
-	# excise some productions
-	excise debug*print-isolated-goals
-	excise debug*print-goal-stack*1
-	excise debug*print-goal-stack*2	
-	excise debug*print-goal-stack*3
-	excise debug*print-goal-stack*4
+    # First, print out the type of goal and its id
+    set goal_line "$prefix [dict get $my_type_dict $goal_id]: $goal_id"
+    if { [dict exists $other_goal_attributes_dict $goal_id] == 1 } {
+        set attr_val_pair_list [dict get $other_goal_attributes_dict $goal_id]
+        foreach attr_val_pair $attr_val_pair_list {
+            set attr [lindex $attr_val_pair 0]
+            set val  [lindex $attr_val_pair 1]
+
+            set goal_line "$goal_line, $attr: $val"
+
+            if { [ngs-debug-is-identifier $val] == 1 } {
+                set attr_type [ngs-debug-get-single-id-for-attribute $val "my-type"]
+                set goal_line "$goal_line ($attr_type)"
+            }
+        }
+    }
+
+    if { [dict exists $subgoal_dict $goal_id] == 1 } {
+        set subgoal_id_list [dict get $subgoal_dict $goal_id]
+        foreach subgoal_id $subgoal_id_list {
+            set goal_line "$goal_line\n[ngs-print-goal-tree-recursive $subgoal_id $forest_dict [expr $level + 1]]"
+        }
+    }
+    
+    if { [dict exists $goal_decision_requests_dict $goal_id] == 1 } {
+     
+        set decision_name_list [dict get $goal_decision_requests_dict $goal_id]
+        foreach decision_name $decision_name_list {
+            
+            set goal_line "$goal_line\n$prefix DECISION: $decision_name"
+
+	        if { [dict exists $decision_dict $decision_name] == 1 } {
+                set print_list_of_goals ""
+	            set deciding_goal_id_list [dict get $decision_dict $decision_name]
+	            foreach deciding_goal_id $deciding_goal_id_list {
+                    variable NGS_TAG_SELECTION_STATUS
+                    variable NGS_NO
+                    variable NGS_YES
+                    set selected_tag [ngs-debug-get-single-id-for-attribute $deciding_goal_id \
+                                                [ngs-tag-for-name $NGS_TAG_SELECTION_STATUS]]
+                    if { $selected_tag == "$NGS_NO" } {            
+                        set print_list_of_goals "$print_list_of_goals $deciding_goal_id-"
+                    } elseif { $selected_tag == "$NGS_YES" } {
+                        set print_list_of_goals "$print_list_of_goals $deciding_goal_id+"
+                    } else {
+                        set print_list_of_goals "$print_list_of_goals $deciding_goal_id?"
+                    }
+	            }
+	            set goal_line "$goal_line ([string trim $print_list_of_goals])"
+	        } else {
+                set goal_line "$goal_line (NO OPTIONS)"
+            }
+        }
+    }
+    
+    return $goal_line
+}
+
+# Returns a dictionary containing the following:
+#
+# (key) "all" - a list of all of the goals in the goal pools
+# (key) "my-type" - A dictionary mapping goal_id --> my-type string
+# (key) "subgoals" - A dictionary mapping goal_id --> list of subgoal ids
+# (key) "supergoals" - A dictionary mapping goal_id --> supergoal id
+# (key) "requested_decisions" - A dictionary mapping goal_id --> list of decision names requested by that goal
+# (key) "assigned-decision" - A dictionary mapping decision name --> list of goal ids assigned to that decision
+# (key) "other-attributes" - A dictionary mapping goal_id --> list of {attribute value} pairs from the $other_attributes list
+#
+# Pass in the goal pool id
+# Optionally pass in a list of other goal attributes you want returned (if they exist on the goals) 
+proc ngs-debug-build-goal-forest { goal_pool_id { other_attributes "" } } {
+
+    set decision_dict ""
+    set my_type_dict ""
+    set subgoal_dict ""
+    set supergoal_dict ""
+    set goal_decision_requests_dict ""
+    set other_goal_attributes_dict ""
+
+    set list_of_goals [ngs-debug-get-all-goal-ids $goal_pool_id]
+
+    foreach goal_id $list_of_goals {
+        
+        set goal_attributes [ngs-debug-get-all-attributes-for-id $goal_id]
+        if {[dict exists $goal_attributes "my-type"] == 1} {
+            dict set my_type_dict $goal_id [dict get $goal_attributes "my-type"]
+        } 
+
+        if {[dict exists $goal_attributes "attributes"] == 1} {
+            set goal_intrinsic_attributes [dict get $goal_attributes "attributes"]
+            foreach attribute $goal_intrinsic_attributes {
+                # Each attribute is a tuple where the first item is the name and the second the value
+                set attr_name [lindex $attribute 0]
+                set attr_val  [lindex $attribute 1]
+
+                if { $attr_name == "decides" } {
+                    dict lappend decision_dict $attr_val $goal_id
+                } elseif { $attr_name == "supergoal" } {
+                    dict lappend supergoal_dict $goal_id $attr_val
+                } elseif { $attr_name == "subgoal" } {
+                    dict lappend subgoal_dict $goal_id $attr_val
+                } elseif { $attr_name == "requested-decision"} {
+                    set decision_name [ngs-debug-get-single-id-for-attribute $attr_val "name"]
+                    if { $decision_name != "" } {
+                        dict lappend goal_decision_requests_dict $goal_id $decision_name
+                    }
+                } elseif { [string first "$attr_name" $other_attributes] >= 0 } {
+                    dict lappend other_goal_attributes_dict $goal_id "$attr_name $attr_val"
+                }
+            }
+        }
+    }
+
+    set result_dict ""
+    dict set result_dict "all" $list_of_goals
+    dict set result_dict "my-type" $my_type_dict
+    dict set result_dict "subgoals" $subgoal_dict
+    dict set result_dict "supergoals" $supergoal_dict
+    dict set result_dict "requested-decisions" $goal_decision_requests_dict
+    dict set result_dict "assigned-decision" $decision_dict
+    dict set result_dict "other-attributes" $other_goal_attributes_dict
+
+    return $result_dict
+}
+
+# Returns a list of all goals that currently exist in the goal pool
+proc ngs-debug-get-all-goal-ids { goal_pool_id } {
+
+    set GOAL_ATTR         "^goal "
+    set GOAL_ATTR_LEN     [string length $GOAL_ATTR]
+
+    set result_string     [CORE_GetCommandOutput p --depth 2 $goal_pool_id]
+    if { [string index $result_string 0] != "(" } { 
+        return ""
+    }
+
+    set result_string [string map { "(" " " ")" " " } $result_string]
+
+    set result_dict ""
+    set goal_index [string first $GOAL_ATTR $result_string]
+    while { $goal_index >= 0 } {
+        
+        set begin_goal_id [expr $goal_index + $GOAL_ATTR_LEN]
+        set end_goal_id   [string first " " $result_string $begin_goal_id]
+
+        if { $end_goal_id >= 0 } {
+            set goal_id [string range $result_string $begin_goal_id $end_goal_id]
+            dict set result_dict [string trim $goal_id] $goal_id
+        }
+
+        set goal_index [string first $GOAL_ATTR $result_string $end_goal_id]
+    }
+    return [dict keys $result_dict]
 }
 
 
 
 
+
+
 ##########################################################################################################3
-# Debug Trace Pool support
+# DEPRECATED: Debug Trace Pool support
 #
 # The debug trace pool is a pool of wmes stored on the top-state under the debug-trace-pools attribute.
 # You use these pools to gather and print the state of the system for use when debugging.
