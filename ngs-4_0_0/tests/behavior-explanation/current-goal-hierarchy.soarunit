@@ -17,8 +17,7 @@ sp "test*create-goal*subgoal
 "
 
 NGS_Explain_Initialize "test-agent"
-NGS_Explain_ExplainGoal RootGoal
-NGS_Explain_ExplainGoal ChildGoal
+NGS_Explain_ExplainGoal RootGoal ChildGoal
 }
 
 

@@ -1,13 +1,22 @@
 
 # Enable explanation for a goal type.
-proc NGS_Explain_ExplainGoal { goal_type } {
-    echo "Explaining goal: ${goal_type}"
-    variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
-sp "ngs*explain*goal*${goal_type}*add-tag*should-explain
-	[ngs-match-goal <s> $goal_type <goal>]
--->
-	[ngs-tag <goal> $NGS_EXPLAIN_TAG_SHOULD_EXPLAIN]
-"
+proc NGS_Explain_ExplainGoal { args } {
+
+    # If the arguments are passed in as a list, then process them that way
+    if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
+        set args [lindex $args 0]
+    }
+
+    foreach goal_type $args {
+        echo "Explaining goal: ${goal_type}"
+        variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
+
+        sp "ngs*explain*goal*${goal_type}*add-tag*should-explain
+            [ngs-match-goal <s> $goal_type <goal>]
+        -->
+            [ngs-tag <goal> $NGS_EXPLAIN_TAG_SHOULD_EXPLAIN]
+        "
+    }
 }
 
 
