@@ -1,0 +1,158 @@
+setup {
+source common.soar
+
+# Global
+NGS_CreateGlobalContextVariablePool sample-pool { TestCategory }
+NGS_DefineStableValue sample-pool TestCategory global-value
+
+# Goal
+NGS_DeclareGoal GoalWithVariables
+NGS_CreateContextPoolCategories GoalWithVariables { GoalCategory }
+NGS_DefineTimeDelayedValue GoalWithVariables GoalCategory goal-value
+
+# User
+NGS_DefinePeriodicSampledValue user.defined.path $NGS_CTX_VAR_USER_LOCATION user-value
+
+NGS_Explain_Initialize "test-agent"
+
+sp "test*create-test-value-source
+	[ngs-match-top-state <s>]
+-->
+	[ngs-create-attribute <s> test-value-source 2.718]
+"
+
+sp "test*create-stable-value*global-value
+	[ngs-match-to-create-context-variable <s> sample-pool TestCategory:<pool>]
+-->
+	[ngs-create-stable-value <pool> global-value <s> test-value-source 1.0]
+"
+
+sp "test*create-goal*goal-with-variables
+	[ngs-match-goalpool <s> <pool> GoalWithVariables]
+-->
+	[ngs-create-goal-in-place <pool> GoalWithVariables $NGS_GB_ACHIEVE <goal>]
+"
+
+sp "test*goal-with-variables*create-time-delayed-value*goal-value
+    [ngs-match-goal-to-create-context-variable <s> GoalWithVariables <goal> GoalCategory:<pool>]
+-->
+	[ngs-create-time-delayed-value <pool> goal-value <s> test-value-source 10]
+"
+
+sp "test*create-user-defined-path
+	[ngs-match-top-state <s>]
+-->
+	[ngs-create-typed-object <s> user Bag <user>]
+	[ngs-create-typed-object <user> defined Bag <defined>]
+	[ngs-create-typed-object <defined> path Bag <path>]
+"
+
+sp "test*create-periodic-sampled-value*user-value
+	[ngs-match-top-state <s> user.defined.path:<pool>]
+-->
+	[ngs-create-periodic-sampled-value <pool> user-value <s> test-value-source 10]
+"
+}
+
+test output-each-variable {
+sp "test 
+	[ngs-match-top-state <s>]
+	[ngs-bind-explanation <s> test-agent <explanation>]
+	[ngs-bind <explanation> context-variables:<vars>]
+
+# Bind each variable
+    # Global
+	[ngs-bind-global-ctx <s> sample-pool TestCategory {
+        global-value:<global-value-id>
+    }]
+    # Goal
+	[ngs-match-goal <s> GoalWithVariables <goal>]
+	[ngs-bind-goal-ctx <goal> GoalCategory { 
+        goal-value:<goal-value-id> 
+    }]
+    # User
+	[ngs-bind <s> user.defined.path]
+	[ngs-bind-user-ctx <path> user-value:<user-value-id>]
+
+
+# Make sure each variable got created
+	[ngs-bind <vars> context-variable:<global-value-explain>.id:<global-value-id>]
+	[ngs-bind <vars> context-variable:<goal-value-explain>.id:<goal-value-id>]
+	[ngs-bind <vars> context-variable:<user-value-explain>.id:<user-value-id>]
+-->
+	(pass)
+"
+}
+
+test global-variable {
+sp "test
+	[ngs-match-top-state <s>]
+	[ngs-bind-explanation <s> test-agent <explain>]
+	[ngs-bind <explain> context-variables.context-variable:<var>]
+
+	[ngs-bind-global-ctx <s> sample-pool TestCategory:<pool> {
+        global-value:<global-value-id>
+    }]
+
+
+	[ngs-eq <var> variable-type StableValue]
+	[ngs-bind <var> scope]
+    	[ngs-eq <scope> scope-type global]
+	    [ngs-eq <scope> scope-id <pool>]
+    	[ngs-eq <scope> scope-path sample-pool]
+    	[ngs-eq <scope> scope-category TestCategory]
+	[ngs-eq <var> id <global-value-id>]
+	[ngs-eq <var> name global-value]
+	[ngs-eq <var> value 2.718]
+-->
+	(pass)
+"
+}
+
+test goal-variable {
+sp "test
+	[ngs-match-top-state <s>]
+	[ngs-bind-explanation <s> test-agent <explain>]
+	[ngs-bind <explain> context-variables.context-variable:<var>]
+
+	[ngs-match-goal <s> GoalWithVariables <goal>]
+	[ngs-bind-goal-ctx <goal> GoalCategory {
+        goal-value:<goal-value-id>
+    }]
+
+	[ngs-eq <var> variable-type TimeDelayedValue]
+	[ngs-bind <var> scope]
+        [ngs-eq <scope> scope-type goal]
+        [ngs-eq <scope> scope-id <goal>]
+        [ngs-eq <scope> scope-path GoalWithVariables]
+        [ngs-eq <scope> scope-category GoalCategory]
+	[ngs-eq <var> id <goal-value-id>]
+	[ngs-eq <var> name goal-value]
+	[ngs-eq <var> value 2.718]
+-->
+	(pass)
+"
+}
+
+test user-defined-value {
+sp "test
+	[ngs-match-top-state <s>]
+	[ngs-bind-explanation <s> test-agent <explain>]
+	[ngs-bind <explain> context-variables.context-variable:<var>]
+	
+	[ngs-bind <s> user.defined.path]
+	[ngs-bind-user-ctx <path> user-value:<user-value-id>]
+
+	[ngs-eq <var> variable-type PeriodicSampledValue]
+	[ngs-bind <var> scope]
+        [ngs-eq <scope> scope-type user]
+    	[ngs-eq <scope> scope-id <path>]
+        [ngs-eq <scope> scope-path |user.defined.path|]
+        [ngs-eq <scope> scope-category user-location]
+	[ngs-eq <var> id <user-value-id>]
+	[ngs-eq <var> name user-value]
+	[ngs-eq <var> value 2.718]
+-->
+	(pass)
+"
+}

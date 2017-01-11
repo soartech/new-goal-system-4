@@ -201,6 +201,9 @@ proc ngs-add-dyn-bin { bin_set_id
 #
 proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name } {
 
+    variable NGS_CTX_ALL_VARIABLES
+    lappend NGS_CTX_ALL_VARIABLES [dict create pool $pool_goal_or_path category $category_name name $variable_name]
+
     set var_id  <variable>
     set bin_set_id <bins>
     set bin_attr "bin"

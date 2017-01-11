@@ -1,0 +1,107 @@
+setup {
+source "common.soar"
+
+NGS_DeclareGoal RootGoal {}
+NGS_DeclareGoal ChildGoal {}
+
+sp "test*create-goal*root
+	[ngs-match-goalpool <s> <pool> RootGoal]
+-->
+	[ngs-create-goal-in-place <pool> RootGoal $NGS_GB_ACHIEVE <goal>]
+"
+
+sp "test*create-goal*subgoal
+	[ngs-match-goal-to-create-subgoal <s> RootGoal <goal> ChildGoal <pool>]
+-->
+	[ngs-create-goal-in-place <pool> ChildGoal $NGS_GB_ACHIEVE <subgoal> <goal>]
+"
+
+NGS_Explain_Initialize "test-agent"
+NGS_Explain_ExplainGoal RootGoal ChildGoal
+}
+
+
+test create-root {
+sp "test
+	[ngs-match-top-state <s>]
+	[ngs-match-goal <s> RootGoal <root-goal-id>]
+
+# Bind explanation
+	[ngs-bind-explanation <s> test-agent <explanation>]
+	[ngs-bind <explanation> current-goal-hierarchy.roots]
+	[ngs-eq <roots> goal-id <root-goal-id>]
+-->
+	(pass)
+"
+}
+
+test create-goals {
+sp "test
+	[ngs-match-top-state <s>]
+    # Bind goals
+	[ngs-match-goal <s> RootGoal <root-goal-id>]
+	[ngs-is-subgoal <root-goal-id> <child-goal-id> ChildGoal]
+
+    # Bind hierarchy
+	[ngs-bind-explanation <s> test-agent <explanation>]
+	[ngs-bind <explanation> current-goal-hierarchy.goals]
+
+    # Check that a structure exists for each goal
+	[ngs-bind <goals> goal:<root-goal>.id:<root-goal-id>]
+	[ngs-bind <goals> goal:<child-goal>.id:<child-goal-id>]
+-->
+	(pass)
+"
+}
+
+test create-root-goal {
+sp "test
+	[ngs-match-top-state <s>]
+
+    # Bind goals
+	[ngs-match-goal <s> RootGoal <root-goal-id>]
+	[ngs-is-subgoal <root-goal-id> <child-goal-id> ChildGoal]
+
+    # Bind hierarchy
+	[ngs-bind-explanation <s> test-agent <explanation>]
+	[ngs-bind <explanation> current-goal-hierarchy:<goal-hierarchy>.goals]
+
+    # Check that the structure is correct for the root goal
+	[ngs-bind <goals> goal:<root-goal>.id:<root-goal-id>]
+	# [ngs-eq <root-goal> selected ...]
+	[ngs-eq <root-goal> goal-my-type RootGoal]
+	[ngs-bind <root-goal> goal-types]
+        [ngs-eq <goal-types> goal-type RootGoal]
+	[ngs-bind <root-goal> children.goal-id:<child-goal-id>]
+	[ngs-bind <root-goal> reasons]
+
+-->
+	(pass)
+"
+}
+
+test create-child-goal {
+sp "test
+	[ngs-match-top-state <s>]
+
+    # Bind goals
+	[ngs-match-goal <s> ChildGoal <child-goal-id>]
+
+    # Bind hierarchy
+	[ngs-bind-explanation <s> test-agent <explanation>]
+	[ngs-bind <explanation> current-goal-hierarchy:<goal-hierarchy>.goals]
+
+    # Check that the structure is correct for the root goal
+	[ngs-bind <goals> goal:<child-goal>.id:<child-goal-id>]
+	# [ngs-eq <child-goal> selected ...]
+	[ngs-eq <child-goal> goal-my-type ChildGoal]
+	[ngs-bind <child-goal> goal-types]
+        [ngs-eq <goal-types> goal-type ChildGoal]
+	[ngs-bind <child-goal> children]
+	[ngs-nex <children> goal-id] # No children
+	[ngs-bind <child-goal> reasons]
+
+-->
+	(pass)
+"
+}

@@ -457,6 +457,30 @@ proc ngs-ctx-var-gen-production-name-suffix { pool_goal_or_path category_name va
     return [string map { "." "*" } "$pool_goal_or_path*$category_name*$variable_name"]
 }
 
+# Determine the scope of a context variable
+#
+#
+# This is used internally and is not useful for user code.
+#
+# pool_goal_or_path - A global context variable pool name, a goal type, or an arbitrary path rooted at the top state.
+#  This is the location where the context variable will be stored.
+proc ngs-ctx-var-get-scope-type { pool_goal_or_path category_name } {
+    variable NGS_CTX_VAR_USER_LOCATION
+	variable NGS_CTX_SCOPE_USER
+	variable NGS_CTX_SCOPE_GOAL
+	variable NGS_CTX_SCOPE_GLOBAL
+
+	variable NGS_TYPEINFO_$pool_goal_or_path
+
+    if { $category_name == $NGS_CTX_VAR_USER_LOCATION } {
+		return $NGS_CTX_SCOPE_USER
+	} elseif {[info exists NGS_TYPEINFO_$pool_goal_or_path] != 0} {
+		return $NGS_CTX_SCOPE_GOAL
+	} else {
+		return $NGS_CTX_SCOPE_GLOBAL
+	}
+}
+
 # Generate the root bindings used by all of the DefineXYZ macross
 # 
 # This is used internally and is not useful for user code.
@@ -467,27 +491,28 @@ proc ngs-ctx-var-gen-production-name-suffix { pool_goal_or_path category_name va
 #   are placing the context variable in an arbitrary location specified by a path (see parameter pool_goal_or_path)
 # variable_name - Name of the context variable
 # var_id - Soar variable to which to bind the context variable's id.
+# scope_id - (Optional) If provided, Soar variable to which to bind either the goal id (for goals), the
+#   category id (for globals), or the object id (for user defined paths).
 #
-proc ngs-ctx-var-gen-root-bindings { pool_goal_or_path category_name variable_name var_id} {
+proc ngs-ctx-var-gen-root-bindings { pool_goal_or_path category_name variable_name var_id { scope_id "" }} {
+	variable NGS_CTX_SCOPE_USER
+	variable NGS_CTX_SCOPE_GOAL
+	variable NGS_CTX_SCOPE_GLOBAL
 
-    set goal_id [CORE_GenVarName "g"]
+	if { $scope_id == "" } { set scope_id [CORE_GenVarName "scope-id"] }
+	set goal_id $scope_id
     set cat_id  [CORE_GenVarName "cat-pool"]
 
-    # First, we'll figure out if this is a goal type or global pool
-    variable NGS_CTX_VAR_USER_LOCATION
-    if { $category_name != $NGS_CTX_VAR_USER_LOCATION } {
-        variable NGS_TYPEINFO_$pool_goal_or_path
-        if {[info exists NGS_TYPEINFO_$pool_goal_or_path] != 0} {
-            return "[ngs-match-goal <s> $pool_goal_or_path $goal_id]
-                    [ngs-bind-goal-ctx $goal_id $category_name:$cat_id $variable_name:$var_id]"
-        } else {
-            return "[ngs-match-top-state <s>]
-                    [ngs-bind-global-ctx <s> $pool_goal_or_path $category_name:$cat_id $variable_name:$var_id]"
-        }
-    } else {
-        return "[ngs-match-top-state <s> [ngs-expand-tags $pool_goal_or_path].$variable_name:$var_id]"
-    }
-
+	set scope_type [ngs-ctx-var-get-scope-type $pool_goal_or_path $category_name]
+	if { $scope_type == $NGS_CTX_SCOPE_USER } {
+        return "[ngs-match-top-state <s> [ngs-expand-tags $pool_goal_or_path]:$scope_id.$variable_name:$var_id]"
+	} elseif { $scope_type == $NGS_CTX_SCOPE_GOAL } {
+		return "[ngs-match-goal <s> $pool_goal_or_path $goal_id]
+                [ngs-bind-goal-ctx $goal_id $category_name:$cat_id $variable_name:$var_id]"
+	} elseif { $scope_type == $NGS_CTX_SCOPE_GLOBAL } {
+		return "[ngs-match-top-state <s>]
+                [ngs-bind-global-ctx <s> $pool_goal_or_path $category_name:$scope_id $variable_name:$var_id]"
+	}
 }
 
 # Creates delta values in a uniform way for all context variables that use them
