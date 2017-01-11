@@ -13,14 +13,18 @@
 # Match the explanation structure
 # This should only be called by behaviour explanation code and unit tests.
 #
-proc ngs-match-explanation { state_id explanation_id } {
+proc ngs-bind-explanation { state_id agent_id explanation_id } {
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+    variable NGS_EXPLAIN_AGENT_ID_ATTRIBUTE
     variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
+    set output_link_id [CORE_GenVarName "output-link"]
 
     return "
     [ngs-match-top-state $state_id]
-	[ngs-output-link $state_id <ol>]
-	[ngs-bind <ol> $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:${explanation_id}]"
+    [ngs-output-link $state_id $output_link_id]
+    [ngs-bind $output_link_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:${explanation_id}]
+    [ngs-eq $explanation_id $NGS_EXPLAIN_AGENT_ID_ATTRIBUTE $agent_id]
+    "
 }
 
 #
@@ -60,14 +64,14 @@ sp "ngs*explain*create-root-output*${agent_id}
 
 # Create productions for all explainable types
 foreach goal_type $NGS_ALL_GOAL_TYPES {
-    NGS_Explain_CreateProductionsForGoal $goal_type
+    NGS_Explain_CreateProductionsForGoal $agent_id $goal_type
 }
 
 foreach context_variable $NGS_CTX_ALL_VARIABLES {
     set pool [dict get $context_variable pool]
     set category [dict get $context_variable category]
     set name [dict get $context_variable name]
-    NGS_Explain_CreateProductionsForVariable $pool $category $name
+    NGS_Explain_CreateProductionsForVariable $agent_id $pool $category $name
 }
 
 }

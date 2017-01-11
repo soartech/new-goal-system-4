@@ -2,7 +2,7 @@
 #
 # Create all the productions for explaining a variable
 #
-proc NGS_Explain_CreateProductionsForVariable { pool_goal_or_path category_name variable_name } {
+proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path category_name variable_name } {
 
 variable NGS_CTX_SCOPE_USER
 
@@ -43,7 +43,7 @@ sp* "ngs*explain*variable*$production_name_suffix*create-explanation
 sp "ngs*explain*variable*$production_name_suffix*output-explanation
     $root_bind
 	[ngs-bind $var_id ngs*explain*explanation:<explanation>]
-	[ngs-match-explanation <s> <explain>]
+	[ngs-bind-explanation <s> $agent_id <explain>]
 	[ngs-bind <explain> context-variables:<variables>]
 -->
 	[ngs-create-attribute <variables> context-variable <explanation>]

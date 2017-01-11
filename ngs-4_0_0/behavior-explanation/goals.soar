@@ -14,7 +14,7 @@ sp "ngs*explain*goal*${goal_type}*add-tag*should-explain
 #
 # Create all the productions for explaining a goal.
 #
-proc NGS_Explain_CreateProductionsForGoal { goal_type } {
+proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
 
 echo "Creating explanation code for $goal_type"
 
@@ -57,7 +57,7 @@ sp "ngs*explain*goal*${goal_type}*elaborate-children
 # Elaborate the explanation onto the output
 sp "ngs*explain*goal*${goal_type}*output-explanation
 	[ngs-match-goal <s> $goal_type <goal-id>]
-	[ngs-match-explanation <s> <explain>]
+	[ngs-bind-explanation <s> $agent_id <explain>]
 	[ngs-bind <explain> current-goal-hierarchy.goals]
 	[ngs-bind <goal-id> explanation]
 -->
@@ -67,7 +67,7 @@ sp "ngs*explain*goal*${goal_type}*output-explanation
 # Tag if this is a root goal
 sp "ngs*explain*goal*${goal_type}*output-root
 	[ngs-match-goal <s> $goal_type <goal-id>]
-	[ngs-match-explanation <s> <explain>]
+	[ngs-bind-explanation <s> $agent_id <explain>]
 	[ngs-not [ngs-is-supergoal <goal-id> <supergoal-id>] ]
 	[ngs-bind <explain> current-goal-hierarchy.roots!Set]
     [ngs-bind <goal-id> explanation]

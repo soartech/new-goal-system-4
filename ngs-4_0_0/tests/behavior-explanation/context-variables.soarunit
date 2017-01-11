@@ -57,7 +57,7 @@ sp "test*create-periodic-sampled-value*user-value
 test output-each-variable {
 sp "test 
 	[ngs-match-top-state <s>]
-	[ngs-match-explanation <s> <explanation>]
+	[ngs-bind-explanation <s> test-agent <explanation>]
 	[ngs-bind <explanation> context-variables:<vars>]
 
 # Bind each variable
@@ -87,7 +87,7 @@ sp "test
 test global-variable {
 sp "test
 	[ngs-match-top-state <s>]
-	[ngs-match-explanation <s> <explain>]
+	[ngs-bind-explanation <s> test-agent <explain>]
 	[ngs-bind <explain> context-variables.context-variable:<var>]
 
 	[ngs-bind-global-ctx <s> sample-pool TestCategory:<pool> {
@@ -112,7 +112,7 @@ sp "test
 test goal-variable {
 sp "test
 	[ngs-match-top-state <s>]
-	[ngs-match-explanation <s> <explain>]
+	[ngs-bind-explanation <s> test-agent <explain>]
 	[ngs-bind <explain> context-variables.context-variable:<var>]
 
 	[ngs-match-goal <s> GoalWithVariables <goal>]
@@ -137,7 +137,7 @@ sp "test
 test user-defined-value {
 sp "test
 	[ngs-match-top-state <s>]
-	[ngs-match-explanation <s> <explain>]
+	[ngs-bind-explanation <s> test-agent <explain>]
 	[ngs-bind <explain> context-variables.context-variable:<var>]
 	
 	[ngs-bind <s> user.defined.path]

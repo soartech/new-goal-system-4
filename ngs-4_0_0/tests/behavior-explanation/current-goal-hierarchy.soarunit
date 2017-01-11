@@ -28,7 +28,7 @@ sp "test
 	[ngs-match-goal <s> RootGoal <root-goal-id>]
 
 # Bind explanation
-	[ngs-match-explanation <s> <explanation>]
+	[ngs-bind-explanation <s> test-agent <explanation>]
 	[ngs-bind <explanation> current-goal-hierarchy.roots]
 	[ngs-eq <roots> goal-id <root-goal-id>]
 -->
@@ -44,7 +44,7 @@ sp "test
 	[ngs-is-subgoal <root-goal-id> <child-goal-id> ChildGoal]
 
     # Bind hierarchy
-	[ngs-match-explanation <s> <explanation>]
+	[ngs-bind-explanation <s> test-agent <explanation>]
 	[ngs-bind <explanation> current-goal-hierarchy.goals]
 
     # Check that a structure exists for each goal
@@ -64,7 +64,7 @@ sp "test
 	[ngs-is-subgoal <root-goal-id> <child-goal-id> ChildGoal]
 
     # Bind hierarchy
-	[ngs-match-explanation <s> <explanation>]
+	[ngs-bind-explanation <s> test-agent <explanation>]
 	[ngs-bind <explanation> current-goal-hierarchy:<goal-hierarchy>.goals]
 
     # Check that the structure is correct for the root goal
@@ -89,7 +89,7 @@ sp "test
 	[ngs-match-goal <s> ChildGoal <child-goal-id>]
 
     # Bind hierarchy
-	[ngs-match-explanation <s> <explanation>]
+	[ngs-bind-explanation <s> test-agent <explanation>]
 	[ngs-bind <explanation> current-goal-hierarchy:<goal-hierarchy>.goals]
 
     # Check that the structure is correct for the root goal
