@@ -1,0 +1,88 @@
+
+# Enable explanation for a goal type.
+proc NGS_Explain_ExplainGoal { args } {
+
+    # If the arguments are passed in as a list, then process them that way
+    if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
+        set args [lindex $args 0]
+    }
+
+    foreach goal_type $args {
+        echo "Explaining goal: ${goal_type}"
+        variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
+
+        sp "ngs*explain*goal*${goal_type}*add-tag*should-explain
+            [ngs-match-goal <s> $goal_type <goal>]
+        -->
+            [ngs-tag <goal> $NGS_EXPLAIN_TAG_SHOULD_EXPLAIN]
+        "
+    }
+}
+
+
+#
+# Create all the productions for explaining a goal.
+#
+proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
+
+echo "Creating explanation code for $goal_type"
+
+variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
+
+# Create an explanation structure on the goal
+sp "ngs*explain*goal*${goal_type}*create-explanation
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-is-tagged <goal-id> $NGS_EXPLAIN_TAG_SHOULD_EXPLAIN]
+-->
+	[ngs-create-typed-object-from-stor <goal-id> explanation "
+        NGS_Explain_Goal {
+            id <goal-id>
+            goal-my-type ${goal_type}
+            goal-types { Set {} }
+            children { Set {} }
+            reasons { Set {} }
+        }
+    "]
+"
+# Elaborate types
+sp "ngs*explain*goal*${goal_type}*elaborate-types
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-bind <goal-id> explanation.goal-types]
+	[ngs-is-type <goal-id> <type>]
+-->
+	[ngs-create-attribute <goal-types> goal-type <type>]
+"
+
+# Elaborate children
+sp "ngs*explain*goal*${goal_type}*elaborate-children
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-bind <goal-id> explanation.children]
+	[ngs-is-subgoal <goal-id> <child-goal-id>]
+-->
+	[ngs-create-attribute <children> goal-id <child-goal-id>]
+"
+
+# Elaborate the explanation onto the output
+sp "ngs*explain*goal*${goal_type}*output-explanation
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-bind-explanation <s> $agent_id <explain>]
+	[ngs-bind <explain> current-goal-hierarchy.goals]
+	[ngs-bind <goal-id> explanation]
+-->
+	[ngs-create-attribute <goals> goal <explanation>]
+"
+
+# Tag if this is a root goal
+sp "ngs*explain*goal*${goal_type}*output-root
+	[ngs-match-goal <s> $goal_type <goal-id>]
+	[ngs-bind-explanation <s> $agent_id <explain>]
+	[ngs-not [ngs-is-supergoal <goal-id> <supergoal-id>] ]
+	[ngs-bind <explain> current-goal-hierarchy.roots!Set]
+    [ngs-bind <goal-id> explanation]
+-->
+	[ngs-create-attribute <roots> goal-id <goal-id>]
+"
+
+}
+
