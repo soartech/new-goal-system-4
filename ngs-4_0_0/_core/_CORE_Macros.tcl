@@ -304,13 +304,13 @@ proc CORE_GetCommandOutput { args } {
         set error [catch "eval $args" errorMsg]
         clog --close
 
-        if { $error } {
-            echo $errorMsg
-        }
-
         # reenable echoing to the trace
         script javascript { 
             soar.agent.getPrinter().popWriter();
+        }
+
+        if { $error } {
+            echo $errorMsg
         }
 
         # read the file contents into a tcl var
