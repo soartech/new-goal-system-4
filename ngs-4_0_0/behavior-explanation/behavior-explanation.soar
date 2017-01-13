@@ -31,7 +31,6 @@ proc ngs-bind-explanation { state_id agent_id explanation_id } {
     set output_link_id [CORE_GenVarName "output-link"]
 
     return "
-    [ngs-match-top-state $state_id]
     [ngs-output-link $state_id $output_link_id]
     [ngs-bind $output_link_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:${explanation_id}]
     [ngs-eq $explanation_id $NGS_EXPLAIN_AGENT_ID_ATTRIBUTE $agent_id]
