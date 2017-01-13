@@ -1,12 +1,16 @@
 
 #
-# Create all the productions for explaining a variable
+# Create all the productions for explaining a variable.
+#
+# agent_id - The name of the agent that was used in NGS_Explain_Initialize.
+# pool_goal_or_path - A global context variable pool name, a goal type, or an arbitrary path rooted at the top state.
+#  This is the location where the context variable was stored.
+# category_name - Name of the category into which the variable was placed. Set to NGS_CTX_VAR_USER_LOCATION if you placed the context variable in an arbitrary location speified by a path (see parameter pool_goal_or_path).
+# variable_name - Name of the context variable.
 #
 proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path category_name variable_name } {
     
     variable NGS_CTX_SCOPE_USER
-
-    puts "Creating productions for variable: $pool_goal_or_path $category_name $variable_name"
 
     set var_id <variable>
     set scope_id <scope-id>
@@ -14,9 +18,9 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
     set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name $variable_name]
 
     set scope_type [ngs-ctx-var-get-scope-type $pool_goal_or_path $category_name]
-    puts "Scope type: $scope_type"
 
-    sp* "ngs*explain*variable*$production_name_suffix*create-explanation
+    # Create an explanation structure on the variable.
+    sp "ngs*explain*variable*$production_name_suffix*create-explanation
         $root_bind
 	    [ngs-is-my-type $var_id <variable-type>]
         [ngs-bind $var_id value]
@@ -39,7 +43,7 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
         "]
     "
 
-    # Elaborate the explanation onto the output
+    # Elaborate the explanation onto the output.
     sp "ngs*explain*variable*$production_name_suffix*output-explanation
         $root_bind
         [ngs-bind $var_id ngs*explain*explanation:<explanation>]

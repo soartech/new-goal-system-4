@@ -1,17 +1,28 @@
 
-
 #
 # Behaviour explanation
 #
-# 
+# Use this module to output information about the state of the agent to the output link.
+#
+# To enable explanation, call NGS_Explain_Initialize { agent_id }.
+# This will generate productions for all explainable information (goals, context-variables, etc.)
+# This macro must be called AFTER all goals, context-variables, etc. have been declared,
+#
+# Goals are not explained by default. To enable explanation for a goal, use NGS_Explain_ExplainGoal { goal_list }
 #
 # Example:
-# NGS_CreateExplanationOutput "test-agent"
+#
+# NGS_Explain_Initialize "test-agent"
+# NGS_Explain_ExplainGoal MaintainAwareness DoGreatThing
 #
 
 #
-# Match the explanation structure
+# Match the explanation structure.
 # This should only be called by behaviour explanation code and unit tests.
+#
+# state_id - A variable bound to the top state.
+# agent_id - The name of the agent to bind explanation for.
+# explanation_id - A variable that will be bound to the agent's explanation structure.
 #
 proc ngs-bind-explanation { state_id agent_id explanation_id } {
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
@@ -30,6 +41,8 @@ proc ngs-bind-explanation { state_id agent_id explanation_id } {
 #
 # Initialize behaviour explanation.
 # This creates all the productions that populate the output link with explanation information.
+#
+# agent_id - A name that will be used to identify the agent's explanation.
 #
 proc NGS_Explain_Initialize { agent_id } {
     variable NGS_ALL_GOAL_TYPES

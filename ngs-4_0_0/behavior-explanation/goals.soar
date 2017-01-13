@@ -1,5 +1,9 @@
 
+#
 # Enable explanation for a goal type.
+#
+# args - A list of goal types to explain.
+#
 proc NGS_Explain_ExplainGoal { args } {
 
     # If the arguments are passed in as a list, then process them that way
@@ -22,6 +26,10 @@ proc NGS_Explain_ExplainGoal { args } {
 
 #
 # Create all the productions for explaining a goal.
+# This is called by NGS_Explain_Initialize.
+#
+# agent_id - The name of the agent that was used in NGS_Explain_Initialize.
+# goal_type - The type of the goal to output productions for.
 #
 proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
 
@@ -74,7 +82,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-create-attribute <goals> goal <explanation>]
     "
 
-    # Tag if this is a root goal
+    # If this is a root goal, add it to the set of roots
     sp "ngs*explain*goal*${goal_type}*output-root
         [ngs-match-goal <s> $goal_type <goal-id>]
         [ngs-bind-explanation <s> $agent_id <explain>]
