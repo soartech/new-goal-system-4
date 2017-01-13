@@ -7,6 +7,7 @@
     <member path="ngs-4_0_0/_core" />
     <member path="ngs-4_0_0/context-variables" />
     <member path="ngs-4_0_0/macros" />
+    <member path="ngs-4_0_0/behavior-explanation" />
   </members>
 </soaragent>
 

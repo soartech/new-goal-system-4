@@ -77,7 +77,7 @@ sp "ngs*explain*goal*${goal_type}*output-explanation
 sp "ngs*explain*goal*${goal_type}*output-root
 	[ngs-match-goal <s> $goal_type <goal-id>]
 	[ngs-bind-explanation <s> $agent_id <explain>]
-	[ngs-not [ngs-is-supergoal <goal-id> <supergoal-id>] ]
+	[ngs-is-not-supergoal <goal-id> <supergoal-id>]
 	[ngs-bind <explain> current-goal-hierarchy.roots!Set]
     [ngs-bind <goal-id> explanation]
 -->
