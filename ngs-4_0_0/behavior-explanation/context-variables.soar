@@ -39,15 +39,22 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
                 }
                 id $var_id
                 name $variable_name
-                value <value>
             }
         "]
+    "
+
+    sp "ngs*explain*variable*$production_name_suffix*elaborate-value
+        $root_bind
+        [ngs-bind $var_id @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-bind $var_id value]
+    -->
+        [ngs-create-attribute <explanation> value <value>]
     "
 
     # Elaborate the explanation onto the output.
     sp "ngs*explain*variable*$production_name_suffix*output-explanation
         $root_bind
-        [ngs-bind $var_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-bind $var_id @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-bind-explanation <s> $agent_id <explain>]
         [ngs-bind <explain> context-variables:<variables>]
     -->
