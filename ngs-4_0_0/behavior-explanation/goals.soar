@@ -43,7 +43,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-match-goal <s> $goal_type <goal-id>]
         [ngs-is-tagged <goal-id> $NGS_EXPLAIN_TAG_SHOULD_EXPLAIN]
     -->
-        [ngs-create-typed-object-from-stor <goal-id> explanation "
+        [ngs-create-typed-object-from-stor <goal-id> @NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
             NGS_Explain_Goal {
                 id <goal-id>
                 goal-my-type ${goal_type}
@@ -57,7 +57,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate types
     sp "ngs*explain*goal*${goal_type}*elaborate-types
         [ngs-match-goal <s> $goal_type <goal-id>]
-        [ngs-bind <goal-id> explanation.goal-types]
+        [ngs-bind <goal-id> @NGS_EXPLAIN_EXPLANATION_ATTRIBUTE.goal-types]
         [ngs-is-type <goal-id> <type>]
     -->
         [ngs-create-attribute <goal-types> goal-type <type>]
@@ -66,7 +66,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate children
     sp "ngs*explain*goal*${goal_type}*elaborate-children
         [ngs-match-goal <s> $goal_type <goal-id>]
-        [ngs-bind <goal-id> explanation.children]
+        [ngs-bind <goal-id> @NGS_EXPLAIN_EXPLANATION_ATTRIBUTE.children]
         [ngs-is-subgoal <goal-id> <child-goal-id>]
     -->
         [ngs-create-attribute <children> goal-id <child-goal-id>]
@@ -77,7 +77,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-match-goal <s> $goal_type <goal-id>]
         [ngs-bind-explanation <s> $agent_id <explain>]
         [ngs-bind <explain> current-goal-hierarchy.goals]
-        [ngs-bind <goal-id> explanation]
+        [ngs-bind <goal-id> @NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
     -->
         [ngs-create-attribute <goals> goal <explanation>]
     "
@@ -88,7 +88,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-bind-explanation <s> $agent_id <explain>]
         [ngs-is-not-supergoal <goal-id> <supergoal-id>]
         [ngs-bind <explain> current-goal-hierarchy.roots!Set]
-        [ngs-bind <goal-id> explanation]
+        [ngs-bind <goal-id> @NGS_EXPLAIN_EXPLANATION_ATTRIBUTE]
     -->
         [ngs-create-attribute <roots> goal-id <goal-id>]
     "

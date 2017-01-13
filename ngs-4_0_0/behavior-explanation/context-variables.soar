@@ -26,7 +26,7 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
 	    [ngs-is-my-type $var_id <variable-type>]
         [ngs-bind $var_id value]
     -->
-        [ngs-create-typed-object-from-stor $var_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
+        [ngs-create-typed-object-from-stor $var_id @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
             NGS_Explain_Variable {
                 variable-type <variable-type>
                 scope {
