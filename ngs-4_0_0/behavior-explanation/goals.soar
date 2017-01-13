@@ -77,7 +77,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-match-goal <s> $goal_type <goal-id>]
         [ngs-bind-explanation <s> $agent_id <explain>]
         [ngs-bind <explain> current-goal-hierarchy.goals]
-        [ngs-bind <goal-id> @NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-is-tagged <goal-id> NGS_EXPLAIN_EXPLANATION_ATTRIBUTE <explanation>]
     -->
         [ngs-create-attribute <goals> goal <explanation>]
     "
@@ -88,7 +88,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-bind-explanation <s> $agent_id <explain>]
         [ngs-is-not-supergoal <goal-id> <supergoal-id>]
         [ngs-bind <explain> current-goal-hierarchy.roots!Set]
-        [ngs-bind <goal-id> @NGS_EXPLAIN_EXPLANATION_ATTRIBUTE]
+        [ngs-is-tagged <goal-id> NGS_EXPLAIN_EXPLANATION_ATTRIBUTE <explanation>]
     -->
         [ngs-create-attribute <roots> goal-id <goal-id>]
     "
