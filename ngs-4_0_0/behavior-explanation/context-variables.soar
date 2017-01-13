@@ -11,6 +11,7 @@
 proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path category_name variable_name } {
     
     variable NGS_CTX_SCOPE_USER
+    variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
 
     set var_id <variable>
     set scope_id <scope-id>
@@ -25,7 +26,7 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
 	    [ngs-is-my-type $var_id <variable-type>]
         [ngs-bind $var_id value]
     -->
-        [ngs-create-typed-object-from-stor $var_id ngs*explain*explanation "
+        [ngs-create-typed-object-from-stor $var_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
             NGS_Explain_Variable {
                 variable-type <variable-type>
                 scope {
@@ -46,7 +47,7 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
     # Elaborate the explanation onto the output.
     sp "ngs*explain*variable*$production_name_suffix*output-explanation
         $root_bind
-        [ngs-bind $var_id ngs*explain*explanation:<explanation>]
+        [ngs-bind $var_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-bind-explanation <s> $agent_id <explain>]
         [ngs-bind <explain> context-variables:<variables>]
     -->
