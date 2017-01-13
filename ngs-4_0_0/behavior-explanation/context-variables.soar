@@ -3,49 +3,49 @@
 # Create all the productions for explaining a variable
 #
 proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path category_name variable_name } {
+    
+    variable NGS_CTX_SCOPE_USER
 
-variable NGS_CTX_SCOPE_USER
+    puts "Creating productions for variable: $pool_goal_or_path $category_name $variable_name"
 
-puts "Creating productions for variable: $pool_goal_or_path $category_name $variable_name"
+    set var_id <variable>
+    set scope_id <scope-id>
+    set root_bind [ngs-ctx-var-gen-root-bindings $pool_goal_or_path $category_name $variable_name $var_id $scope_id]
+    set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name $variable_name]
 
-set var_id <variable>
-set scope_id <scope-id>
-set root_bind [ngs-ctx-var-gen-root-bindings $pool_goal_or_path $category_name $variable_name $var_id $scope_id]
-set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name $variable_name]
+    set scope_type [ngs-ctx-var-get-scope-type $pool_goal_or_path $category_name]
+    puts "Scope type: $scope_type"
 
-set scope_type [ngs-ctx-var-get-scope-type $pool_goal_or_path $category_name]
-puts "Scope type: $scope_type"
-
-sp* "ngs*explain*variable*$production_name_suffix*create-explanation
-    $root_bind
-	[ngs-is-my-type $var_id <variable-type>]
-	[ngs-bind $var_id value]
--->
-	[ngs-create-typed-object-from-stor $var_id ngs*explain*explanation "
-        NGS_Explain_Variable {
-            variable-type <variable-type>
-            scope {
-                NGS_Explain_VariableScope {
-                    scope-type $scope_type
-                    scope-id <scope-id>
-                    scope-path |$pool_goal_or_path|
-                    scope-category $category_name
+    sp* "ngs*explain*variable*$production_name_suffix*create-explanation
+        $root_bind
+	    [ngs-is-my-type $var_id <variable-type>]
+        [ngs-bind $var_id value]
+    -->
+        [ngs-create-typed-object-from-stor $var_id ngs*explain*explanation "
+            NGS_Explain_Variable {
+                variable-type <variable-type>
+                scope {
+                    NGS_Explain_VariableScope {
+                        scope-type $scope_type
+                        scope-id <scope-id>
+                        scope-path |$pool_goal_or_path|
+                        scope-category $category_name
+                    }
                 }
+                id $var_id
+                name $variable_name
+                value <value>
             }
-            id $var_id
-            name $variable_name
-            value <value>
-        }
-    "]
-"
+        "]
+    "
 
-# Elaborate the explanation onto the output
-sp "ngs*explain*variable*$production_name_suffix*output-explanation
-    $root_bind
-	[ngs-bind $var_id ngs*explain*explanation:<explanation>]
-	[ngs-bind-explanation <s> $agent_id <explain>]
-	[ngs-bind <explain> context-variables:<variables>]
--->
-	[ngs-create-attribute <variables> context-variable <explanation>]
-"
+    # Elaborate the explanation onto the output
+    sp "ngs*explain*variable*$production_name_suffix*output-explanation
+        $root_bind
+        [ngs-bind $var_id ngs*explain*explanation:<explanation>]
+        [ngs-bind-explanation <s> $agent_id <explain>]
+        [ngs-bind <explain> context-variables:<variables>]
+    -->
+        [ngs-create-attribute <variables> context-variable <explanation>]
+    "
 }

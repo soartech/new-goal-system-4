@@ -43,35 +43,35 @@ proc NGS_Explain_Initialize { agent_id } {
     variable NGS_EXPLAIN_TASK_AWARENESS_ATTRIBUTE 
 
 
-# Create the root explanation object
-sp "ngs*explain*create-root-output*${agent_id}
-	[ngs-match-top-state <s>]
-	[ngs-output-link <s> <ol>]
--->
-	[ngs-create-typed-object-from-stor <ol> $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
-        NGS_Explain_Explanation {
-            $NGS_EXPLAIN_AGENT_ID_ATTRIBUTE $agent_id
-            $NGS_EXPLAIN_CONTEXT_VARIABLES_ATTRIBUTE { Set {} }
-            $NGS_EXPLAIN_GOAL_HIERARCHY_ATTRIBUTE { NGS_Explain_GoalHierarchy {
-                roots { Set {} }
-                goals { Set {} }
-            } }
-            $NGS_EXPLAIN_TASK_AWARENESS_ATTRIBUTE { NGS_Explain_TaskAwareness {} }
-            $NGS_EXPLAIN_INTERNAL_OPERATING_PICTURE_ATTRIBUTE { NGS_Explain_InternalOperatingPicture {} }
-        }
-    "]
-"
+    # Create the root explanation object
+    sp "ngs*explain*create-root-output*${agent_id}
+        [ngs-match-top-state <s>]
+        [ngs-output-link <s> <ol>]
+    -->
+        [ngs-create-typed-object-from-stor <ol> $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
+            NGS_Explain_Explanation {
+                $NGS_EXPLAIN_AGENT_ID_ATTRIBUTE $agent_id
+                $NGS_EXPLAIN_CONTEXT_VARIABLES_ATTRIBUTE { Set {} }
+                $NGS_EXPLAIN_GOAL_HIERARCHY_ATTRIBUTE { NGS_Explain_GoalHierarchy {
+                    roots { Set {} }
+                    goals { Set {} }
+                } }
+                $NGS_EXPLAIN_TASK_AWARENESS_ATTRIBUTE { NGS_Explain_TaskAwareness {} }
+                $NGS_EXPLAIN_INTERNAL_OPERATING_PICTURE_ATTRIBUTE { NGS_Explain_InternalOperatingPicture {} }
+            }
+        "]
+    "
 
-# Create productions for all explainable types
-foreach goal_type $NGS_ALL_GOAL_TYPES {
-    NGS_Explain_CreateProductionsForGoal $agent_id $goal_type
-}
-
-foreach context_variable $NGS_CTX_ALL_VARIABLES {
-    set pool [dict get $context_variable pool]
-    set category [dict get $context_variable category]
-    set name [dict get $context_variable name]
-    NGS_Explain_CreateProductionsForVariable $agent_id $pool $category $name
-}
+    # Create productions for all explainable types
+    foreach goal_type $NGS_ALL_GOAL_TYPES {
+        NGS_Explain_CreateProductionsForGoal $agent_id $goal_type
+    }
+    
+    foreach context_variable $NGS_CTX_ALL_VARIABLES {
+        set pool [dict get $context_variable pool]
+        set category [dict get $context_variable category]
+        set name [dict get $context_variable name]
+        NGS_Explain_CreateProductionsForVariable $agent_id $pool $category $name
+    }
 
 }
