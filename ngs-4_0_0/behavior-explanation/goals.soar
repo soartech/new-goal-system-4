@@ -41,12 +41,13 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Create an explanation structure on the goal
     sp "ngs*explain*goal*${goal_type}*create-explanation
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> <goal-my-type>]
         [ngs-is-tagged <goal-id> $NGS_EXPLAIN_TAG_SHOULD_EXPLAIN ${goal_type}]
     -->
         [ngs-create-typed-object-from-stor <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
             NGS_Explain_Goal {
                 id <goal-id>
-                goal-my-type ${goal_type}
+                goal-my-type <goal-my-type>
                 goal-types { Set {} }
                 children { Set {} }
                 reasons { Set {} }
