@@ -304,7 +304,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                 } elseif { [string is integer $attr_val] == 1 } {
                     lappend attribute_info ""
                 } elseif { [string is double $attr_val] == 1 } {
-                    lappend attribute_info "double"
+                    lappend attribute_info ""
                 } elseif { $attr_val == $NGS_YES || $attr_val == $NGS_NO || $attr_val == $NGS_UNKNOWN } {
                     lappend attribute_info ""
                 } else {
