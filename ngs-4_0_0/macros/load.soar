@@ -3,6 +3,8 @@ CORE_InternalSource ngs-variables.tcl
 CORE_InternalSource typeinfo.tcl
 CORE_InternalSource type-declarations.tcl
 
+CORE_InternalSource logHelpers.soar
+
 CORE_InternalSource lhs-fragments.tcl
 CORE_InternalSource rhs-fragments.tcl
 
@@ -10,3 +12,4 @@ CORE_InternalSource debug.tcl
 CORE_InternalSource ngs-production-template.tcl
 
 CORE_InternalSource stor.tcl
+

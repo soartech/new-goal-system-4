@@ -1118,6 +1118,32 @@ proc ngs-add-write-side-effect { text {op_id ""}} {
           ($se_id ^action $NGS_SIDE_EFFECT_WRITE ^text (concat [ngs-process-string-for-writelog $text]))"
 }
 
+# Adds a side-effect to an operator
+#
+# This version works for logging to the trace when the operator is applied. Use ngs-set-log-level to configure.
+# On jsoar, it also logs to slf4j and can be configured in more detail via the log command.
+#
+# A side effect is an additional action that can be taken for most operators.
+# 
+# NOTE: Side effects cannot use the identifier generated through a create-X macro
+#  in the same productions. The reason for this limitation is the fact that any
+#  identifier linked to an object being created in the same production is temporary.
+#  The final identifier for the object will not be created until the last phase
+#  of the construction process and is not accessible to a variable in the production.
+#
+# [ngs-add-log-side-effect text (op_id)]
+#
+# loggerName - the name of the logger to log to. Can be any useful string without whitespace.
+# level      - the level to log at. Use one of: NGS_TRACE, NGS_DEBUG, NGS_INFO, NGS_WARN, NGS_ERROR
+# text  - The text to write to the trace. This can contain Soar variables, which will be substituted.
+#           For example, if text is "Doing something to object <obj>", <obj> will be treated as a Soar
+#           variable whose value will get substituted in the text at runtime. There is no need to use
+#           Soar syntax with pipes to achieve this like you would in raw Soar code.
+# op_id - (Optional) A variable bound to the operator to which to add the side effect. By default the 
+#            variable used is $NGS_OP_ID (which is used for all ngs macros). You will need to use this
+#            parameter if you are elaborating the side effect onto the operator separately from the 
+#            production that created it.
+#
 proc ngs-add-log-side-effect { loggerName level text {op_id ""}} {
   variable NGS_OP_ID
   variable NGS_SIDE_EFFECT_LOG
@@ -1133,10 +1159,32 @@ proc ngs-add-log-side-effect { loggerName level text {op_id ""}} {
   }
 }
 
+# Write to the trace when the rule fires.
+# Note: Automatically includes the "crlf" typically included with RHS writes.
+# Note: If you want to write something when an operator is applied, use ngs-add-write-side-effect.
+#
+# [ngs-write text]
+#
+# text  - The text to write to the trace. This can contain Soar variables, which will be substituted.
+#           For example, if text is "Doing something to object <obj>", <obj> will be treated as a Soar
+#           variable whose value will get substituted in the text at runtime. There is no need to use
+#           Soar syntax with pipes to achieve this like you would in raw Soar code.
 proc ngs-write { text } {
         return "(write (crlf) [ngs-process-string-for-writelog $text])"
 }
 
+# Log to the trace when the rule fires. Use ngs-set-log-level to configure.
+# On jsoar, it also logs to slf4j and can be configured in more detail via the log command.
+# Note: If you want to log something when an operator is applied, use ngs-add-log-side-effect.
+#
+# [ngs-log loggerName level text]
+#
+# loggerName - the name of the logger to log to. Can be any useful string without whitespace.
+# level      - the level to log at. Use one of: NGS_TRACE, NGS_DEBUG, NGS_INFO, NGS_WARN, NGS_ERROR
+# text  - The text to write to the trace. This can contain Soar variables, which will be substituted.
+#           For example, if text is "Doing something to object <obj>", <obj> will be treated as a Soar
+#           variable whose value will get substituted in the text at runtime. There is no need to use
+#           Soar syntax with pipes to achieve this like you would in raw Soar code.
 proc ngs-log { loggerName level text } {
     variable SOAR_IMPLEMENTATION
     variable JSOAR
@@ -1153,71 +1201,6 @@ proc ngs-log { loggerName level text } {
             return "# logging disabled; use ngs-set-log-level to change"
         }
     }
-}
-
-# For internal use
-# Preps a string for being passed to the write or log RHS functions
-# Takes a string that includes soar vars, surround the vars with pipes, and then concat the whole text together
-# E.g., turns "foo <bar>" into "(concat |foo |<bar>||)", which can then be passed to write or log
-#       to be printed such that the soar vars get bound properly at runtime
-proc ngs-process-string-for-writelog { text } {
-  # this regex says to find "<" followed by one or more non-whitespace chars followed by ">"
-  set regex {\<(\S+)\>}
-  # surround all found soar variables with pipes
-  set textWithVars [regsub -all $regex $text {|<\1>|}]
-  return |$textWithVars|
-}
-
-# For internal use
-# Compares the specified log level to the current log level to determine if logging should take place
-# Only used by csoar 
-proc ngs-should-log { level } {
-    CORE_RefMacroVars 
-    
-    set mapping "$NGS_TRACE 0 $NGS_DEBUG 1 $NGS_INFO 2 $NGS_WARN 3 $NGS_ERROR 4 "
-    set levelInt [string map -nocase $mapping $level]
-    set curLevelInt [string map -nocase $mapping $NGS_LOG_LEVEL]
-    return [expr $levelInt >= $curLevelInt]
-}
-
-# Sets or displays the current log level. Impacts how ngs-log and ngs-add-log-side-effect work.
-# For jsoar, this passes through to the log command, and thus can be changed at runtime
-# For csoar, this sets a variable that only has effect at load time, and thus cannot be changed at runtime
-#
-# level - (Optional) If not specified, the current log settings are displayed. Can be set
-#         to one of $NGS_TRACE, $NGS_DEBUG, $NGS_INFO, $NGS_WARN, or $NGS_ERROR. Calls to
-#         ngs-log or ngs-add-log-side-effect will be shown if their log level is at or above
-#         the log level specified here.
-proc ngs-set-log-level { {level ""} } {
-    variable NGS_LOG_LEVEL
-    variable NGS_TRACE
-    variable NGS_DEBUG
-    variable NGS_INFO
-    variable NGS_WARN
-    variable NGS_ERROR
-    variable SOAR_IMPLEMENTATION
-    variable JSOAR
-
-    if { $SOAR_IMPLEMENTATION eq $JSOAR } {
-        if { $level eq "" } {
-            log
-        } else {
-            log --level $level
-        }
-    } else {
-        if { $level eq "" } {
-            echo "Log level: $NGS_LOG_LEVEL"
-        } else {
-            set mapping "$NGS_TRACE 0 $NGS_DEBUG 1 $NGS_INFO 2 $NGS_WARN 3 $NGS_ERROR 4"
-            set levelInt [string map -nocase $mapping $level]
-            if { [string match {[12345]} $levelInt] } {
-                set NGS_LOG_LEVEL $level
-            } else {
-                echo "Log level '$level' is invalid. Valid log levels are \$NGS_TRACE, \$NGS_DEBUG, \$NGS_INFO, \$NGS_WARN, \$NGS_ERROR"
-            }
-        }
-    }
-    
 }
 
 # Create an i-supported goal

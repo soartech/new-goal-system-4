@@ -1,0 +1,69 @@
+##!
+# @file
+#
+# @created bob.marinier 20170206
+
+# Sets or displays the current log level. Impacts how ngs-log and ngs-add-log-side-effect work.
+# For jsoar, this passes through to the log command, and thus can be changed at runtime
+# For csoar, this sets a variable that only has effect at load time, and thus cannot be changed at runtime
+#
+# level - (Optional) If not specified, the current log settings are displayed. Can be set
+#         to one of $NGS_TRACE, $NGS_DEBUG, $NGS_INFO, $NGS_WARN, or $NGS_ERROR. Calls to
+#         ngs-log or ngs-add-log-side-effect will be shown if their log level is at or above
+#         the log level specified here.
+proc ngs-set-log-level { {level ""} } {
+    variable NGS_LOG_LEVEL
+    variable NGS_TRACE
+    variable NGS_DEBUG
+    variable NGS_INFO
+    variable NGS_WARN
+    variable NGS_ERROR
+    variable SOAR_IMPLEMENTATION
+    variable JSOAR
+
+    if { $SOAR_IMPLEMENTATION eq $JSOAR } {
+        if { $level eq "" } {
+            log
+        } else {
+            log --level $level
+        }
+    } else {
+        if { $level eq "" } {
+            echo "Log level: $NGS_LOG_LEVEL"
+        } else {
+            set mapping "$NGS_TRACE 0 $NGS_DEBUG 1 $NGS_INFO 2 $NGS_WARN 3 $NGS_ERROR 4"
+            set levelInt [string map -nocase $mapping $level]
+            if { [string match {[12345]} $levelInt] } {
+                set NGS_LOG_LEVEL $level
+            } else {
+                echo "Log level '$level' is invalid. Valid log levels are \$NGS_TRACE, \$NGS_DEBUG, \$NGS_INFO, \$NGS_WARN, \$NGS_ERROR"
+            }
+        }
+    }
+    
+}
+
+# For internal use
+# Compares the specified log level to the current log level to determine if logging should take place
+# Only used by csoar 
+proc ngs-should-log { level } {
+    CORE_RefMacroVars 
+    
+    set mapping "$NGS_TRACE 0 $NGS_DEBUG 1 $NGS_INFO 2 $NGS_WARN 3 $NGS_ERROR 4 "
+    set levelInt [string map -nocase $mapping $level]
+    set curLevelInt [string map -nocase $mapping $NGS_LOG_LEVEL]
+    return [expr $levelInt >= $curLevelInt]
+}
+
+# For internal use
+# Preps a string for being passed to the write or log RHS functions
+# Takes a string that includes soar vars, surround the vars with pipes, and then concat the whole text together
+# E.g., turns "foo <bar>" into "(concat |foo |<bar>||)", which can then be passed to write or log
+#       to be printed such that the soar vars get bound properly at runtime
+proc ngs-process-string-for-writelog { text } {
+  # this regex says to find "<" followed by one or more non-whitespace chars followed by ">"
+  set regex {\<(\S+)\>}
+  # surround all found soar variables with pipes
+  set textWithVars [regsub -all $regex $text {|<\1>|}]
+  return |$textWithVars|
+}
