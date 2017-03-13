@@ -45,10 +45,15 @@ variable NGS_TYPE_OUTPUT_COMMAND
 #
 # HierarchicalBag a bag where each member is itself a bag
 #
+# Tuple is just 2 or more values
+# A pair is two values
+#
 NGS_DeclareType Set {}
 NGS_DeclareType HierarchicalSet { }
 NGS_DeclareType Bag {}
 NGS_DeclareType HierarchicalBag { }
+NGS_DeclareType Tuple { }
+NGS_DeclareType Pair  { type Tuple }
 
 # The standard system information structure (contains times and cycle-counts)
 # The time attribute is computed using the productions in ngs-standard-time-elaborations.soar
