@@ -1,7 +1,5 @@
 # NOTE: These methods don't work as well as I'd hoped. Need to rethink the dashboard processes
 
-set TRIM_DEFAULTS " \n\r\t"
-
 # NGS Print 
 #
 # This is a specialized version of Soar's p (or print) command.
@@ -180,7 +178,7 @@ proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
 
 proc ngs-debug-process-id-print { line } {
 
-    variable TRIM_DEFAULTS
+    set TRIM_DEFAULTS " \n\r\t"
 
     set ret_list ""
     set attr_value_pairs [split $line "^"]
