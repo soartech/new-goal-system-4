@@ -1,0 +1,109 @@
+##!
+# @file
+#
+# @created jacobcrossman 20170317
+
+#################
+
+# Creates an explanation data structure defining an internal operating picture element
+# 
+# The Internal Operating Picture (IOP) is the model's internal representation of the spatial objects in the world
+# Because the IOP is very domain specific, the explanation support code has to be very general (and thus, 
+#  provides less help to the programmer).
+#
+# This macro creates a structure that will be tagged to the source_id object. This structure will store meta-information
+#  about the IOP item (like its type and name)
+#
+# Call NGS_Explain_CreateProductionsForIOPElement to create the productions that  actually manage the output of the
+#  explanation data.
+#
+# source_id - Identifier to the object that will maintain the explanation data. The explanation data will be tagged onto this object
+# my_type - The type of explanation objecct. It should be one of the IOPSpatialObject objects in types.tcl or a type derived from this.
+# unique_name - A unique name for this explanation item. This will show up in a display for the user.
+# explanation_id - (Optional) If provided, this will be bound to the identifier for the explanation structure. Use this if you need
+#                  to add arbitrary other information to the explanation structure.
+# attributes - (Optional) If provided, a list of { name value } pairs in a list that will be inserted into the new explanation structure.
+#                  This is typically used to set the attributes for the specific type of IOPSpatialObject being created.
+#
+proc ngs-create-iop-explanation-element { source_id my_type unique_name { explanation_id "" } { attributes "" } } {
+
+    variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+    
+    CORE_GenVarIfEmpty explanation_id "explanation-object"
+    set explanation_tag "$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE*$unique_name"
+    return [ngs-create-typed-object $source_id @$explanation_tag $my_type \
+                                    $explanation_id "name $unique_name $attributes"]
+
+}
+
+# Construct productions that maintain IOP explanation structure
+# 
+# There are two types of productions that are necessary:
+# 1. Productions to fill the explanation data with updated values when the spatial data changes
+# 2. Productions to synchronize the explanation output process with the explanation data tag.
+#
+# To make this process relatively painless, this macro lets you specify multiple values to insert into 
+#  the explanation structure in just one call. For example,
+#
+# NGS_Explain_CreateProductionsForIOPElement my-agent-1 me my-agent.me.my-cur-state { 
+#    { pose.location    location    }
+#    { pose.orientation orientation } 
+#    { velocity         velocity    } 
+# } 
+#
+# The first line is just bookkeeping information (see the parameter descriptions). The list describes
+#  mappings from the model's natural data storage (left) to the explanation object's attribute (right)
+#  So, for example, the explanation object needs a location field. In this example, it would get that
+#  location from pose.location stored at my-agent.me.my-cur-state (full path: my-agent.me.my-cur-state.pose.location).
+#
+# agent_id - A string unique to this agent. This is used by the explanation UI to differentiate between explanation data
+#             it is recieving from multiple agents (it is also used to allow a single Soar model to execute multiple agents).
+# unique_name - A string with a unique name for the explanation data. This should match the unique_name provided in the
+#               call to ngs-create-iop-explanation-element.
+# path_to_object - Path to the object containing the explanation tag created in ngs-create-iop-explanation-element
+# values_to_update - A list of lists where each sub-list is a { source destination } pair as shown in the example above.
+#                  The source is a path to a variable, where the path is rooted at path_to_object.  I.e. 
+#                  $path_to_object.$source should be a valid reference to the source value. Destination is the name
+#                  of the IOPSpatialObject attribute that should be set to match the source. 
+#
+proc NGS_Explain_CreateProductionsForIOPElement { agent_id unique_name path_to_object values_to_update } {
+
+    variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+
+    set explanation_tag "$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE*$unique_name"
+    set production_suffix "[string map { "." "*" } $path_to_object]*$unique_name"
+
+    # Iterate over each given value and create production that updates the explanation
+    #  data each time that object is updated
+    foreach value_to_update $values_to_update {
+
+        set value            [lindex $value_to_update 0]
+        set explanation_attr [lindex $value_to_update 1]
+
+        if { $value != "" } {
+            set val_soar_var [CORE_GenVarName "value"]
+            sp "ngs*explain*iop*update-value*$production_suffix*$explanation_attr
+                [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
+                [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
+                [ngs-bind <object-to-explain> $value:$val_soar_var]
+            -->
+                [ngs-create-attribute <explanation> $explanation_attr $val_soar_var]"
+        } else {
+            sp "ngs*explain*iop*update-value*$production_suffix*$explanation_attr
+                [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
+                [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
+            -->
+                [ngs-create-attribute <explanation> $explanation_attr <object-to-explain>]"
+        }
+
+    }
+
+    # Places explanation object on the output link
+    sp "ngs*explain*iop*link-to-output*$production_suffix
+        [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
+        [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
+        [ngs-bind-explanation <s> $agent_id <explanation-output>]
+        [ngs-bind <explanation-output> internal-operating-picture]
+    -->
+        [ngs-create-attribute <internal-operating-picture> element <explanation>]"
+}

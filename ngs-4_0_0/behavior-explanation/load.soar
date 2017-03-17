@@ -5,3 +5,5 @@ CORE_InternalSource goals.soar
 CORE_InternalSource context-variables.soar
 
 CORE_InternalSource behavior-explanation.soar
+
+CORE_InternalSource internal-operating-picture.soar
