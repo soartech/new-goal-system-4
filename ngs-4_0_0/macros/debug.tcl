@@ -1,5 +1,6 @@
 # NOTE: These methods don't work as well as I'd hoped. Need to rethink the dashboard processes
 
+set TRIM_DEFAULTS " \n\r\t"
 
 # NGS Print 
 #
@@ -39,6 +40,7 @@ proc np { args } {
         if {[string index [CORE_GetCommandOutput print $id] 0] != "("} {
             echo "$print_this $id does not exist"
         } else {
+            #echo $print_this
 	        set print_this "$print_this [ngs-print-identifiers-attributes-details $id 1 $depth prev_id_list]"
 	        echo $print_this
         }
@@ -103,8 +105,8 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
                     set print_this "$print_this ($attr_type)"
                }
             } else {
-               set print_this "$print_this\n$prefix $attr_name: [ngs-print-identifiers-attributes-details $attr_value \
-                                                [expr $level + 1] $target_level id_dict]"
+               #echo "ngs-print-identifiers-attributes-details $attr_value [expr $level + 1] $target_level \{$id_dict\}"
+               set print_this "$print_this\n$prefix $attr_name: [ngs-print-identifiers-attributes-details $attr_value [expr $level + 1] $target_level id_dict]"
             }
         }
     }
@@ -123,8 +125,8 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             if { $level == $target_level || [dict exists $id_dict $op_value] == 1 } {
                set print_this "$print_this\n$prefix $op_attr: $op_value ($op_name)"
             } else {
-               set print_this "$print_this\n$prefix $op_attr: [ngs-print-identifiers-attributes-details $op_value \
-                                                [expr $level + 1] $target_level id_dict]"
+               #echo "OPERATOR: ngs-print-identifiers-attributes-details $op_value [expr $level + 1] $target_level \{$id_dict\}"
+               set print_this "$print_this\n$prefix $op_attr: [ngs-print-identifiers-attributes-details $op_value [expr $level + 1] $target_level id_dict]"
             }
         }
     }
@@ -140,8 +142,8 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
                     set print_this "$print_this ($tag_type)"
                }
             } else {
-               set print_this "$print_this\n$prefix TAG: $tag_name: [ngs-print-identifiers-attributes-details $tag_value \
-                                                [expr $level + 1] $target_level id_dict]"
+               #echo "TAG: ngs-print-identifiers-attributes-details $tag_value [expr $level + 1] $target_level \{$id_dict\}"
+               set print_this "$print_this\n$prefix TAG: $tag_name: [ngs-print-identifiers-attributes-details $tag_value [expr $level + 1] $target_level id_dict]"
             }
         }
     }
@@ -178,23 +180,25 @@ proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
 
 proc ngs-debug-process-id-print { line } {
 
+    variable TRIM_DEFAULTS
+
     set ret_list ""
     set attr_value_pairs [split $line "^"]
 
     foreach pair $attr_value_pairs {
         if { [string index $pair 0] != "("  && $pair != " " } {
 
-	        set $pair [string trim $pair " )"]
+	        set $pair [string trim $pair "$TRIM_DEFAULTS)"]
 	        set end_of_attribute [string first " " $pair]
 	        if { $end_of_attribute > 0 } {
-	            lappend ret_list [string trim [string range $pair 0 $end_of_attribute] " )"]
+	            lappend ret_list [string trim [string range $pair 0 $end_of_attribute] "$TRIM_DEFAULTS)"]
 	            
-	            set value     [string trim [string range $pair $end_of_attribute end] " )"]
+	            set value     [string trim [string range $pair $end_of_attribute end] "$TRIM_DEFAULTS)"]
 	            if { [string index $value end] != "+" } { 
 	                lappend ret_list $value
 	            } else {
                     set end_of_value [expr [string length $value] - 2]
-	                lappend ret_list [string trim [string range $value 0 $end_of_value] " )"]
+	                lappend ret_list [string trim [string range $value 0 $end_of_value] " $TRIM_DEFAULTS)"]
                     lappend ret_list "+"
 	            }
 	        }
@@ -440,8 +444,7 @@ proc ngs-print-goal-tree-recursive { goal_id forest_dict level } {
                     variable NGS_TAG_SELECTION_STATUS
                     variable NGS_NO
                     variable NGS_YES
-                    set selected_tag [ngs-debug-get-single-id-for-attribute $deciding_goal_id \
-                                                [ngs-tag-for-name $NGS_TAG_SELECTION_STATUS]]
+                    set selected_tag [ngs-debug-get-single-id-for-attribute $deciding_goal_id [ngs-tag-for-name $NGS_TAG_SELECTION_STATUS]]
                     if { $selected_tag == "$NGS_NO" } {            
                         set print_list_of_goals "$print_list_of_goals $deciding_goal_id-"
                     } elseif { $selected_tag == "$NGS_YES" } {
