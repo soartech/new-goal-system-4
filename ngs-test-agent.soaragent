@@ -7,7 +7,13 @@
     <member path="ngs-4_0_0/_core" />
     <member path="ngs-4_0_0/context-variables" />
     <member path="ngs-4_0_0/macros" />
-    <member path="ngs-4_0_0/behavior-explanation" />
+    <member path="ngs-4_0_0/behavior-explanation/behavior-explanation.soar" />
+    <member path="ngs-4_0_0/behavior-explanation/context-variables.soar" />
+    <member path="ngs-4_0_0/behavior-explanation/goals.soar" />
+    <member path="ngs-4_0_0/behavior-explanation/internal-operating-picture.soar" />
+    <member path="ngs-4_0_0/behavior-explanation/load.soar" />
+    <member path="ngs-4_0_0/behavior-explanation/types.tcl" />
+    <member path="ngs-4_0_0/behavior-explanation/variables.tcl" />
   </members>
 </soaragent>
 
