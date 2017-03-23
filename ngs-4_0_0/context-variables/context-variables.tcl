@@ -494,24 +494,32 @@ proc ngs-ctx-var-get-scope-type { pool_goal_or_path category_name } {
 # scope_id - (Optional) If provided, Soar variable to which to bind either the goal id (for goals), the
 #   category id (for globals), or the object id (for user defined paths).
 #
-proc ngs-ctx-var-gen-root-bindings { pool_goal_or_path category_name variable_name var_id { scope_id "" }} {
+proc ngs-ctx-var-gen-root-bindings { pool_goal_or_path category_name { variable_name "" } { var_id "" } { scope_id "" } { goal_id ""} } {
 	variable NGS_CTX_SCOPE_USER
 	variable NGS_CTX_SCOPE_GOAL
 	variable NGS_CTX_SCOPE_GLOBAL
 
 	if { $scope_id == "" } { set scope_id [CORE_GenVarName "scope-id"] }
-	set goal_id $scope_id
-    set cat_id  [CORE_GenVarName "cat-pool"]
 
-	set scope_type [ngs-ctx-var-get-scope-type $pool_goal_or_path $category_name]
+    set scope_type [ngs-ctx-var-get-scope-type $pool_goal_or_path $category_name]
+
+    if { $var_id == "" } {
+        set var_binding ""
+    } elseif { $scope_type == $NGS_CTX_SCOPE_USER } {
+        set var_binding ".$variable_name:$var_id"
+    } else {
+        set var_binding "$variable_name:$var_id"
+    }
+
 	if { $scope_type == $NGS_CTX_SCOPE_USER } {
-        return "[ngs-match-top-state <s> [ngs-expand-tags $pool_goal_or_path]:$scope_id.$variable_name:$var_id]"
+        return "[ngs-match-top-state <s> [ngs-expand-tags $pool_goal_or_path]:$scope_id$var_binding]"
 	} elseif { $scope_type == $NGS_CTX_SCOPE_GOAL } {
+        CORE_GenVarIfEmpty goal_id "goal"
 		return "[ngs-match-goal <s> $pool_goal_or_path $goal_id]
-                [ngs-bind-goal-ctx $goal_id $category_name:$cat_id $variable_name:$var_id]"
+                [ngs-bind-goal-ctx $goal_id $category_name:$scope_id $var_binding]"
 	} elseif { $scope_type == $NGS_CTX_SCOPE_GLOBAL } {
 		return "[ngs-match-top-state <s>]
-                [ngs-bind-global-ctx <s> $pool_goal_or_path $category_name:$scope_id $variable_name:$var_id]"
+                [ngs-bind-global-ctx <s> $pool_goal_or_path $category_name:$scope_id $var_binding]"
 	}
 }
 
