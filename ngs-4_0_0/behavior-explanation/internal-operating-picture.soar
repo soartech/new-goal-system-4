@@ -36,6 +36,35 @@ proc ngs-create-iop-explanation-element { source_id my_type unique_name { explan
 
 }
 
+
+# Bind the explanation data structure for an object.
+#
+# source_id - Identifier to the object that maintains the explanation data.
+# unique_name - The unique name for this explanation item.
+# explanation_id - A variable that will be bound to the identifier for the explanation structure.
+proc ngs-bind-iop-explanation-element { source_id unique_name explanation_id } {
+
+    variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+
+    set explanation_tag "$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE*$unique_name"
+    return [ngs-is-tagged $source_id $explanation_tag $explanation_id]
+}
+
+
+# Bind the internal operating picture explanation
+#
+# state_id - A variable bound to the state object
+# agent_id - A string unique to this agent. This is used by the explanation UI to differentiate between explanation data
+# iop_id - A variable that will be bound to the IOP explanation.
+proc ngs-bind-explanation-iop { state_id agent_id iop_id } {
+
+    set explanation_id [CORE_GenVarName "explanation"]
+
+    return "[ngs-bind-explanation $state_id $agent_id $explanation_id]
+            [ngs-bind $explanation_id internal-operating-picture:$iop_id]"
+}
+
+
 # Construct productions that maintain IOP explanation structure
 # 
 # There are two types of productions that are necessary:
