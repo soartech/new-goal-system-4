@@ -13,7 +13,7 @@
 #  object. Decision logic then binds to the synced object (which forms an immutable API) while
 #  you can change how the data is sourced.
 #
-# Unlike other contet variables, there is no corresponding ngs-create- macro. You can sync any object you like.
+# Unlike other context variables, there is no corresponding ngs-create- macro. You can sync any object you like.
 #  If you want a synced object to be created when you define the syncing productions, you need to pass
 #  a tuple of (variable_name scope_key type_name) in as the variable_name_or_tuple parameter.
 #  If you pass these values in, the system will construct a synced objet of the given type_name whenever
