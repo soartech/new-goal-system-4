@@ -37,6 +37,8 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
 
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
     variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
+    variable NGS_TAG_SELECTION_STATUS
+    variable NGS_YES
 
     # Create an explanation structure on the goal
     sp "ngs*explain*goal*${goal_type}*create-explanation
@@ -71,6 +73,24 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-is-subgoal <goal-id> <child-goal-id>]
     -->
         [ngs-create-attribute <children> goal-id <child-goal-id>]
+    "
+
+    # Elaborate reasons
+    sp "ngs*explain*goal*${goal_type}*elaborate-reason
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE.reasons]
+        [ngs-bind <goal-id> reason]
+    -->
+        [ngs-create-attribute <reasons> reason <reason>]
+    "
+
+    # Elaborate selected
+    sp "ngs*explain*goal*${goal_type}*elaborate-selected
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-tagged <goal-id> $NGS_TAG_SELECTION_STATUS]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+    -->
+        [ngs-create-attribute <explanation> selected $NGS_YES]
     "
 
     # Elaborate the explanation onto the output
