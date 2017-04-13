@@ -99,7 +99,7 @@ proc ngs-bind-explanation-iop { state_id agent_id iop_id } {
 #          This argument is a { path name } pair where `path` is the path to the parent
 #          IOP object, and `name` is the unique name of that object's IOP explanation.
 #
-proc NGS_Explain_CreateProductionsForIOPElement { agent_id unique_name path_to_object values_to_update { parent "" } } {
+proc NGS_Explain_CreateProductionsForIOPElement { agent_id unique_name path_to_object values_to_update { children "" } } {
 
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
 
@@ -123,7 +123,8 @@ proc NGS_Explain_CreateProductionsForIOPElement { agent_id unique_name path_to_o
                 [ngs-bind <object-to-explain> $value:$val_soar_var]
                 [ngs-bind-iop-explanation-element $val_soar_var $value <value-explanation>]
             -->
-                [ngs-create-attribute <explanation> $explanation_attr <value-explanation>]"
+                [ngs-create-attribute <explanation> $explanation_attr <value-explanation>]
+                [ngs-tag <value-explanation> is-a-child]"
 
             # ... otherwise, use the value itself.
             sp "ngs*explain*iop*update-value*$production_suffix*$explanation_attr*without-explanation
@@ -143,37 +144,41 @@ proc NGS_Explain_CreateProductionsForIOPElement { agent_id unique_name path_to_o
 
     }
 
-    # Create a prodution to link this structure to the explanation output or to a parent
-    # explanation, depending on whether a parent was provided
-    if { $parent == "" } {
-        # Places explanation object on the output link
-        sp "ngs*explain*iop*link-to-output*$production_suffix
-            [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
-            [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
-            [ngs-bind-explanation <s> $agent_id <explanation-output>]
-            [ngs-bind <explanation-output> internal-operating-picture]
-        -->
-            [ngs-create-attribute <internal-operating-picture> element <explanation>]"
-    } else {
+    # Place the explanation object on the output link
+    # (but only if it isn't a child of another explanation)
+    sp "ngs*explain*iop*link-to-output*$production_suffix
+        [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
+        [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
+        [ngs-bind-explanation <s> $agent_id <explanation-output>]
+        [ngs-is-not-tagged <explanation> is-a-child]
+        [ngs-bind <explanation-output> internal-operating-picture]
+    -->
+        [ngs-create-attribute <internal-operating-picture> element <explanation>]"
 
-        set path_to_parent_object [lindex $parent 0]
-        set parent_name           [lindex $parent 1]
-
+    if { $children != "" } {
         # Creates a Set on the parent object
         sp "ngs*explain*iop*create-set-for-children*$production_suffix
-            [ngs-match-top-state <s> $path_to_parent_object:<parent>]
-            [ngs-bind-iop-explanation-element <parent> $parent_name <parent-explanation>]
+            [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
+            [ngs-bind-iop-explanation-element <object-to-explain> $unique_name <explanation>]
         -->
-            [ngs-create-typed-object <parent-explanation> children Set <children>]"
+            [ngs-create-typed-object <explanation> children Set <children>]"
+    }
 
-        # Places explanation object on a parent explanation object
-        sp "ngs*explain*iop*link-to-parent*$production_suffix
+    # Explain children
+    foreach child $children {
+        set path_to_child [lindex $child 0]
+        set child_name [lindex $child 1]
+
+        # Elaborate child explanation onto parent
+        # and tag the child so it does not get elaborated onto the root.
+        sp "ngs*explain*iop*update-child*$production_suffix*$child_name
             [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
             [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
-            [ngs-bind <s> $path_to_parent_object:<parent-object>]
-            [ngs-bind-iop-explanation-element <parent-object> $parent_name <parent-explanation>]
-            [ngs-bind <parent-explanation> children]
+            [ngs-bind <explanation> children]
+            [ngs-bind <s> $path_to_child:<child>]
+            [ngs-bind-iop-explanation-element <child> $child_name <child-explanation>]
         -->
-            [ngs-create-attribute <children> child <explanation>]"
+            [ngs-create-attribute <children> child <child-explanation>]
+            [ngs-tag <child-explanation> is-a-child]"
     }
 }
