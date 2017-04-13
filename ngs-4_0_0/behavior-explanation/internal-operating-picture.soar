@@ -115,10 +115,22 @@ proc NGS_Explain_CreateProductionsForIOPElement { agent_id unique_name path_to_o
 
         if { $value != "" } {
             set val_soar_var [CORE_GenVarName "value"]
-            sp "ngs*explain*iop*update-value*$production_suffix*$explanation_attr
+
+            # If the value is an ID that has an explanation then use its explanation...
+            sp "ngs*explain*iop*update-value*$production_suffix*$explanation_attr*with-explanation
                 [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
                 [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
                 [ngs-bind <object-to-explain> $value:$val_soar_var]
+                [ngs-bind-iop-explanation-element $val_soar_var $value <value-explanation>]
+            -->
+                [ngs-create-attribute <explanation> $explanation_attr <value-explanation>]"
+
+            # ... otherwise, use the value itself.
+            sp "ngs*explain*iop*update-value*$production_suffix*$explanation_attr*without-explanation
+                [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
+                [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
+                [ngs-bind <object-to-explain> $value:$val_soar_var]
+                [ngs-not [ngs-bind-iop-explanation-element $val_soar_var $value <value-explanation>]]
             -->
                 [ngs-create-attribute <explanation> $explanation_attr $val_soar_var]"
         } else {
