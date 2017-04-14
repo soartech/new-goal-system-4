@@ -94,8 +94,7 @@ proc ngs-bind-explanation-iop { state_id agent_id iop_id } {
 #                  The source is a path to a variable, where the path is rooted at path_to_object.  I.e. 
 #                  $path_to_object.$source should be a valid reference to the source value. Destination is the name
 #                  of the IOPSpatialObject attribute that should be set to match the source. 
-# parent - (Optional) If provided, then this IOP element will be elaborated as a child of
-#          another IOP element instead of directly onto the explanation structure.
+# children - (Optional) If provided, then the IOP elements of these objects will be elaborated as children of this one.
 #          This argument is a { path name } pair where `path` is the path to the parent
 #          IOP object, and `name` is the unique name of that object's IOP explanation.
 #
