@@ -192,7 +192,9 @@ proc ngs-debug-process-id-print { line } {
 	            lappend ret_list [string trim [string range $pair 0 $end_of_attribute] "$TRIM_DEFAULTS)"]
 	            
 	            set value     [string trim [string range $pair $end_of_attribute end] "$TRIM_DEFAULTS)"]
-	            if { [string index $value end] != "+" } { 
+	            if { $value == "" } {
+                    lappend ret_list "***EMPTY***"
+                } elseif { [string index $value end] != "+" } { 
 	                lappend ret_list $value
 	            } else {
                     set end_of_value [expr [string length $value] - 2]
