@@ -64,7 +64,7 @@ proc ngs-create-computed-val { pool_id
     set srcs_id "<sources>"
 
     set rhs_ret  "[ngs-create-typed-object $pool_id $variable_name ComputedValue $variable_id "name $variable_name"]
-                  [ngs-create-attribute $variable_id sources Set $srcs_id]"
+                  [ngs-create-typed-object $variable_id sources Set $srcs_id]"
 
     foreach source $sources_list {
         set first_item [lindex $source 0]
