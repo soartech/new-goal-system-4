@@ -43,6 +43,11 @@ NGS_DeclareType NGS_Explain_Goal {
 	reasons ""
 }
 
+NGS_DeclareType NGS_Explain_Task {
+    id ""
+    task-my-type ""
+}
+
 # TODO: Fill in
 NGS_DeclareType NGS_Explain_TaskAwareness {}
 
