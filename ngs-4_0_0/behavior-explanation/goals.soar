@@ -101,6 +101,76 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-create-attribute <explanation> selected $NGS_YES]
     "
 
+    # Elaborate task
+    sp "ngs*explain*goal*${goal_type}*elaborate*task
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-bind <goal-id> task]
+        [ngs-is-my-type <task> <task-my-type>]
+    -->
+        [ngs-create-typed-object <explanation> task NGS_Explain_Task <explain-task> {
+            id <task>
+            task-my-type <task-my-type>
+        }]
+    "
+
+    # Elaborate decision set
+    sp "ngs*explain*goal*${goal_type}*elaborate*decision-set
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-has-requested-decision <goal-id> <decision-name>]
+    -->
+        [ngs-create-typed-object <explanation> decisions NGS_Explain_DecisionSet <explain-decisions> {
+            type Set
+        }]
+    "
+
+    # Elaborate decisions
+    sp "ngs*explain*goal*${goal_type}*elaborate*decision
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>.decisions]
+        [ngs-has-requested-decision <goal-id> <decision-name>]
+    -->
+        [ngs-create-typed-object <decisions> decision NGS_Explain_Decision <explain-decision> {
+            name <decision-name>
+        }]
+    "
+
+    # Elaborate variable pool set
+    sp "ngs*explain*goal*${goal_type}*elaborate*has-variable-pools
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-bind <goal-id> <pool-name>!NGSContextVariableCategory:<pool>]
+    -->
+        [ngs-tag <explanation> has-variable-pools]
+    "
+
+    sp "ngs*explain*goal*${goal_type}*elaborate*variable-pools
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-bind <goal-id> <pool-name>!NGSContextVariableCategory:<pool>]
+    -->
+        [ngs-create-typed-object <explanation> variable-pools NGS_Explain_VariablePools <pools>]
+    "
+
+    sp "ngs*explain*goal*${goal_type}*elaborate*variable-pool
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-bind <goal-id> <pool-name>!NGSContextVariableCategory:<pool>]
+        [ngs-bind <explanation> variable-pools:<pools>]
+    -->
+        [ngs-create-typed-object <pools> pool NGS_Explain_VariablePool <pool-explanation> { id <pool> name <pool-name> }]
+    "
+
+    # Elaborate when a goal has been assigned to a decision
+    sp "ngs*explain*goal*${goal_type}*elaborate*decides
+        [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
+        [ngs-is-assigned-decision <goal-id> <decision-name>]
+    -->
+        [ngs-create-attribute <explanation> decides <decision-name>]
+    "
+
     # Elaborate the explanation onto the output
     sp "ngs*explain*goal*${goal_type}*output-explanation
         [ngs-match-goal <s> $goal_type <goal-id>]
