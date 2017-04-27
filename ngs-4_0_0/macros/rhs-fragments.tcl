@@ -197,6 +197,25 @@ proc ngs-tag-goal-with-selection-status { goal_id { decided_value ""} } {
   return [ngs-tag $goal_id "$NGS_TAG_DECISION_STATUS" $decided_value]
 }
 
+# Completely removes any selection status on a goal.
+#
+# Using this macro will result in the decision linked to this goal being re-made. Typically you
+#  use this macro if you want a decision to be remade without having to re-construct the goal (e.g
+#  some context/condition changes that doesn't change the goal, but does potentiallyo change
+#  which active goal is best).
+#
+# state_id - Variable bound to the state in which to propose the operator
+# goal_id  - Variable bound to the goal for which to clear the goal selection status
+# cur_decided_value - The goal's current decided value. While the system could automatically fill this in
+#                      you will need to test this in the LHS of your production anyway to make your production
+#                      retract, so we don't default this value or set it internally.
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#                                                        
+proc ngs-clear-goal-selection-status-by-operator { state_id goal_id cur_decided_value { add_prefs "+ =" } } {
+    return "[ngs-remove-tag-by-operator $state_id $goal_id $NGS_TAG_DECISION_STATUS $cur_decided_value $add_prefs]"
+}
+
 # Create working memory element, i.e. an object "attribute"
 #
 # This will create the code to generate a simple soar WME 
