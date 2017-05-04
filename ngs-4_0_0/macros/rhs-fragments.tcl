@@ -201,7 +201,7 @@ proc ngs-tag-goal-with-selection-status { goal_id { decided_value ""} } {
 #
 # Using this macro will result in the decision linked to this goal being re-made. Typically you
 #  use this macro if you want a decision to be remade without having to re-construct the goal (e.g
-#  some context/condition changes that doesn't change the goal, but does potentiallyo change
+#  some context/condition changes that doesn't change the goal, but does potentially change
 #  which active goal is best).
 #
 # state_id - Variable bound to the state in which to propose the operator
