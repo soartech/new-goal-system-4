@@ -213,6 +213,8 @@ proc ngs-tag-goal-with-selection-status { goal_id { decided_value ""} } {
 #  the indifferent preference is given but you can override using this argument.
 #                                                        
 proc ngs-clear-goal-selection-status-by-operator { state_id goal_id cur_decided_value { add_prefs "+ =" } } {
+    variable NGS_TAG_DECISION_STATUS
+
     return "[ngs-remove-tag-by-operator $state_id $goal_id $NGS_TAG_DECISION_STATUS $cur_decided_value $add_prefs]"
 }
 
