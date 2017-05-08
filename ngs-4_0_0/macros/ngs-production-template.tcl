@@ -59,6 +59,11 @@ proc ngs-declare-tsp { production_name production_body } {
 #  more than one, the other parameters follow the first parameter in pairs
 #  within the inner lists. For example: { %template_var1 value1 %template_var2 value2 ... }
 #
+# The expanded production's name is derived from the concatenation of the template arguments.
+#  If you do not want an argument to be included in the production name, use two "%"
+#  characters instead of one. This is useful if the template argument is a string containing
+#  spaces or other characters that are invalid in a production name.
+#
 # template_name: Name of the template as specified in the call to ngs-declare-tsp
 # expansion_lists: A list of lists, where the inner lists each hold the values for a single
 #                   template instantiation. The format of the inner lists is sequential pairs of
@@ -75,7 +80,9 @@ proc ngs-expand-tsp { template_name expansion_lists } {
         
         set production_name $template_name
         foreach { key val } $elist {
-            set production_name "$production_name*$val"
+            if { [string range $key 0 1] != "%%" } {
+                set production_name "$production_name*$val"
+            }
         }
 
         # Clean out "." characters (which sometimes happen if the template parameters
