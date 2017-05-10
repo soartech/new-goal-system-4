@@ -9,11 +9,13 @@
 # This macro must be called AFTER all goals, context-variables, etc. have been declared,
 #
 # Goals are not explained by default. To enable explanation for a goal, use NGS_Explain_ExplainGoal { goal_list }
+# To enable explanation for a context variable pool, use NGS_Explain_ExplainContext
 #
 # Example:
 #
 # NGS_Explain_Initialize "test-agent"
-# NGS_Explain_ExplainGoal MaintainAwareness DoGreatThing
+# NGS_Explain_ExplainGoal "test-agent" MaintainAwareness DoGreatThing
+# NGS_Explain_ExplainGoal "test-agent" MaintainAwareness things-around-me
 #
 
 #
@@ -80,10 +82,9 @@ proc NGS_Explain_Initialize { agent_id } {
     }
     
     foreach context_variable $NGS_CTX_ALL_VARIABLES {
-        set pool [dict get $context_variable pool]
+        set pool     [dict get $context_variable pool]
         set category [dict get $context_variable category]
-        set name [dict get $context_variable name]
+        set name     [dict get $context_variable name]
         NGS_Explain_CreateProductionsForVariable $agent_id $pool $category $name
     }
-
 }
