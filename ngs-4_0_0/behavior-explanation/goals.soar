@@ -59,6 +59,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate goal id
     sp "ngs*explain*goal*${goal_type}*elaborate-goal-id
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
     -->
         [ngs-create-attribute <explanation> id "(concat |goal_| <goal-id>)"]
@@ -67,6 +68,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate types
     sp "ngs*explain*goal*${goal_type}*elaborate-types
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE.goal-types]
         [ngs-is-type <goal-id> <type>]
     -->
@@ -76,6 +78,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate children
     sp "ngs*explain*goal*${goal_type}*elaborate-children
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE.children]
         [ngs-is-subgoal <goal-id> <child-goal-id>]
         [ngs-bind <child-goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<child-explanation>.id:<child-id>]
@@ -86,6 +89,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate reasons
     sp "ngs*explain*goal*${goal_type}*elaborate-reason
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE.reasons]
         [ngs-bind <goal-id> reason]
     -->
@@ -95,6 +99,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate selected
     sp "ngs*explain*goal*${goal_type}*elaborate-selected
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-is-tagged <goal-id> $NGS_TAG_SELECTION_STATUS]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
     -->
@@ -104,12 +109,13 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate task
     sp "ngs*explain*goal*${goal_type}*elaborate*task
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-bind <goal-id> task]
         [ngs-is-my-type <task> <task-my-type>]
     -->
         [ngs-create-typed-object <explanation> task NGS_Explain_Task <explain-task> {
-            id <task>
+            id "(concat |task_| <task>)"
             task-my-type <task-my-type>
         }]
     "
@@ -117,6 +123,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate decision set
     sp "ngs*explain*goal*${goal_type}*elaborate*decision-set
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-has-requested-decision <goal-id> <decision-name>]
     -->
@@ -128,6 +135,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate decisions
     sp "ngs*explain*goal*${goal_type}*elaborate*decision
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>.decisions]
         [ngs-has-requested-decision <goal-id> <decision-name>]
     -->
@@ -139,6 +147,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate variable pool set
     sp "ngs*explain*goal*${goal_type}*elaborate*has-variable-pools
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-bind <goal-id> <pool-name>!NGSContextVariableCategory:<pool>]
     -->
@@ -147,6 +156,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
 
     sp "ngs*explain*goal*${goal_type}*elaborate*variable-pools
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-bind <goal-id> <pool-name>!NGSContextVariableCategory:<pool>]
     -->
@@ -155,6 +165,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
 
     sp "ngs*explain*goal*${goal_type}*elaborate*variable-pool
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-bind <goal-id> <pool-name>!NGSContextVariableCategory:<pool>]
         [ngs-bind <explanation> variable-pools:<pools>]
@@ -165,6 +176,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate when a goal has been assigned to a decision
     sp "ngs*explain*goal*${goal_type}*elaborate*decides
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-is-assigned-decision <goal-id> <decision-name>]
     -->
@@ -174,6 +186,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # Elaborate the explanation onto the output
     sp "ngs*explain*goal*${goal_type}*output-explanation
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind-explanation <s> $agent_id <explain>]
         [ngs-bind <explain> current-goal-hierarchy.goals]
         [ngs-is-tagged <goal-id> $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE <explanation>]
@@ -184,6 +197,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
     # If this is a root goal, add it to the set of roots
     sp "ngs*explain*goal*${goal_type}*output-root
         [ngs-match-goal <s> $goal_type <goal-id>]
+        [ngs-is-my-type <goal-id> $goal_type]
         [ngs-bind-explanation <s> $agent_id <explain>]
         [ngs-is-not-supergoal <goal-id> <supergoal-id>]
         [ngs-bind <explain> current-goal-hierarchy.roots!Set]
