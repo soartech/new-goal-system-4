@@ -57,10 +57,16 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
                         scope-category $category_name
                     }
                 }
-                id $var_id
                 name $variable_name
             }
         "]
+    "
+
+    sp "ngs*explain*variable*$production_name_suffix*elaborate-id
+        $root_bind
+        [ngs-is-tagged $var_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE <explanation>]
+    -->
+        [ngs-create-attribute <explanation> id "(concat |ctxvar_| $var_id)"]
     "
 
     sp "ngs*explain*variable*$production_name_suffix*elaborate-value
