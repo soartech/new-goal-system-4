@@ -1583,7 +1583,7 @@ proc ngs-create-ret-val-in-place { ret_val_name
       set attr_list "$attr_list destination-attribute $attribute"
     }
     if { $new_val != "" } {
-      set attr_list "$attr_list value $new_val"
+      set attr_list "$attr_list value {$new_val}"
     } 
 
     return [ngs-create-typed-object $ret_val_set_id value-description $NGS_TYPE_STATE_RETURN_VALUE $ret_val_id $attr_list]
