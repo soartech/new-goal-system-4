@@ -177,7 +177,7 @@ if { $SOAR_IMPLEMENTATION eq $JSOAR } {
     sp "ngs*core*apply*side-effects*log
       [ngs-match-selected-operator <s> <o>]
       [ngs-has-side-effect <o> <se>]
-      [ngs-bind <se> action:$NGS_SIDE_EFFECT_LOG text logger-name level]
+      [ngs-bind <se> action:$NGS_SIDE_EFFECT_LOG text logger-name level level-name]
     -->
-      (write (crlf) |\[|<level>| |(timestamp)|\]|<logger-name>|: |<text>)"
+      (log <level> (crlf) |\[<level-name> |(timestamp)|\]|<logger-name>|: |<text>)"
 }

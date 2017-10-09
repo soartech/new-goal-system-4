@@ -84,6 +84,38 @@ CORE_CreateMacroVar NGS_INFO  "INFO"
 CORE_CreateMacroVar NGS_WARN  "WARN"
 CORE_CreateMacroVar NGS_ERROR "ERROR"
 
+# these are the actual values that will be used for the log levels
+# only intended for internal NGS usage
+# note have to use variable here because this file is sourced from inside the CORE_InternalSource macro
+variable SOAR_IMPLEMENTATION
+variable JSOAR
+if { $SOAR_IMPLEMENTATION eq $JSOAR } {
+	CORE_CreateMacroVar NGS_TRACE_VALUE "TRACE"
+	CORE_CreateMacroVar NGS_DEBUG_VALUE "DEBUG"
+	CORE_CreateMacroVar NGS_INFO_VALUE  "INFO"
+	CORE_CreateMacroVar NGS_WARN_VALUE  "WARN"
+	CORE_CreateMacroVar NGS_ERROR_VALUE "ERROR"
+} else {
+    # note that csoar log channel numbers are limited to 1-100
+    # using numbers in the middle (but not exactly the middle) under the assumption
+    # that numbers at the ends (and nice numbers like 50) are more likely to be used by users directly
+    CORE_CreateMacroVar NGS_TRACE_VALUE 61
+	CORE_CreateMacroVar NGS_DEBUG_VALUE 62
+	CORE_CreateMacroVar NGS_INFO_VALUE  63
+	CORE_CreateMacroVar NGS_WARN_VALUE  64
+	CORE_CreateMacroVar NGS_ERROR_VALUE 65
+}
+
+# create a dictionary mapping the trace values to the names for those values
+# note there's no way to currently use CORE_CreateMacroVar for dictionaries,
+# so this will have to be manually imported to procs with variable, but only
+# internal NGS procs should need it
+dict set NGS_LOG_LEVELS $NGS_TRACE $NGS_TRACE_VALUE
+dict set NGS_LOG_LEVELS $NGS_DEBUG $NGS_DEBUG_VALUE
+dict set NGS_LOG_LEVELS $NGS_INFO  $NGS_INFO_VALUE
+dict set NGS_LOG_LEVELS $NGS_WARN  $NGS_WARN_VALUE
+dict set NGS_LOG_LEVELS $NGS_ERROR $NGS_ERROR_VALUE
+
 # default log level. Change with ngs-set-log-level
 CORE_CreateMacroVar NGS_LOG_LEVEL $NGS_INFO
 

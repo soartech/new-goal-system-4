@@ -1165,19 +1165,26 @@ proc ngs-add-write-side-effect { text {op_id ""}} {
 #            parameter if you are elaborating the side effect onto the operator separately from the 
 #            production that created it.
 #
-proc ngs-add-log-side-effect { loggerName level text {op_id ""}} {
+proc ngs-add-log-side-effect { loggerName levelName text {op_id ""}} {
   variable NGS_OP_ID
   variable NGS_SIDE_EFFECT_LOG
+  variable NGS_LOG_LEVELS
+  variable SOAR_IMPLEMENTATION
+  variable JSOAR
+
   CORE_SetIfEmpty op_id $NGS_OP_ID
   CORE_SetIfEmpty loggerName "||"
   set se_id [CORE_GenVarName "side-effect"]
 
-  if { [ngs-should-log $level] } {
-    return "($op_id ^side-effect $se_id)
-            ($se_id ^action $NGS_SIDE_EFFECT_LOG ^text (concat [ngs-process-string-for-writelog $text]) ^logger-name $loggerName ^level $level)"
+  # for csoar, need to get integer log level
+  if { $SOAR_IMPLEMENTATION eq $JSOAR } {
+    set level $levelName
   } else {
-    return "# logging disabled; use ngs-set-log-level to change"
+    set level [dict get $NGS_LOG_LEVELS [string toupper $levelName]]
   }
+
+  return "($op_id ^side-effect $se_id)
+          ($se_id ^action $NGS_SIDE_EFFECT_LOG ^text (concat [ngs-process-string-for-writelog $text]) ^logger-name $loggerName ^level $level ^level-name $levelName)"
 }
 
 # Write to the trace when the rule fires.
@@ -1209,18 +1216,19 @@ proc ngs-write { text } {
 proc ngs-log { loggerName level text } {
     variable SOAR_IMPLEMENTATION
     variable JSOAR
-    
+    variable NGS_LOG_LEVELS
 
     if { $SOAR_IMPLEMENTATION eq $JSOAR } {
         # for jsoar, use the built-in log command
         return "(log $loggerName $level [ngs-process-string-for-writelog $text])"
     } else {
-        if { [ngs-should-log $level] } {
-            # for csoar, construct something that looks like jsoar's log command
-            return "(write (crlf) |\[$level |(timestamp)|\] $loggerName: |[ngs-process-string-for-writelog $text])"
-        } else {
-            return "# logging disabled; use ngs-set-log-level to change"
-        }
+        # normalize
+        set level [string toupper $level]
+        # get the log level name
+        set levelInt [dict get $NGS_LOG_LEVELS $level]
+        # for csoar, construct something that looks like jsoar's log command
+        return "(log $levelInt (crlf) |\[$level |(timestamp)|\] $loggerName: |[ngs-process-string-for-writelog $text])"
+        
     }
 }
 

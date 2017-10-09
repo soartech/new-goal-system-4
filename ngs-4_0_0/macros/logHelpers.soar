@@ -12,6 +12,7 @@
 #         ngs-log or ngs-add-log-side-effect will be shown if their log level is at or above
 #         the log level specified here.
 proc ngs-set-log-level { {level ""} } {
+    variable NGS_LOG_LEVELS
     variable NGS_LOG_LEVEL
     variable NGS_TRACE
     variable NGS_DEBUG
@@ -20,6 +21,8 @@ proc ngs-set-log-level { {level ""} } {
     variable NGS_ERROR
     variable SOAR_IMPLEMENTATION
     variable JSOAR
+    variable NGS_TRACE_VALUE
+    variable NGS_ERROR_VALUE
 
     if { $SOAR_IMPLEMENTATION eq $JSOAR } {
         if { $level eq "" } {
@@ -31,28 +34,27 @@ proc ngs-set-log-level { {level ""} } {
         if { $level eq "" } {
             echo "Log level: $NGS_LOG_LEVEL"
         } else {
-            set mapping "$NGS_TRACE 0 $NGS_DEBUG 1 $NGS_INFO 2 $NGS_WARN 3 $NGS_ERROR 4"
-            set levelInt [string map -nocase $mapping $level]
-            if { [string match {[12345]} $levelInt] } {
+            # normalize
+            set level [string toupper $level]
+            # search the log levels for the specified key (if found, it returns the string we looked for)
+            if { [dict keys $NGS_LOG_LEVELS $level] eq $level } {
                 set NGS_LOG_LEVEL $level
+                # get the numeric value for this level
+                set numericLevel [dict get $NGS_LOG_LEVELS $level]
+                # iterate through each channel and set those channels below the level off, and those at or above on
+                for { set i $NGS_TRACE_VALUE } { $i <= $NGS_ERROR_VALUE } { incr i } {
+                    if { $i < $numericLevel } {
+                        output agent-logs $i off
+                    } else {
+                        output agent-logs $i on
+                    }
+                }
             } else {
                 echo "Log level '$level' is invalid. Valid log levels are \$NGS_TRACE, \$NGS_DEBUG, \$NGS_INFO, \$NGS_WARN, \$NGS_ERROR"
             }
         }
     }
     
-}
-
-# For internal use
-# Compares the specified log level to the current log level to determine if logging should take place
-# Only used by csoar 
-proc ngs-should-log { level } {
-    CORE_RefMacroVars 
-    
-    set mapping "$NGS_TRACE 0 $NGS_DEBUG 1 $NGS_INFO 2 $NGS_WARN 3 $NGS_ERROR 4 "
-    set levelInt [string map -nocase $mapping $level]
-    set curLevelInt [string map -nocase $mapping $NGS_LOG_LEVEL]
-    return [expr $levelInt >= $curLevelInt]
 }
 
 # For internal use
