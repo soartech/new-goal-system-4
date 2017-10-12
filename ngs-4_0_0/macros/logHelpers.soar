@@ -57,15 +57,158 @@ proc ngs-set-log-level { {level ""} } {
     
 }
 
+CORE_CreateMacroVar NGS_LOG_HELPERS_DEFAULT default
+CORE_CreateMacroVar NGS_LOG_HELPERS_EXPR expr
+
 # For internal use
 # Preps a string for being passed to the write or log RHS functions
-# Takes a string that includes soar vars, surround the vars with pipes, and then concat the whole text together
-# E.g., turns "foo <bar>" into "(concat |foo |<bar>||)", which can then be passed to write or log
-#       to be printed such that the soar vars get bound properly at runtime
+# 1. split on parenthetical expressions, labeling each split with whether it is parenthetical or not; e.g., "the <bar> result: (my-rhs-func <foo> (+ <x> <y>)) and stuff" -> default "the <bar> result: ", expr "(my-rhs-func <foo> (+ <x> <y>))", default " and stuff"
+# 2. for the non-parenthetical parts, surround vars with bars: "the <bar> result: (my-rhs-func <foo> (+ <x> <y>)) and stuff" -> "the <bar> result: ", "(my-rhs-func <foo> (+ <x> <y>))", " and stuff"
+# 3. join parts back together
 proc ngs-process-string-for-writelog { text } {
-  # this regex says to find "<" followed by one or more non-whitespace chars followed by ">"
-  set regex {\<(\S+)\>}
-  # surround all found soar variables with pipes
-  set textWithVars [regsub -all $regex $text {|<\1>|}]
-  return |$textWithVars|
+    variable NGS_LOG_HELPERS_DEFAULT
+    # split on parenthetical expressions
+    set splitList [ngs-split-on-parenthetical-expression $text]
+
+    set resultList [list]
+
+    # for the non-parenthetical parts, surround vars with bars
+    for { set i 0 } { $i < [llength $splitList] } { incr i } {
+        set element [lindex $splitList $i]
+        set type [lindex $element 0]
+        set content [lindex $element 1]
+        # if it's not a parenthetical expression
+        if { $type eq $NGS_LOG_HELPERS_DEFAULT } {
+            lappend resultList [ngs-surround-vars-with-pipes $content]
+        } else {
+            lappend resultList $content
+        }
+    }
+
+    #echo "ngs-process-string-for-writelog pre-join: $splitList"
+
+    # join parts back together
+    set result [join $resultList ""]
+
+    return $result
 }
+
+# for internal use
+# e.g., "the <bar> result: (my-rhs-func <foo> (+ <x> <y>)) and stuff" -> default "the <bar> result: ", expr "(my-rhs-func <foo> (+ <x> <y>))", default " and stuff"
+# this also attempts to handle escaped parens; e.g. "<count> time\\(s\\)" -> default "<count> time(s)"
+# returns a list of pairs, the first element indicating the type of the content (NGS_LOG_HELPERS_DEFAULT or NGS_LOG_HELPERS_EXPR), the second containing the content
+proc ngs-split-on-parenthetical-expression { text } {
+    variable NGS_LOG_HELPERS_DEFAULT
+    variable NGS_LOG_HELPERS_EXPR
+
+    #echo "ngs-split-on-parenthetical-expression text: $text"
+
+    # iterate through the string looking for parens, keeping a count of unmatched parens
+    # basically, increment the counter when an open paren is found, and decrement when a close paren is found
+    # when the counter transitions to or from 0, that is a split point
+
+    set result [list]
+    set unmatchedParenCount 0
+    set startIndex 0
+    set endIndex 0
+    set startExpr false
+    set endExpr false
+
+    # the curType indicates whether the split we are building is an expression or not
+    # we assume it's not to start, and change it when we detect the start and end of expressions
+    set curType $NGS_LOG_HELPERS_DEFAULT
+
+    for { set i 0 } { $i < [string length $text] } { incr i } {
+
+        set char [string index $text $i]
+        #echo "index: $i, char $char"
+
+        # if find the escape char (backslash) then remove it and continue, which will skip the escaped char as the index is incremented
+        if { $char eq "\\" } {
+            set text [string replace $text $i $i] 
+            #echo "ngs-split-on-parenthetical-expression: skipping escaped char at index $i, updated text: $text"
+            continue
+        }
+
+        # track unmatched parens
+        # if we transition from 0 -> 1 or 1 -> 0 unmatched parens, then we need to split
+        if { $char eq "(" } {
+            incr unmatchedParenCount
+            # if transitioned from 0 -> 1, then we started a new expression
+            if { $unmatchedParenCount == 1 } { set startExpr true }
+        } elseif { $char eq ")" } {
+            incr unmatchedParenCount -1
+            # if transitioned from 1 -> 0, then ended an expression
+            if { $unmatchedParenCount == 0 } { set endExpr true }
+
+            if { $unmatchedParenCount < 0 } { error "Unmatched closing paren at index $i of: $text" }
+        }
+
+        # we never split on the first character (i.e., if the first char is an open paren)
+        # if we started or ended an parenthetical expression, then we need to split
+        if { $startExpr } {
+
+            # store the previous split
+            # if the first char started an expresssion, skip storing the previous as there is no previous
+            if { $i != 0 } {
+                # when starting a new expression, make sure the open paren is part of the next split, not the previous one
+                set endIndex [expr $i - 1]
+                set element [list $curType [string range $text $startIndex $endIndex]]
+                lappend result $element
+                #echo "appended: $element"
+            }
+            
+            # setup the next split
+            set startIndex $i
+            set curType $NGS_LOG_HELPERS_EXPR
+            #echo "starting expression, curType: $curType"
+
+        } elseif { $endExpr } {
+
+            # store the previous split
+            # when ending an expression, make sure the close paren is part of the previous split, not the next one
+            set endIndex $i
+            set element [string range $text $startIndex $endIndex]
+            lappend result [list $curType $element]
+            #echo "appended: $element"
+
+            # setup the next split
+            set startIndex [expr $i + 1]
+            set curType $NGS_LOG_HELPERS_DEFAULT
+            #echo "ending expression, curType: $curType"
+        }
+
+        # reset for next char
+        set startExpr false
+        set endExpr false
+    }
+
+    if { $unmatchedParenCount > 0 } { error "Missing $unmatchedParenCount closing parens in: $text" }
+
+    # get the last split if necessary (if the last character is a closing paren, then the startIndex will be the length and we don't need to split)
+    if { $startIndex != [string length $text] } {
+        set element [string range $text $startIndex end]
+        lappend result [list $curType $element]
+        #echo "appended: $element"
+    }
+
+    #echo "ngs-split-on-parenthetical-expression result: $result"
+    return $result
+}
+
+# Takes a string that includes soar vars and surround the vars with pipes,
+#       which can be passed to the log or write RHS functions to be printed
+#       such that the soar vars get bound properly at runtime
+# E.g., turns "foo <bar>" into "|foo |<bar>||"
+proc ngs-surround-vars-with-pipes { text } {
+    # this regex says to find "<" followed by one or more non-whitespace chars followed by ">"
+    set regex {\<(\S+)\>}
+    # surround all found soar variables with pipes
+    set textWithVars [regsub -all $regex $text {|<\1>|}]
+    set result |$textWithVars|
+
+    #echo "ngs-surround-vars-with-pipes result: $result"
+
+    return $result
+}
+

@@ -1,0 +1,149 @@
+##!
+# @file
+#
+# @created bob.marinier 20171011
+
+
+setup { 
+
+    source "common.soar"
+
+    FailAfterNDecisionCycles 3
+
+    proc checkTestCase { text expected } {
+        set result [ngs-process-string-for-writelog $text]
+        
+        if { $result ne $expected } {
+            echo "case '$text' failed: expected '$expected', got '$result'"
+            return false
+        }
+        return true
+    }
+
+    proc genTest { text expected } {
+        variable NGS_INFO
+
+        # escape any pipes and backslashes in the expected and text
+        # we have to do this because every time we call another tcl proc, another layer gets stripped out
+        set expected [string map {| \\| \\ \\\\} $expected]
+        set text [string map {| \\| \\ \\\\} $text]
+
+        sp "gen-result
+            (state <s> ^superstate nil)
+        -->
+            (<s> ^result (tcl |checkTestCase {$text} {$expected}|))
+        "
+
+        sp "test
+            (state <s> ^result true)
+        -->
+            [ngs-log soarunit $NGS_INFO "Test passed"]
+            (pass)
+        "
+
+        sp "fail
+            (state <s> ^result false)
+        -->
+            [ngs-log soarunit $NGS_INFO "Test failed"]
+            (fail)
+        "
+    }
+}
+
+test const {
+   genTest "hello world" "|hello world|"
+}
+
+test var-const {
+   genTest "<hello> world" "||<hello>| world|"
+}
+
+test const-var {
+   genTest "hello <world>" "|hello |<world>||"
+}
+
+test var-var {
+   genTest "<hello> <world>" "||<hello>| |<world>||"
+}
+
+test var-const-var {
+   genTest "<var1> const1 <var2>" "||<var1>| const1 |<var2>||"
+}
+
+test var-const-var-const {
+   genTest "<var1> const1 <var2> const2" "||<var1>| const1 |<var2>| const2|"
+}
+
+test const-var-const-var {
+   genTest "const1 <var1> const2 <var2>" "|const1 |<var1>| const2 |<var2>||"
+}
+
+test expr {
+   genTest "(expr1)" "(expr1)"
+}
+
+test const-expr {
+   genTest "const1 (expr1)" "|const1 |(expr1)"
+}
+
+test expr-const {
+   genTest "(expr1) const1" "(expr1)| const1|"
+}
+
+test var-expr {
+   genTest "<var1> (expr1)" "||<var1>| |(expr1)"
+}
+
+test expr-space-var {
+   genTest "(expr1) <var1>" "(expr1)| |<var1>||"
+}
+
+test expr-space-expr {
+   genTest "(expr1) (expr2)" "(expr1)| |(expr2)"
+}
+
+test expr-expr {
+   genTest "(expr1)(expr2)" "(expr1)||(expr2)"
+}
+
+test nested-expr {
+   genTest "(expr1 <x> (expr2 <y> 5))" "(expr1 <x> (expr2 <y> 5))"
+}
+test escexpr-const-escexpr {
+   genTest "\\(const1\\)" "|(const1)|"
+}
+
+test escexpr-expr-escexpr {
+   genTest "\\((expr1)\\)" "|(|(expr1)|)|"
+}
+
+test escexpr-expr {
+    genTest "\\(const1\\)(expr1)" "|(const1)|(expr1)"
+}
+
+test realistic1 {
+    genTest "Fail: foo transmitted message matching pattern glob 1 time\\(s\\)" "|Fail: foo transmitted message matching pattern glob 1 time(s)|"
+}
+
+test realistic1-braces {
+    genTest {Fail: foo transmitted message matching pattern glob 1 time\(s\)} "|Fail: foo transmitted message matching pattern glob 1 time(s)|"
+}
+
+test realistic2 {
+    genTest "*** Orphaned subgoal *** (cmd print -d 3 <g>)" "|*** Orphaned subgoal *** |(cmd print -d 3 <g>)"
+}
+
+test realistic3 {
+    genTest "<x> + <y> = (+ <x> <y>)" "||<x>| + |<y>| = |(+ <x> <y>)"
+}
+
+test realistic4 {
+    genTest "<x> + <y> = (+ <x> <y>)!" "||<x>| + |<y>| = |(+ <x> <y>)|!|"
+}
+
+test realistic5 {
+    genTest "The average is \\(<x> + <y>\\)/2 = (/ (+ <x> <y>) 2)!" "|The average is (|<x>| + |<y>|)/2 = |(/ (+ <x> <y>) 2)|!|"
+}
+
+
+

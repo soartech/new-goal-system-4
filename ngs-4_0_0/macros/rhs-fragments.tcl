@@ -1120,10 +1120,14 @@ proc ngs-add-tag-side-effect { action dest_obj tag_name {value ""} {replacement_
 #
 # [ngs-add-write-side-effect text (op_id)]
 #
-# text  - The text to write to the trace. This can contain Soar variables, which will be substituted.
-#           For example, if text is "Doing something to object <obj>", <obj> will be treated as a Soar
-#           variable whose value will get substituted in the text at runtime. There is no need to use
-#           Soar syntax with pipes to achieve this like you would in raw Soar code.
+# text  - The text to write to the trace. This can contain Soar variables, which will be substituted,
+#         and RHS functions, will be maintained as written. For example, if text is 
+#         "<x> + <y> = (+ <x> <y>)", <x> and <y> will be treated as Soar variables whose value will get
+#         substituted in the text at runtime. There is no need to use Soar syntax with pipes to achieve
+#         this like you would in raw Soar code. Additionally, (+ <x> <y>) will be treated as a RHS function.
+#         Can also escape parens if want to keep them, although they need to be double-escaped if the text
+#         is passed with double-quotes due to Tcl substitution. E.g., "it happened <count> time\\(s\\)" and
+#         {it happened <count> time\(s\)} will both produce |it happened <count> time(s)|
 # op_id - (Optional) A variable bound to the operator to which to add the side effect. By default the 
 #            variable used is $NGS_OP_ID (which is used for all ngs macros). You will need to use this
 #            parameter if you are elaborating the side effect onto the operator separately from the 
@@ -1156,10 +1160,14 @@ proc ngs-add-write-side-effect { text {op_id ""}} {
 #
 # loggerName - the name of the logger to log to. Can be any useful string without whitespace.
 # level      - the level to log at. Use one of: NGS_TRACE, NGS_DEBUG, NGS_INFO, NGS_WARN, NGS_ERROR
-# text  - The text to write to the trace. This can contain Soar variables, which will be substituted.
-#           For example, if text is "Doing something to object <obj>", <obj> will be treated as a Soar
-#           variable whose value will get substituted in the text at runtime. There is no need to use
-#           Soar syntax with pipes to achieve this like you would in raw Soar code.
+# text  - The text to write to the trace. This can contain Soar variables, which will be substituted,
+#         and RHS functions, will be maintained as written. For example, if text is 
+#         "<x> + <y> = (+ <x> <y>)", <x> and <y> will be treated as Soar variables whose value will get
+#         substituted in the text at runtime. There is no need to use Soar syntax with pipes to achieve
+#         this like you would in raw Soar code. Additionally, (+ <x> <y>) will be treated as a RHS function.
+#         Can also escape parens if want to keep them, although they need to be double-escaped if the text
+#         is passed with double-quotes due to Tcl substitution. E.g., "it happened <count> time\\(s\\)" and
+#         {it happened <count> time\(s\)} will both produce |it happened <count> time(s)|
 # op_id - (Optional) A variable bound to the operator to which to add the side effect. By default the 
 #            variable used is $NGS_OP_ID (which is used for all ngs macros). You will need to use this
 #            parameter if you are elaborating the side effect onto the operator separately from the 
@@ -1193,10 +1201,14 @@ proc ngs-add-log-side-effect { loggerName levelName text {op_id ""}} {
 #
 # [ngs-write text]
 #
-# text  - The text to write to the trace. This can contain Soar variables, which will be substituted.
-#           For example, if text is "Doing something to object <obj>", <obj> will be treated as a Soar
-#           variable whose value will get substituted in the text at runtime. There is no need to use
-#           Soar syntax with pipes to achieve this like you would in raw Soar code.
+# text  - The text to write to the trace. This can contain Soar variables, which will be substituted,
+#         and RHS functions, will be maintained as written. For example, if text is 
+#         "<x> + <y> = (+ <x> <y>)", <x> and <y> will be treated as Soar variables whose value will get
+#         substituted in the text at runtime. There is no need to use Soar syntax with pipes to achieve
+#         this like you would in raw Soar code. Additionally, (+ <x> <y>) will be treated as a RHS function.
+#         Can also escape parens if want to keep them, although they need to be double-escaped if the text
+#         is passed with double-quotes due to Tcl substitution. E.g., "it happened <count> time\\(s\\)" and
+#         {it happened <count> time\(s\)} will both produce |it happened <count> time(s)|
 proc ngs-write { text } {
         return "(write (crlf) [ngs-process-string-for-writelog $text])"
 }
@@ -1209,10 +1221,14 @@ proc ngs-write { text } {
 #
 # loggerName - the name of the logger to log to. Can be any useful string without whitespace.
 # level      - the level to log at. Use one of: NGS_TRACE, NGS_DEBUG, NGS_INFO, NGS_WARN, NGS_ERROR
-# text  - The text to write to the trace. This can contain Soar variables, which will be substituted.
-#           For example, if text is "Doing something to object <obj>", <obj> will be treated as a Soar
-#           variable whose value will get substituted in the text at runtime. There is no need to use
-#           Soar syntax with pipes to achieve this like you would in raw Soar code.
+# text  - The text to write to the trace. This can contain Soar variables, which will be substituted,
+#         and RHS functions, will be maintained as written. For example, if text is 
+#         "<x> + <y> = (+ <x> <y>)", <x> and <y> will be treated as Soar variables whose value will get
+#         substituted in the text at runtime. There is no need to use Soar syntax with pipes to achieve
+#         this like you would in raw Soar code. Additionally, (+ <x> <y>) will be treated as a RHS function.
+#         Can also escape parens if want to keep them, although they need to be double-escaped if the text
+#         is passed with double-quotes due to Tcl substitution. E.g., "it happened <count> time\\(s\\)" and
+#         {it happened <count> time\(s\)} will both produce |it happened <count> time(s)|
 proc ngs-log { loggerName level text } {
     variable SOAR_IMPLEMENTATION
     variable JSOAR
