@@ -48,6 +48,23 @@ NGS_DeclareType NGS_Explain_Task {
     task-my-type ""
 }
 
+NGS_DeclareType NGS_Explain_DecisionSet {
+    type Set
+}
+
+NGS_DeclareType NGS_Explain_Decision {
+    name ""
+}
+
+NGS_DeclareType NGS_Explain_VariablePools {
+    pool ""
+}
+
+NGS_DeclareType NGS_Explain_VariablePool {
+    id ""
+    name ""
+}
+
 # TODO: Fill in
 NGS_DeclareType NGS_Explain_TaskAwareness {}
 

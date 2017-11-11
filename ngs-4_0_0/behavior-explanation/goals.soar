@@ -127,9 +127,7 @@ proc NGS_Explain_CreateProductionsForGoal { agent_id goal_type } {
         [ngs-bind <goal-id> @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:<explanation>]
         [ngs-has-requested-decision <goal-id> <decision-name>]
     -->
-        [ngs-create-typed-object <explanation> decisions NGS_Explain_DecisionSet <explain-decisions> {
-            type Set
-        }]
+        [ngs-create-typed-object <explanation> decisions NGS_Explain_DecisionSet <explain-decisions>]
     "
 
     # Elaborate decisions
