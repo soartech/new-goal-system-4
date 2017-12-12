@@ -150,7 +150,7 @@ sp "ngs*core*substate*propose*$NGS_OP_COPY_RETURN_VALUES
 sp "ngs*core*substate*apply*$NGS_OP_COPY_RETURN_VALUES*single-copy*create-new
 	[ngs-match-selected-operator-in-substate <ss> <o> $NGS_OP_COPY_RETURN_VALUES]
 	(<ss> ^return-values <ret-val-set>)
-	(<ret-val-set> ^value-description <rv-obj>)
+	(<ret-val-set> ^value-description     <rv-obj>)
 	(<rv-obj>      ^destination-object    <dest>
 	 			   ^destination-attribute <attr>
 	 			   ^value                 <ret-val>
@@ -171,6 +171,18 @@ sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*single-copy*replace-existing
 -->
 	(<dest>        ^<attr>         <old-val> -)
 	(<dest>        ^<attr>         <ret-val> +)"
+
+sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*single-copy*remove-if-not-set
+   [ngs-match-selected-operator-in-substate <ss> <o> $NGS_OP_COPY_RETURN_VALUES]
+   (<ss> ^return-values <ret-val-set>)
+   (<ret-val-set> ^value-description      <rv-obj>)
+   (<rv-obj>      ^destination-object     <dest>
+                  ^destination-attribute  <attr>
+                 -^value
+                  ^remove-if-not-set      $NGS_YES)
+   (<dest>        ^<attr>         <old-val>)
+-->
+   (<dest>        ^<attr>         <old-val> -)"
 
 sp "ngs*core*apply*$NGS_OP_COPY_RETURN_VALUES*insert-into-set
 	[ngs-match-selected-operator-in-substate <ss> <o> $NGS_OP_COPY_RETURN_VALUES]

@@ -1583,22 +1583,29 @@ proc ngs-assign-decision { goal_id decision_name {activate_on_decision ""} } {
 # replacement_behavior - (Optional) One of NGS_REPLACE_IF_EXISTS (default) or NGS_ADD_TO_SET. The first 
 #                        will remove any existing values for the given attribute while creating the new one. 
 #                        The latter will leave any existing values for the same attribute in place.
+# remove_if_not_set - (Optional) One of NGS_YES or NGS_NO (default). This value controls what happens when
+#                        the substate does not set a return value. If set to NGS_YES, the NGS library will
+#                        remove the destionation attribute (i,e. ($dest_obj_id ^$attribute <cur-val> -)). If
+#                        set to $NGS_NO, the destination object/attribute are left unchanged.
 #
 proc ngs-create-ret-val-in-place { ret_val_name
                                    ret_val_set_id
                                    {dest_obj_id ""}
                                    {attribute ""}
                                    {new_val ""} 
-                                   {replacement_behavior ""} } {
+                                   {replacement_behavior ""} 
+                                   {remove_if_not_set ""}} {
 
     variable NGS_REPLACE_IF_EXISTS
     variable NGS_TYPE_STATE_RETURN_VALUE
+    variable NGS_NO
 
     CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+    CORE_SetIfEmpty remove_if_not_set    $NGS_NO
 
     set attribute [ngs-expand-tags $attribute]
     set ret_val_id [CORE_GenVarName new-ret-val]
-    set attr_list "name $ret_val_name replacement-behavior $replacement_behavior" 
+    set attr_list "name $ret_val_name replacement-behavior $replacement_behavior remove-if-not-set $remove_if_not_set" 
 
     if { $dest_obj_id != "" } {
       set attr_list "$attr_list destination-object $dest_obj_id"
