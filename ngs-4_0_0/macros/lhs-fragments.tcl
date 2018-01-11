@@ -388,6 +388,17 @@ proc ngs-not { args } {
 
 }
 
+proc isnumeric { value } {
+    if {![catch {expr {abs($value)}}]} {
+        return 1
+    }
+    set value [string trimleft $value 0]
+    if {![catch {expr {abs($value)}}]} {
+        return 1
+    }
+    return 0
+}
+
 # Bind variables to an object's attributes
 # 
 # Use this macro to quickly and easily bind variables to an object's
@@ -465,6 +476,23 @@ proc ngs-bind { obj_id args } {
 
     # Handles dot notation
     set segments [split $attr "."]
+
+    ## if the last segment is just a constant integer, then 
+    ## we probably got a float value (e.g., 0.0) as a value to compare against,
+    ## so concat the last segment back onto the end of the previous segment (with a . between)
+    if { [isnumeric [lindex $segments end]] } {
+        set numSegments [llength $segments]
+        set secondToLast [expr $numSegments -2]
+        ## re-insert the .
+        set newSegment "[lindex $segments $secondToLast].[lindex $segments end]"
+        # replace the second to last segment with the new segment
+        set segments [lreplace $segments $secondToLast $secondToLast $newSegment]
+        ## remove the last segment
+        set segments [lreplace $segments end end]
+    }
+
+    #echo "segments: $segments"
+
     foreach segment $segments {
 
       set segment [string map {"," "."} $segment]

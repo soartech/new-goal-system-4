@@ -1,0 +1,123 @@
+##!
+# @file
+#
+# @created glenn 20180109
+
+
+test basic-bind {
+
+source "../_core/_CORE_Macros.tcl"
+source "../_core/_CORE_MacroVariables.tcl"
+source "../_core/_CORE_Math.tcl"
+
+source "../load.soar"
+CORE_Source helpers.tcl
+
+watch 1
+
+
+sp "unit-test*create-system-attribute
+    (state <s> ^$WM_INPUT_LINK <il>)
+-->
+    [ngs-create-typed-object <il> system SystemInformation <sys>]"
+
+sp "unit-test*elaborate-unit-test-cycle-count
+    (state <s> ^$WM_INPUT_LINK <il>)
+    (<il>      ^soar-unit.cycle-count <cc>
+               ^system <sys>)
+-->
+    (<sys>     ^cycle-count <cc>)"
+
+
+sp "create-object-to-bind
+    [ngs-match-top-state <s> {} <il>]
+-->
+    (<s> ^foo.bar <bar>)
+    (<bar> ^integer 1
+           ^float 1.0
+           ^enum enum
+           ^string |teststring|
+           ^string-space |test string with space|
+           ^string-with-period |test.string|
+           ^1.0 number-id
+           ^number.0 number0)"
+
+sp "test*match*basic-path
+    [ngs-match-top-state <s> {} <il>]
+    [ngs-bind <s> foo.bar.integer::<int>]
+-->
+    [ngs-create-attribute <s> basic-path-pass *yes*]"
+    
+sp "test*match*integer
+    [ngs-match-top-state <s> {} <il>]
+    [ngs-bind <s> foo.bar.integer::1]
+-->
+    [ngs-create-attribute <s> integer-test-pass *yes*]"
+
+sp "test*match*float
+    [ngs-match-top-state <s> {} <il>]
+    [ngs-bind <s> foo.bar.float::1.0]
+-->
+    [ngs-create-attribute <s> float-test-pass *yes*]"
+
+sp "test*match*float-less-than-equal
+    [ngs-match-top-state <s> {} <il>]
+    [ngs-bind <s> foo.bar.float:<=:1.0]
+-->
+    [ngs-create-attribute <s> float-lt-eq-test-pass *yes*]"
+
+sp "test*match*float-not-lte
+    [ngs-match-top-state <s> {} <il>]
+    [ngs-bind <s> foo.bar.float:~>:0.0]
+-->
+    [ngs-create-attribute <s> float-not-lte-test-pass *yes*]"
+
+sp "test*match*string
+    [ngs-match-top-state <s> {} <il>]
+    [ngs-bind <s> foo.bar.string::|teststring|]
+-->
+    [ngs-create-attribute <s> string-test-pass *yes*]"
+
+#sp "test*match*string-space
+#    [ngs-match-top-state <s> {} <il>]
+#    [ngs-bind <s> foo.bar.string::|test string|]
+#-->
+#    [ngs-create-attribute <s> string-space-test-pass *yes*]"
+#
+#sp "test*match*string-with-period
+#    [ngs-match-top-state <s> {} <il>]
+#    [ngs-bind <s> foo.bar.string::|test.string|]
+#-->
+#    [ngs-create-attribute <s> string-period-test-pass *yes*]"
+
+#sp "test*match*number-id
+#    [ngs-match-top-state <s> {} <il>]
+#    [ngs-bind <s> foo.bar.1.0]
+#-->
+#    [ngs-create-attribute <s> number-id-test-pass *yes*]"
+
+#sp "test*match*number-id-plus-value
+#    [ngs-match-top-state <s> {} <il>]
+#    [ngs-bind <s> foo.bar.1.0::number-id]
+#-->
+#    [ngs-create-attribute <s> number-id-plus-value-test-pass *yes*]"
+
+sp "test*match*number0-id-plus-value
+    [ngs-match-top-state <s>]
+    [ngs-bind <s> foo.bar.number.0::number0]
+-->
+    [ngs-create-attribute <s> number0-id-plus-value-test-pass *yes*]"
+
+sp "test
+    [ngs-match-top-state <s>]
+    [ngs-bind <s> basic-path-pass::*yes*]
+    [ngs-bind <s> integer-test-pass::*yes*] 
+    [ngs-bind <s> float-test-pass::*yes*] 
+    [ngs-bind <s> float-lt-eq-test-pass::*yes*]
+    [ngs-bind <s> float-not-lte-test-pass::*yes*]
+    [ngs-bind <s> string-test-pass::*yes*]
+    [ngs-bind <s> number0-id-plus-value-test-pass::*yes*]
+-->
+    (pass)"
+
+}
