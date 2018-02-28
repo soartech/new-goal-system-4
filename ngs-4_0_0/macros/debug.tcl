@@ -737,5 +737,24 @@ proc ngs-dashboard { {pool_name ""} {missing_only ""}} {
     excise ngs*debug-trace-pool*report-category
 }
 
-
-
+# Print out rule names matching a pattern
+#
+# Rule names are printed in alphabetical order.
+#
+# Simple string literals require no special syntax.
+# E.g., "npp propose" to print all rules that contain the string literal "propose"
+#
+# Note that *'s in rule names need to be escaped, and the backslash for the escape also needs to be escaped.
+# E.g., "npp propose\\*foo" to match on rules that contain the string literal "propose*foo"
+#
+# prodNamePattern - A regex (in Tcl format) for the rule names to print.
+#
+proc npp { prodNamePattern } {
+    set prodNames [CORE_GetCommandOutput print]
+    set prodNamesList [split $prodNames]
+    set prodNamesList [lsort $prodNamesList]
+    set filteredProdNamesList [lsearch -regexp -inline -all $prodNamesList $prodNamePattern]
+    foreach element $filteredProdNamesList {
+        echo $element
+    }
+}
