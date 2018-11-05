@@ -1075,7 +1075,7 @@ proc ngs-is-decision-choice { state_id choice_id { choice_type ""} } {
     return "($state_id ^decision-choice $choice_id)"
   } else {
     return "($state_id ^decision-choice $choice_id)
-            [ngs-is-my-type $choice_id $choice_type]"
+            [ngs-is-type $choice_id $choice_type]"
   }
 }
 
@@ -1096,7 +1096,7 @@ proc ngs-is-not-decision-choice { state_id choice_id { choice_type ""} } {
   } else {
     return "-{
               ($state_id ^decision-choice $choice_id)
-              [ngs-is-my-type $choice_id $choice_type]
+              [ngs-is-type $choice_id $choice_type]
              }"
   }
 }
@@ -1360,7 +1360,7 @@ proc ngs-is-supergoal { goal_id supergoal_id {supergoal_type ""} } {
   set main_test_line "($goal_id ^supergoal $supergoal_id)"
   if { $supergoal_type != "" } {
 	   return "$main_test_line 
-            [ngs-is-my-type $supergoal_id $supergoal_type]"
+            [ngs-is-type $supergoal_id $supergoal_type]"
   } else {
       return $main_test_line
   }
@@ -1399,7 +1399,7 @@ proc ngs-is-subgoal { goal_id subgoal_id {subgoal_type ""} } {
   set main_test_line "($goal_id ^subgoal $subgoal_id)"
   if { $subgoal_type != "" } {
     return "$main_test_line 
-            [ngs-is-my-type $subgoal_id $subgoal_type]"
+            [ngs-is-type $subgoal_id $subgoal_type]"
   } else {
     return $main_test_line
   }
@@ -1766,7 +1766,7 @@ proc ngs-match-active-goal { substate_id
 
   set lhs_ret "[ngs-match-substate $substate_id $substate_name $params_id $top_state_id $superstate_id]
                ($substate_id ^$WM_ACTIVE_GOAL $goal_id)
-               [ngs-is-my-type $goal_id $goal_type]"
+               [ngs-is-type $goal_id $goal_type]"
 
   return $lhs_ret
 }
@@ -1914,7 +1914,7 @@ proc ngs-match-to-create-return-goal { substate_id
                ($substate_id ^$NGS_RETURN_VALUES $return_value_set)
               -{
                   [ngs-is-return-val $return_value_set $NGS_GOAL_RETURN_VALUE $new_goal_id]
-                  [ngs-is-my-type $new_goal_id $new_goal_type]
+                  [ngs-is-type $new_goal_id $new_goal_type]
                }"
 
   return $lhs_ret
@@ -2208,7 +2208,7 @@ proc ngs-bind-choice-operator { op_id
 
    if { $choice_type != "" } {
       set lhs_ret "$lhs_ret
-                   [ngs-is-my-type $choice_id $choice_type]"
+                   [ngs-is-type $choice_id $choice_type]"
    }
 
    if { $choice_bind != ""} {
