@@ -1209,6 +1209,9 @@ proc ngs-add-log-side-effect { loggerName levelName text {op_id ""}} {
 #         Can also escape parens if want to keep them, although they need to be double-escaped if the text
 #         is passed with double-quotes due to Tcl substitution. E.g., "it happened <count> time\\(s\\)" and
 #         {it happened <count> time\(s\)} will both produce |it happened <count> time(s)|
+#         Can also escape square brackets if don't want them to be interpreted as tcl commands. A single
+#         escape works fine in this case. E.g., "the range was \[<x>, <y>]" will generate
+#         |the range was \[|<x>|, |<y>|]| (closing brackets can be escaped, too, but it's not necessary).
 proc ngs-write { text } {
         return "(write (crlf) [ngs-process-string-for-writelog $text])"
 }
@@ -1229,6 +1232,9 @@ proc ngs-write { text } {
 #         Can also escape parens if want to keep them, although they need to be double-escaped if the text
 #         is passed with double-quotes due to Tcl substitution. E.g., "it happened <count> time\\(s\\)" and
 #         {it happened <count> time\(s\)} will both produce |it happened <count> time(s)|
+#         Can also escape square brackets if don't want them to be interpreted as tcl commands. A single
+#         escape works fine in this case. E.g., "the range was \[<x>, <y>]" will generate
+#         |the range was \[|<x>|, |<y>|]| (closing brackets can be escaped, too, but it's not necessary).
 proc ngs-log { loggerName level text } {
     variable SOAR_IMPLEMENTATION
     variable JSOAR

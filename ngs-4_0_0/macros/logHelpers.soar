@@ -65,6 +65,7 @@ CORE_CreateMacroVar NGS_LOG_HELPERS_EXPR expr
 # 1. split on parenthetical expressions, labeling each split with whether it is parenthetical or not; e.g., "the <bar> result: (my-rhs-func <foo> (+ <x> <y>)) and stuff" -> default "the <bar> result: ", expr "(my-rhs-func <foo> (+ <x> <y>))", default " and stuff"
 # 2. for the non-parenthetical parts, surround vars with bars: "the <bar> result: (my-rhs-func <foo> (+ <x> <y>)) and stuff" -> "the <bar> result: ", "(my-rhs-func <foo> (+ <x> <y>))", " and stuff"
 # 3. join parts back together
+# 4. escape any open square brackets (so they don't get interpreted as tcl commands)
 proc ngs-process-string-for-writelog { text } {
     variable NGS_LOG_HELPERS_DEFAULT
     # split on parenthetical expressions
@@ -89,6 +90,7 @@ proc ngs-process-string-for-writelog { text } {
 
     # join parts back together
     set result [join $resultList ""]
+    set result [string map {[ \\[} $result]
 
     return $result
 }
