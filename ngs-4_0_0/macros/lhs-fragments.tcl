@@ -192,6 +192,18 @@ proc ngs-gte-lte { obj_id attr low_val high_val { val_id ""} } {
   return "[ngs-test $NGS_TEST_GREATER_THAN_OR_EQUAL $obj_id $attr $low_val $val_id]
           [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $high_val]"
 }
+proc ngs-gt-lt { obj_id attr low_val high_val { val_id ""} } {
+  variable NGS_TEST_GREATER_THAN
+  variable NGS_TEST_LESS_THAN
+  return "[ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $low_val $val_id]
+	  [ngs-test $NGS_TEST_LESS_THAN $obj_id $attr $high_val]"
+}
+proc ngs-gt-lte { obj_id attr low_val high_val { val_id ""} } {
+  variable NGS_TEST_GREATER_THAN
+  variable NGS_TEST_LESS_THAN_OR_EQUAL
+  return "[ngs-test $NGS_TEST_GREATER_THAN $obj_id $attr $low_val $val_id]
+	  [ngs-test $NGS_TEST_LESS_THAN_OR_EQUAL $obj_id $attr $high_val]"
+}
 
 
 ######################################################################################
