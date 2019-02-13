@@ -68,7 +68,9 @@ There are many other differences, mainly due to the large number of additional m
 ```tcl
 source "ngs-4_0_0/load.soar"
 ```
- 
+
+For an example of using NGS-4 with TankSoar provided by the Soar tutorial, please review [https://github.com/soartech/ngs4-tanksoar](https://github.com/soartech/ngs4-tanksoar).
+
 ### Running the NGS unit tests <a id="unittests"></a>
 The NGS unit tests use [SoarUnit](https://github.com/soartech/jsoar/wiki/SoarUnit), which is part of [jsoar](https://github.com/soartech/jsoar). You can add a SoarUnit launch to your favorite editor or run it from the command line. Either way, you will need to point it to NGS's test directory: `/ngs-4.0.0/tests`.
 
