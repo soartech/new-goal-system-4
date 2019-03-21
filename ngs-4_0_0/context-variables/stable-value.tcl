@@ -90,8 +90,10 @@ proc ngs-create-stable-value { pool_id variable_name src_obj src_attr delta { de
 # category_name - Name of the category into which to place the variable. Set to NGS_CTX_VAR_USER_LOCATION if you
 #   are placing the context variable in an arbitrary location specified by a path (see parameter pool_goal_or_path)
 # variable_name - Name of the variable
+# batch_op_cat_and_name - If provided a pair (TCL list) consisting of a batch operator category and name to use when
+#  setting this context variable's value.  If not provides, the value will be set by a stand-alone operator.
 #
-proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
+proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name { batch_op_cat_and_name "" } } {
 
     variable NGS_CTX_ALL_VARIABLES
     lappend NGS_CTX_ALL_VARIABLES [dict create pool $pool_goal_or_path category $category_name name $variable_name]
@@ -168,6 +170,18 @@ proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
     # Propose to change the stable-value when it goes out of bounds. This will trigger
     # elaboration of new bounds
 
+    if { $batch_op_cat_and_name != "" } {
+
+        set batch_category [lindex $batch_op_cat_and_name 0]
+        set batch_name     [lindex $batch_op_cat_and_name 1]
+        set root_bind "$root_bind
+                       [ngs-bind-bop-description <s> $batch_category $batch_name <bo>]"
+
+        set set_line  "[ngs-set-context-variable-by-batch-operator <bo> $var_id <src-val>]"
+    } else {
+        set set_line  "[ngs-create-attribute-by-operator <s> $var_id value <src-val>]"
+    }
+
     variable NGS_CTX_VAR_SUPPRESS_SAMPLING
     sp "ctxvar*propose*stable-value*init-value*$production_name_suffix
         $root_bind
@@ -175,7 +189,7 @@ proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
         [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
         [ngs-ctx-var-source-val $var_id <src-val>]
      -->
-        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]"
+        $set_line"
 
     sp "ctxvar*propose*stable-value*update-value*$production_name_suffix
         $root_bind
@@ -186,5 +200,5 @@ proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name } {
                 [ngs-gt <src-obj> <src-attr> <max-bound>]]
         [ngs-bind <src-obj> <src-attr>:<src-val>]
      -->
-        [ngs-create-attribute-by-operator <s> $var_id value <src-val>]"
+        $set_line"
 }

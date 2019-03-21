@@ -183,23 +183,23 @@ proc ngs-add-dyn-bin { bin_set_id
 
 }
 
-
-
 # Define a Dynamically Binned Value
 #
 # This macro declares and defines the helper productions to support a specific dynamically binned
 #  value. To actually construct the variable, us ngs-create-dyn-bin-value and its supporting
 #  macro ngs-add-dyn-bin.
 #
-# NGS_DefineDynamicBinValue pool_goal_or_path category_name variable_name
+# NGS_DefineDynamicBinValue pool_goal_or_path category_name variable_name { ngs set-ctx-var-values }
 #
 # pool_goal_or_path - A global context variable pool name, a goal type, or an arbitrary path rooted at the top state.
 #  This is the location where the context variable will be stored.
 # category_name - Name of the category into which to place the variable. Set to NGS_CTX_VAR_USER_LOCATION if you
 #   are placing the context variable in an arbitrary location specified by a path (see parameter pool_goal_or_path)
 # variable_name - Name of the variable
+# batch_op_cat_and_name - If provided a pair (TCL list) consisting of a batch operator category and name to use when
+#  setting this context variable's value.  If not provides, the value will be set by a stand-alone operator.
 #
-proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name } {
+proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name { batch_op_cat_and_name "" } } {
 
     variable NGS_CTX_ALL_VARIABLES
     lappend NGS_CTX_ALL_VARIABLES [dict create pool $pool_goal_or_path category $category_name name $variable_name]
@@ -380,6 +380,18 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
     -->
         [ngs-create-attribute $bin_id cur-max "(- <max-val> (* <next-min-delta> <max-val>))"]"
 
+    if { $batch_op_cat_and_name != "" } {
+
+        set batch_category [lindex $batch_op_cat_and_name 0]
+        set batch_name     [lindex $batch_op_cat_and_name 1]
+        set root_bind "$root_bind
+                       [ngs-bind-bop-description <s> $batch_category $batch_name <bo>]"
+
+        set set_line  "[ngs-set-context-variable-by-batch-operator <bo> $var_id <name>]"
+    } else {
+        set set_line  "[ngs-create-attribute-by-operator <s> $var_id value <name>]"
+    }
+
     ############### PROPOSALS ####################################
     # When in bounds, propose operator to change the value
     variable NGS_CTX_VAR_SUPPRESS_SAMPLING
@@ -392,7 +404,7 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
         [ngs-stable-gte-lt <src-obj> <src-attr> <cur-min> <cur-max>]
         [ngs-ex <src-obj> <src-attr>]
     -->
-        [ngs-create-attribute-by-operator <s> $var_id value <name>]"
+        $set_line"
 
     sp "ctxvar*dyn-bins*propose*set-value*$production_name_suffix*min-only
         $root_bind
@@ -404,7 +416,7 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
         [ngs-stable-gte <src-obj> <src-attr> <cur-min>]
         [ngs-ex <src-obj> <src-attr>]
      -->
-        [ngs-create-attribute-by-operator <s> $var_id value <name>]"
+        $set_line"
 
     sp "ctxvar*dyn-bins*propose*set-value*$production_name_suffix*max-only
         $root_bind
@@ -416,7 +428,7 @@ proc NGS_DefineDynamicBinValue { pool_goal_or_path category_name variable_name }
         [ngs-stable-lt <src-obj> <src-attr> <cur-max>]
         [ngs-ex <src-obj> <src-attr>]
     -->
-        [ngs-create-attribute-by-operator <s> $var_id value <name>]"
+        $set_line"
                         
 }
 
