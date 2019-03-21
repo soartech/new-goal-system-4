@@ -1,24 +1,27 @@
 # NOTE: These methods don't work as well as I'd hoped. Need to rethink the dashboard processes
 
-# NGS Print 
+# NGS Print Execute
 #
 # This is a specialized version of Soar's p (or print) command.
 # It defaults to printing as a tree and to depth 2. You can pass 
 #  an optional depth number to change the printing depth.
+# This used to be the np command, but has been renamed npx
+# and is called from within the new np command at the bottom of
+# this file.
 #
-# Usage: np s1 (print the top state to depth 2)
-# Usage: np 3 s1 (print the top state to depth 3)
-# Usage: np i2 i3 (print input and output links to depth 2)
-# Usage: np 3 i2 i3 (print the input and output linkks to depth 3)
+# Usage: npx s1 (print the top state to depth 2)
+# Usage: npx 3 s1 (print the top state to depth 3)
+# Usage: npx i2 i3 (print input and output links to depth 2)
+# Usage: npx 3 i2 i3 (print the input and output linkks to depth 3)
 #
 # args - An optional depth (integer) followed by identifiers. If the
 #          depth is not provided, a default print depth of 2 is used.
 #
-proc np { args } {
+proc npx { args } {
 
     if { [llength $args] == 0} {
         echo "+---------------------------------------+"
-        echo "Usage: np (depth=2) id1 id2 id3 ..."
+        echo "Usage: npx (depth=2) id1 id2 id3 ..."
     }
 
     set prev_id_list ""
@@ -33,7 +36,7 @@ proc np { args } {
     set print_this ""
     foreach id $args {
         set id [string toupper $id]
-		echo "================================================================================"
+        echo "================================================================================"
         set print_this "+ OBJECT:"
         if {[string index [CORE_GetCommandOutput print $id] 0] != "("} {
             echo "$print_this $id does not exist"
@@ -43,7 +46,8 @@ proc np { args } {
 	        echo $print_this
         }
     }
-	echo "================================================================================"
+    # Note: np prints this now
+	#echo "================================================================================"
 }
 
 # Helps pretty print the WME tree
@@ -96,12 +100,16 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set attr_name  [lindex $attr_props 0]
             set attr_value [lindex $attr_props 1]
             set attr_type  [lindex $attr_props 2]
+            set ctx_value  [lindex $attr_props 3]
         
             if { $level == $target_level || [dict exists $id_dict $attr_value] == 1 || [ngs-debug-is-identifier $attr_value] == 0 } {
-               set print_this "$print_this\n$prefix $attr_name: $attr_value"
-               if {$attr_type != ""} {
+                set print_this "$print_this\n$prefix $attr_name: $attr_value"
+                if {$ctx_value != ""} {
+                    set print_this "$print_this == $ctx_value"
+                }
+                if {$attr_type != ""} {
                     set print_this "$print_this ($attr_type)"
-               }
+                }
             } else {
                #echo "ngs-print-identifiers-attributes-details $attr_value [expr $level + 1] $target_level \{$id_dict\}"
                set print_this "$print_this\n$prefix $attr_name: [ngs-print-identifiers-attributes-details $attr_value [expr $level + 1] $target_level id_dict]"
@@ -134,14 +142,10 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set tag_name  [lindex $tag_props 0]
             set tag_value [lindex $tag_props 1]
             set tag_type  [lindex $tag_props 2]
-            if { $level == $target_level || [dict exists $id_dict $tag_value] == 1 ||  [ngs-debug-is-identifier $tag_value] == 0 } {
-               set print_this "$print_this\n$prefix TAG: $tag_name: $tag_value"
-               if {$tag_type != ""} {
-                    set print_this "$print_this ($tag_type)"
-               }
-            } else {
-               #echo "TAG: ngs-print-identifiers-attributes-details $tag_value [expr $level + 1] $target_level \{$id_dict\}"
-               set print_this "$print_this\n$prefix TAG: $tag_name: [ngs-print-identifiers-attributes-details $tag_value [expr $level + 1] $target_level id_dict]"
+
+            set print_this "$print_this\n$prefix TAG: $tag_name: $tag_value"
+            if {$tag_type != ""} {
+                set print_this "$print_this ($tag_type)"
             }
         }
     }
@@ -224,6 +228,7 @@ proc ngs-debug-process-id-print { line } {
 # 2 - the value of the attribute
 # 3 - the type of the attribute (or name of the operator)
 # 4 - operator preference (if attribute is an operator)
+#   | context variable value (if attribute is a context variable)
 #
 proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 
@@ -304,6 +309,10 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                         set identifier_type [ngs-debug-get-single-id-for-attribute $attr_val "name"]
                     }
                     lappend attribute_info $identifier_type
+                    set variable_value [ngs-debug-get-single-id-for-attribute $attr_val "value"]
+                    if { $variable_value != "" } {
+                        lappend attribute_info $variable_value
+                    }
 
                 } elseif { [string is integer $attr_val] == 1 } {
                     lappend attribute_info ""
@@ -736,6 +745,164 @@ proc ngs-dashboard { {pool_name ""} {missing_only ""}} {
 
     excise ngs*debug-trace-pool*report-category
 }
+
+
+######################### Dotted Expression Printing Functions #########################
+# added by gillies 20181130
+
+## Returns the list attribute/value pairs from a supplied identifier.
+## In the returned list, the odd numbered items are attribute names, 
+## and the even numbered items are the corresponding values.
+proc ngs-debug-get-att-value-pairs { identifier } {
+    set print_string [CORE_GetCommandOutput p $identifier]
+    set attr_value_pairs [ngs-debug-process-id-print $print_string]
+    return $attr_value_pairs
+}
+
+## Get all values of the supplied attribute off of the supplied identifier.
+## If the attribute starts with @, remove, the @ and prepend "__tagged*".
+## The resut is a list of values (Either identifiers or literal values such as strings or numbers)
+     
+proc ngs-debug-get-attribute-values { identifier attribute } {
+    set result ""
+    set attr_value_pairs [ngs-debug-get-att-value-pairs $identifier]
+    set is_key 1
+    if { [string index $attribute 0] == "@" } {
+        set attribute [string cat "__tagged*" [string range $attribute 1 end]]
+    }
+    #echo "attribute =" $attribute
+    foreach item $attr_value_pairs {
+        if { $is_key == 1 } {
+            set curr_key $item
+            set is_key 0
+        } else {
+            #echo "curr_key =" $curr_key $attribute
+            if { $curr_key == $attribute } {
+                lappend result $item
+            }
+            set is_key 1
+        }
+    }
+
+    return $result
+}
+
+## print key/value pairs from a tcl dict
+proc pdict { d } {
+    dict for { k v } $d {
+        echo $k $v
+    }
+}
+
+proc ngs-debug-get-dotted-values { identifier dotted } {
+    set chain [split $dotted "."]
+    set values $identifier
+    foreach attribute $chain {
+        set new_values ""
+        #echo $values $attribute
+        foreach id $values {
+            foreach val [ngs-debug-get-attribute-values $id $attribute] {
+                lappend new_values $val
+            }
+        }
+        set values $new_values
+    }
+    return $values
+}
+
+
+## prints the value of a single dotted expression
+proc npv1 { arg } {
+    set args [split $arg "."]
+    set identifier [lindex $args 0]
+    set dotted [join [lrange $args 1 end] "."]
+    set values [ngs-debug-get-dotted-values $identifier $dotted]
+    foreach value $values {
+        echo $value
+    }
+}
+
+proc npo1 { depth arg } {
+    set args [split $arg "."]
+    set identifier [lindex $args 0]
+    set dotted [join [lrange $args 1 end] "."]
+    set values [ngs-debug-get-dotted-values $identifier $dotted]
+    foreach value $values {
+	    if { [ngs-debug-is-identifier $value] == 1 } {    
+            npx $depth $value
+        } else {
+            echo "================================================================================"
+            echo $value
+        }
+    }
+}
+
+
+# npv - NGS Print Value
+#
+# This command prints the value of one or more dotted expresions.
+# If the value is an object, it prints that object's identifier.
+# Otherwise it ptints the literal vallue, for example a number or a string.
+# If the expression has multiple values, all values are printed (on separate lines).
+#
+# A dotted expression is of the form identifier.attribute1.attribute2...attributeN
+# The value of a dotted expression is the item at the end of the chain of attributes starting with the initial identifier.
+#
+# Example: npv s1.io.input-link (prints "I2" - the input link identifier)
+# Example: npv s1.io.input-link s1.io.input-link (prints "I2" and "I3" - the input and output link identifiers on separate lines)
+# Example: npv s1.aps.my-type (prints "AutoPilotSoar", the my-type attribute of s1.aps - note that in this case the value is a string instead of an identifier)
+# Example: npv s1.operator.name (prints the name of all current operators)
+#
+# args - one or more dotted expressions, separated by spaces.
+#
+
+proc npv { args } {
+    foreach arg $args {
+        npv1 $arg
+    }
+}
+
+# np - NGS Print
+#
+# This used to be the npo command, but has subsumed and extended np functionality and renamed np.
+#
+# This command prints one or more items, specified by dotted expressions.
+# If the item is an identifier, the object is printed np-style.
+# If the item is a literal value, such as a string or number, it is printed using echo.
+# If the expression yields multiple items, they are all printed.
+# 
+#
+# A dotted expression is of the form identifier.attribute1.attribute2...attributeN
+# The value of a dotted expression is the item at the end of the chain of attributes starting with the initial identifier.
+#
+# Example: np s1.io.input-link (prints the input-link object using npx)
+# Example: np s1.io.input-link s1.io.input-link (prints both the input and output link objects using npx)
+# Example: np s1.aps.my-type (prints "AutoPilotSoar", the my-type attribute of s1.aps)
+# Example: np s1.operator.name (prints the name of all current operators)
+#
+# args - optional depth followed by one or more dotted expressions.
+#
+
+proc np { args } {
+
+    if { [llength $args] == 0} {
+        echo "+---------------------------------------+"
+        echo "Usage: npo (depth=1) expression1 expression2 expression3 ..."
+    }
+
+    set depth 1
+    set first [lindex $args 0]
+
+    if { [string is integer [string index $first 0]] == 1 && [llength $args] > 0 } {
+        set depth $first
+        set args [lrange $args 1 end]
+    }
+    foreach arg $args {
+        npo1 $depth $arg
+    }
+    echo "================================================================================"
+}
+
 
 # Print out rule names matching a pattern
 #
