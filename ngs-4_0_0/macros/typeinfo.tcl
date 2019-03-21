@@ -138,13 +138,19 @@ proc NGS_DeclareType { typename attribute_list } {
 #  that is also specified in the defaults list, you will override
 #  the default with the value passed here. You can also include
 #  attributes that are not included in the type declaration.
+# add_my_type - (optional) A TCL true/false value that indicates whether
+#  the my-type attribute should be created and given the value $typename.
+#  The default value is "true" which is the correct value when creating
+#  a new type. When adding a new type to an object, the correct value is false.
 #
-proc ngs-construct { object_id typename { attribute_list "" } } {
+proc ngs-construct { object_id typename { attribute_list "" } { add_my_type true }} {
 
 	set ret_val "($object_id"
 
-	lappend attribute_list my-type $typename
-	
+    if { $add_my_type } {
+    	lappend attribute_list my-type $typename
+	}
+
     # Expand tags in the attribute list (prefixed with @)
     set attribute_list [ngs-expand-tags $attribute_list]
 

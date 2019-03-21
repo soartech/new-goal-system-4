@@ -1145,6 +1145,22 @@ proc ngs-has-not-decided { goal_id { decision_value "" } } {
   return "[ngs-is-not-tagged $goal_id $NGS_TAG_SELECTION_STATUS $decision_value]"
 }
 
+# Evaluates to true if the given goal currently requires the named decision be made
+#
+# This macro is typically only needed for the core decision making control of a model.
+#  You might use it, for example, to decide when to do do some process (e.g. output or
+#  reinforcement learning) after a decision has been made.
+#
+# goal_id - variable bound to the goal identifer to check for a required decision
+# decision_name - name of the decision to check
+#
+proc ngs-requires-decision { goal_id decision_name } {
+    variable NGS_TAG_REQUIRES_DECISION
+    set decision_info_id [CORE_GenVarName decision-info]
+    return "[ngs-has-requested-decision $goal_id $decision_name {} {} {} $decision_info_id]
+            [ngs-is-tagged $decision_info_id $NGS_TAG_REQUIRES_DECISION]"
+}
+
 # Evaluates to true if the entire stack of decision goals of which this goal 
 #  is a part, is selected (i.e. [ngs-has-decided $goal_id $NGS_YES] is true)
 # 
@@ -1553,7 +1569,7 @@ proc ngs-is-supergoal { goal_id supergoal_id {supergoal_type ""} } {
 
   set main_test_line "($goal_id ^supergoal $supergoal_id)"
   if { $supergoal_type != "" } {
-	   return "$main_test_line 
+       return "$main_test_line 
             [ngs-is-type $supergoal_id $supergoal_type]"
   } else {
       return $main_test_line
@@ -1617,6 +1633,32 @@ proc ngs-is-not-subgoal { goal_id subgoal_id {subgoal_type ""} } {
 
 #######################################################################################
 
+# Start an open ended production that binds to any state (top or sub-state)
+#
+# [ngs-match-any-state state_id (bindings)
+#
+# state_id - Variable bound to the the state identifer (bound by this macro)
+# bindings - (Optional) If provided, a string to be passed to ngs-bind as
+#               [ngs-bind <state_id> $bindings]
+# superstate_id - (Optional) If provided, a variable bound to the superstate
+#                    which could be nil if the binding is to the top-state
+#
+proc ngs-match-any-state { state_id {bindings ""} {superstate_id ""} } {
+
+  if { $superstate_id != "" } {
+     set lhs_ret "(state $state_id ^superstate $superstate_id)"
+  } else {
+     set lhs_ret "(state $state_id ^superstate [CORE_GenVarName superstate])"
+  }
+
+  if { $bindings != "" } {
+     set lhs_ret "$lhs_ret
+                  [ngs-bind $state_id $bindings]"
+  } 
+  
+  return $lhs_ret
+}
+                                                                                        
 # Start an open ended production that simply binds to the top state
 # 
 # [ngs-match-top-state state_id (bindings) (input_link) (output_link)]
@@ -2060,6 +2102,7 @@ proc ngs-match-to-set-return-val { substate_id
                                      {top_state_id ""}
                                      {superstate_id ""} } {
   variable NGS_RETURN_VALUES
+  variable NGS_ADD_TO_SET
 
   CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
@@ -2067,7 +2110,7 @@ proc ngs-match-to-set-return-val { substate_id
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id {} $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
                ($return_value_desc_id    ^name  $return_value_name)
-               [ngs-nex $return_value_desc_id value]"
+               [ngs-or [ngs-nex $return_value_desc_id value] [ngs-eq $return_value_desc_id replacement-behavior $NGS_ADD_TO_SET]]"
 
   return $lhs_ret
 }
@@ -2137,7 +2180,7 @@ proc ngs-match-to-create-return-goal { substate_id
 # op_name - (Optional) If provided, the name of the operator that is bound to op_id 
 #
 proc ngs-match-proposed-operator { state_id
-								   op_id
+                                   op_id
                                    {op_tags ""}
                                    {op_name ""} } {
 
@@ -2150,8 +2193,8 @@ proc ngs-match-proposed-operator { state_id
 
   if { $op_name != "" } {
      set lhs_ret "$lhs_ret
-            	  ($op_id ^name $op_name)"
-	} 
+                  ($op_id ^name $op_name)"
+    } 
 
   return $lhs_ret
 }
@@ -2305,8 +2348,8 @@ proc ngs-bind-creation-operator { op_id
                                   {replacement_behavior ""} } {
 
    set lhs_ret "($op_id ^dest-object $dest_obj
-                         ^dest-attribute $dest_attr
-                         ^new-obj $value)"
+                        ^dest-attribute [ngs-expand-tags $dest_attr]
+                        ^new-obj $value)"
    
    if { $replacement_behavior != "" } {
       set lhs_ret "lhs_ret
@@ -2357,7 +2400,7 @@ proc ngs-bind-return-operator { op_id
                               {replacement_behavior ""} } {
 
 
-   set lhs_ret "[ngs-is-creation-operator $op_id $dest_obj $dest_attr $value $replacement_behavior]
+   set lhs_ret "[ngs-bind-creation-operator $op_id $dest_obj $dest_attr $value $replacement_behavior]
                  ($op_id ^ret-val-name $return_value_name)"
 
    if { $value_bind != ""} {
@@ -2397,7 +2440,7 @@ proc ngs-bind-choice-operator { op_id
    set dest_obj [CORE_GenVarName "dest-obj"]
    set dest_attr [CORE_GenVarName "dest-attr"]
 
-   set lhs_ret "[ngs-is-creation-operator $op_id $dest_obj $dest_attr $NGS_YES]
+   set lhs_ret "[ngs-bind-creation-operator $op_id $dest_obj $dest_attr $NGS_YES]
                  ($op_id ^choice $choice_id)"
 
    if { $choice_type != "" } {
@@ -2436,7 +2479,7 @@ proc ngs-bind-removal-operator { op_id
                                value } {
 
    return "($op_id ^dest-object $dest_obj
-                   ^dest-attribute $dest_attr
+                   ^dest-attribute [ngs-expand-tags $dest_attr]
                    ^value-to-remove $value)"
 }
 
@@ -2523,7 +2566,7 @@ proc ngs-match-two-proposed-operators { state_id
 
 
   set lhs_ret "(state $state_id ^operator $op1_id +
-			                    ^operator { $op2_id <> $op1_id } +)"
+                                ^operator { $op2_id <> $op1_id } +)"
 
   if { $op1_tags != "" } {
     set lhs_ret "$lhs_ret
@@ -2546,11 +2589,11 @@ proc ngs-match-two-proposed-operators { state_id
   if { $op1_name != "" } {
      set lhs_ret "$lhs_ret
                   [ngs-is-named $op1_id $op1_name]"
-	} 
+    } 
   if { $op2_name != "" } {
      set lhs_ret "$lhs_ret
                   [ngs-is-named $op2_id $op2_name]"
-	} 
+    } 
 
   return $lhs_ret
 }
@@ -2579,7 +2622,7 @@ proc ngs-match-two-proposed-operators { state_id
 #
 proc ngs-match-selected-operator {state_id
                                   op_id
-								                  {op_name ""}
+                                                  {op_name ""}
                                   {goal_id ""} } {
 
   set lhs_ret "(state $state_id ^operator $op_id)"
@@ -2617,7 +2660,7 @@ proc ngs-match-selected-operator {state_id
 #
 proc ngs-match-selected-operator-on-top-state {state_id
                                                op_id
-											                         {op_name ""}
+                                                                     {op_name ""}
                                                {goal_id ""} } {
  
   return "[ngs-match-selected-operator $state_id $op_id $op_name $goal_id]
@@ -2650,7 +2693,7 @@ proc ngs-match-selected-operator-on-top-state {state_id
 #
 proc ngs-match-selected-operator-in-substate {substate_id                                               
                                               op_id
-											  {op_name ""}
+                                              {op_name ""}
                                               {goal_id ""} 
                                               {substate_name ""}
                                               {params_id ""}
