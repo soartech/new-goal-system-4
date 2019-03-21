@@ -1,5 +1,6 @@
 variable WM_ACTIVE_GOAL
 variable NGS_OP_DECIDE_GOAL
+variable NGS_OP_ID
 variable NGS_RETURN_VALUES
 variable NGS_DECISION_RET_VAL_NAME
 variable NGS_TAG_DECISION_STATUS
@@ -61,9 +62,14 @@ sp "ngs*core*substate*copy-decision-goals
 
 # Elaborates the return value structure for the decision. We don't know which object
 #  to tag yet because the selection hasn't been made yet.
+# 
+# JC: Fixed a subtle bug. This used to test the substate and set the return value
+#      that way.  However, that causes a justification to get created.  Right now
+#      the return value set is linked to the top state. We may need to change the
+#      return value set to get i-support (copy the return value set via individual productions)
 sp "ngs*core*substate*create-decision-return-structure
-	[ngs-match-substate <s> $NGS_OP_DECIDE_GOAL]
-	(<s> ^$NGS_RETURN_VALUES <ret-vals>)
+    [ngs-match-proposed-function-operator <s> $NGS_OP_ID $NGS_OP_DECIDE_GOAL]
+	($NGS_OP_ID ^$NGS_RETURN_VALUES <ret-vals>)
 -->
 	[ngs-create-ret-tag-in-place $NGS_DECISION_RET_VAL_NAME <ret-vals> {} $NGS_TAG_DECISION_STATUS $NGS_YES]"
 
