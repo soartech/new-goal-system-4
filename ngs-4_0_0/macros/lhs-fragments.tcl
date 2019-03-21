@@ -335,6 +335,188 @@ proc ngs-this-not-that { this_id that_id args } {
   return "\{ $this_id <> $that_id $additionalTests \}"
 }
 
+# Use this to bind to the minimum value in a set with structure.
+#
+# This macro simplifies the logic required to bind to the minimum value of
+#  a set that has items with sub-structure. For example, a set as follows:
+#  
+#  ^my-set
+#   ^set-item
+#    ^a 5
+#    ^b foo
+#   ^set-item
+#    ^a 6
+#    ^b bar
+#   ...
+#
+# In this case, you could find the set-item with the smallest "a" as follows:
+#   [ngs-min-structured-set <my-set> set-item a <smallest-item> <smallest-a>]
+#
+# NOTE: In general, min/max macros in Soar are not guarranteed to bind to only
+#   one value.  Be aware that if two values have the same "min" value, this
+#   macro will bind twice.  To select between multiple minimums an operator
+#   or some other condition is required
+#
+# In general the form of the macro is as follows:
+#
+# [ngs-min-structured-set set_id item_attr val_attr min_item_id min_val_id]
+#
+# set_id    - variable bound to thid of the set for which to find the minimimum
+# item_attr - name of the multi-valued attribute referencing set items
+# val_attr  - name of the attribute to test for minimum. This could be a dot separate
+#               path to that item as well.
+# min_item_id - variable that will be bound to the item with the minimum value
+# min_val_id  - variable that will be bound to actual minimum value (a scalar)
+#
+proc ngs-min-structured-set { set_id
+                              item_attr
+                              val_attr
+                              min_item_id
+                              min_val_id } {
+
+  set larger_item [CORE_GenVarName "larger-item"]
+  set item_attr [ngs-expand-tags $item_attr]
+  set val_attr  [ngs-expand-tags $val_attr]
+
+  set lhs_ret "($set_id       ^$item_attr $min_item_id)
+               ($min_item_id  ^$val_attr  $min_val_id)
+              -{($set_id      ^$item_attr {$larger_item <> $min_item_id})
+                ($larger_item ^$val_attr < $min_val_id)}"
+
+  return $lhs_ret
+}
+
+# Use this to bind to the minimum value in a set without substructure.
+#
+# This macro simplifies the logic required to bind to the minimum value of
+#  a set of primitives. For example, a set as follows:
+#  
+#  ^my-set
+#   ^set-item 5
+#   ^set-item 6
+#   ^set-item 10
+#   ...
+#
+# In this case, you could find the smallest valued set-item as follows:
+#   [ngs-min-primitive-set <my-set> set-item <smallest>]
+#
+# NOTE: In general, min/max macros in Soar are not guarranteed to bind to only
+#   one value.  Be aware that if two values have the same "min" value, this
+#   macro will bind twice.  To select between multiple minimums an operator
+#   or some other condition is required
+#
+# In general the form of the macro is as follows:
+#
+# [ngs-min-primitive-set set_id item_attr min_val_id]
+#
+# set_id    - variable bound to thid of the set for which to find the minimimum
+# val_attr  - name of the multi-valued attribute to test for minimum. 
+# min_val_id  - variable that will be bound to actual minimum value (a scalar)
+#
+proc ngs-min-primitive-set { set_id
+                             val_attr
+                             min_val_id } {
+
+  set val_attr [ngs-expand-tags $val_attr]
+
+  set lhs_ret "($set_id  ^$val_attr  $min_val_id)
+             -{($set_id  ^$val_attr < $min_val_id)}"
+
+  return $lhs_ret
+}
+
+# Use this to bind to the maximum value in a set with structure.
+#
+# This macro simplifies the logic required to bind to the maximum value of
+#  a set that has items with sub-structure. For example, a set as follows:
+#  
+#  ^my-set
+#   ^set-item
+#    ^a 5
+#    ^b foo
+#   ^set-item
+#    ^a 6
+#    ^b bar
+#   ...
+#
+# In this case, you could find the set-item with the largest "a" as follows:
+#   [ngs-max-structured-set <my-set> set-item a <largest-item> <largest-a>]
+#
+# NOTE: In general, min/max macros in Soar are not guarranteed to bind to only
+#   one value.  Be aware that if two values have the same "max" value, this
+#   macro will bind twice.  To select between multiple maximums an operator
+#   or some other condition is required
+#
+# In general the form of the macro is as follows:
+#
+# [ngs-max-structured-set set_id item_attr val_attr max_item_id max_val_id]
+#
+# set_id    - variable bound to thid of the set for which to find the maximum
+# item_attr - name of the multi-valued attribute referencing set items
+# val_attr  - name of the attribute to test for maximum. This could be a dot separate
+#               path to that item as well.
+# max_item_id - variable that will be bound to the item with the maximum value
+# max_val_id  - variable that will be bound to actual maximum value (a scalar)
+#
+proc ngs-max-structured-set { set_id
+                              item_attr
+                              val_attr
+                              max_item_id
+                              max_val_id } {
+
+  set smaller_item [CORE_GenVarName "smaller-item"]
+  set item_attr [ngs-expand-tags $item_attr]
+  set val_attr  [ngs-expand-tags $val_attr]
+
+  set lhs_ret "($set_id       ^$item_attr $max_item_id)
+               ($max_item_id  ^$val_attr  $max_val_id)
+              -{($set_id      ^$item_attr {$smaller_item <> $max_item_id})
+                ($smaller_item ^$val_attr > $max_val_id)}"
+
+  return $lhs_ret
+}
+
+# Use this to bind to the maximum value in a set without substructure.
+#
+# This macro simplifies the logic required to bind to the maximum value of
+#  a set of primitives. For example, a set as follows:
+#  
+#  ^my-set
+#   ^set-item 5
+#   ^set-item 6
+#   ^set-item 10
+#   ...
+#
+# In this case, you could find the largest valued set-item as follows:
+#   [ngs-max-primitive-set <my-set> set-item <largest>]
+#
+# NOTE: In general, min/max macros in Soar are not guarranteed to bind to only
+#   one value.  Be aware that if two values have the same "max" value, this
+#   macro will bind twice.  To select between multiple maximums an operator
+#   or some other condition is required
+#
+#
+# In general the form of the macro is as follows:
+#
+# [ngs-max-primitive-set set_id item_attr max_val_id]
+#
+# set_id    - variable bound to thid of the set for which to find the maximum
+# val_attr  - name of the multi-valued attribute to test for maximum. 
+# max_val_id  - variable that will be bound to actual largest value (a scalar)
+#
+proc ngs-max-primitive-set { set_id
+                             val_attr
+                             max_val_id } {
+
+  set val_attr [ngs-expand-tags $val_attr]
+
+  set lhs_ret "($set_id  ^$val_attr  $max_val_id)
+             -{($set_id  ^$val_attr > $max_val_id)}"
+
+  return $lhs_ret
+}
+
+
 # Use to construct a predicate logic "or" for a list of (possibly complex) conditions
 #
 # Use this macro for general disjunction tests. If you disjunction is between constant
@@ -597,7 +779,7 @@ proc ngs-bind { obj_id args } {
 # Call this macro if you'd like to bind to exactly a set of size N
 #  of multi-valued attributes and you'd like to have only one binding.
 # 
-# Example: Consider the set (s1 ^val <v1>) (s1 ^val <v2>) (s1 ^val <v2>)
+# Example: Consider the set (s1 ^val <v1>) (s1 ^val <v2>) (s1 ^val <v3>)
 # To bind this set one way (without multiple matches) use the following
 # 
 # IMPORTANT: As of the time of this writing, this requires the most 
@@ -615,9 +797,9 @@ proc ngs-bind { obj_id args } {
 #
 proc ngs-bind-multi { obj_id attr args } {
     
-	# If the arguments are passed in as a list, then process them that way
-	if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
-	    set args [lindex $args 0]
+    # If the arguments are passed in as a list, then process them that way
+    if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
+        set args [lindex $args 0]
     }
 
     set attr [ngs-expand-tags $attr]
