@@ -145,6 +145,8 @@ CORE_CreateMacroVar NGS_TAG_REMOVE_ACHIEVED          "ngs*remove-achieved-goal"
 CORE_CreateMacroVar NGS_TAG_TYPE_POOL	             "ngs*goal-type-pool"
 CORE_CreateMacroVar NGS_TAG_DECISION_POOL	         "ngs*goal-decision-pool"
 CORE_CreateMacroVar GOAL_TAG_STACK_SELECTED			 "ngs*goal-stack-selected"
+CORE_CreateMacroVar GOAL_TAG_STACK_ROOT              "ngs*goal-stack-root"
+CORE_CreateMacroVar NGS_TAG_LAST_UPDATE_TIME         "ngs*last-update-time"
 
 #######
 # List of all ngs operator purpose tags
@@ -183,6 +185,28 @@ CORE_CreateMacroVar NGS_TEST_LESS_THAN "<"
 CORE_CreateMacroVar NGS_TEST_LESS_THAN_OR_EQUAL "<="
 CORE_CreateMacroVar NGS_TEST_GREATER_THAN ">"
 CORE_CreateMacroVar NGS_TEST_GREATER_THAN_OR_EQUAL ">="
+
+## Batch operators
+CORE_CreateMacroVar NGS_OP_BATCH                  batch
+
+CORE_CreateMacroVar NGS_TAG_BOP_HAS_ITEMS         ngs*bop*has-items
+CORE_CreateMacroVar NGS_TAG_BOP_DISABLED          ngs*bop*disabled
+
+CORE_CreateMacroVar NGS_TAG_BOP_LAST_EX_CYCLE     ngs*bop*last-execution-cycle
+CORE_CreateMacroVar NGS_TAG_BOP_NEXT_ACTIVE_CYCLE ngs*bop*next-active-cycle
+CORE_CreateMacroVar NGS_TAG_BOP_LAST_EX_TIME      ngs*bop*last-execution-time
+CORE_CreateMacroVar NGS_TAG_BOP_NEXT_ACTIVE_TIME  ngs*bop*next-active-time
+
+CORE_CreateMacroVar NGS_BOP_PERIOD_DECISION_CYCLE ngs*bop*period*decision-cycle
+CORE_CreateMacroVar NGS_BOP_PERIOD_TIME_IN_MS     ngs*bop*period*time-ms
+
+CORE_CreateMacroVar NGS_BATCH_OP_CATEGORY          ngs
+CORE_CreateMacroVar NGS_BATCH_OP_CTXVAR_STANDARD   set-ctx-var-values
+CORE_CreateMacroVar NGS_BATCH_OP_GENERAL           general
+CORE_CreateMacroVar NGS_BATCH_OP_GOAL_PROCESSING   goal-processing
+CORE_CreateMacroVar NGS_CTX_VAR_DEF_BATCH_OP_PARAM "$NGS_BATCH_OP_CATEGORY $NGS_BATCH_OP_CTXVAR_STANDARD"
+CORE_CreateMacroVar NGS_GOAL_DEF_BATCH_OP_PARAM    "$NGS_BATCH_OP_CATEGORY $NGS_BATCH_OP_GOAL_PROCESSING"
+CORE_CreateMacroVar NGS_GENERAL_DEF_BATCH_OP_PARAM "$NGS_BATCH_OP_CATEGORY $NGS_BATCH_OP_GENERAL"
 
 # Debug trace categories. You should put these in your debug.tcl file and
 #  load this before loading NGS.
