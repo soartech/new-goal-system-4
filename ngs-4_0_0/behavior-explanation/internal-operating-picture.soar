@@ -60,7 +60,7 @@ proc ngs-bind-explanation-iop { state_id agent_id iop_id } {
 
     set explanation_id [CORE_GenVarName "explanation"]
 
-    return "[ngs-bind-explanation $state_id $agent_id $explanation_id]
+    return "[ngs-bind-agent-explanation $state_id $agent_id $explanation_id]
             [ngs-bind $explanation_id internal-operating-picture:$iop_id]"
 }
 
@@ -148,7 +148,7 @@ proc NGS_Explain_CreateProductionsForIOPElement { agent_id unique_name path_to_o
     sp "ngs*explain*iop*link-to-output*$production_suffix
         [ngs-match-top-state <s> $path_to_object:<object-to-explain>]
         [ngs-is-tagged <object-to-explain> $explanation_tag <explanation>]
-        [ngs-bind-explanation <s> $agent_id <explanation-output>]
+        [ngs-bind-agent-explanation <s> $agent_id <explanation-output>]
         [ngs-is-not-tagged <explanation> is-a-child]
         [ngs-bind <explanation-output> internal-operating-picture]
     -->
@@ -249,7 +249,7 @@ proc NGS_ExplainObject { agent_id type path_to_object { name "" } { should_outpu
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
     variable NGS_Explain_IOPTypes
 
-    set production_prefix "ngs*explain*iop*$type*[string map { "." "*" } $path_to_object]"
+    set production_prefix "ngs*explain*iop*$type*[string map { "." "*" "!" "*" } $path_to_object]"
     set object_var [CORE_GenVarName "object"]
     set children_var [CORE_GenVarName "children"]
     set explanation_var [CORE_GenVarName "explanation"]
@@ -264,11 +264,13 @@ proc NGS_ExplainObject { agent_id type path_to_object { name "" } { should_outpu
     sp "$production_prefix*create-explanation
         [ngs-match-top-state <s> $path_to_object:$object_var]
     -->
-        [ngs-create-typed-object $object_var @$explanation_attribute $explanation_type $explanation_var]"
+        [ngs-create-typed-object $object_var @$explanation_attribute $explanation_type $explanation_var]
+        [ngs-tag $explanation_var created-by $production_prefix]"
 
     if { $name != "" } {
         sp "$production_prefix*create-name
             [ngs-match-top-state <s> $path_to_object:$object_var.@$explanation_attribute:$explanation_var]
+            [ngs-is-tagged $explanation_var created-by $production_prefix]
         -->
             [ngs-create-attribute $explanation_var name $name]"
     }
@@ -283,14 +285,15 @@ proc NGS_ExplainObject { agent_id type path_to_object { name "" } { should_outpu
 
         if { $value_type != "" } {
             # If the value is an explainable object, then create productions to explain it.
-            NGS_ExplainObject $agent_id $value_type $path_to_object.$value_path "" 0
-            set bind_value [ngs-bind $object_var $value_path.@$explanation_attribute:$value_explanation_var]
+            NGS_ExplainObject $agent_id $value_type $path_to_object.$value_path $name 0
+            set bind_value [ngs-bind $object_var $value_path.@$explanation_attribute:$value_explanation_var.name:$name]
         } else {
             set bind_value [ngs-bind $object_var $value_path:$value_explanation_var]
         }
 
         sp "$production_prefix*elaborate*[string map {"." "*" } $value_path]*$value_attribute
             [ngs-match-top-state <s> $path_to_object:$object_var.@$explanation_attribute:$explanation_var]
+            [ngs-is-tagged $explanation_var created-by $production_prefix]
             $bind_value
         -->
             [ngs-create-attribute $explanation_var $value_attribute $value_explanation_var]"
@@ -301,6 +304,7 @@ proc NGS_ExplainObject { agent_id type path_to_object { name "" } { should_outpu
     if { $children != "" } {
         sp "$production_prefix*create-children-set
             [ngs-match-top-state <s> $path_to_object:$object_var.@$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:$explanation_var]
+            [ngs-is-tagged $explanation_var created-by $production_prefix]
         -->
             [ngs-create-typed-object $explanation_var children Set $children_var]"
     }
@@ -314,11 +318,12 @@ proc NGS_ExplainObject { agent_id type path_to_object { name "" } { should_outpu
         set child_type [lindex $child 1]
 
         # All child objects must themselves be explainable
-        NGS_ExplainObject $agent_id $child_type $path_to_object.$path_to_child "" 0
+        NGS_ExplainObject $agent_id $child_type $path_to_object.$path_to_child $name 0
 
-        sp "$production_prefix*elaborate-child*[string map { "." "*" } $path_to_child]
+        sp "$production_prefix*elaborate-child*[string map { "." "*" "!" "*"} $path_to_child]
             [ngs-match-top-state <s> $path_to_object:$object_var.@$explanation_attribute:$explanation_var.children:$children_var]
-            [ngs-bind $object_var $path_to_child.@$explanation_attribute:$child_explanation_var]
+            [ngs-is-tagged $explanation_var created-by $production_prefix]
+            [ngs-bind $object_var $path_to_child.@$explanation_attribute:$child_explanation_var.name:$name]
         -->
             [ngs-create-attribute $children_var child $child_explanation_var]"
     }
@@ -328,7 +333,7 @@ proc NGS_ExplainObject { agent_id type path_to_object { name "" } { should_outpu
         # Place the explanation object on the output link
         sp "$production_prefix*link-to-output
             [ngs-match-top-state <s> $path_to_object:$object_var.@$explanation_attribute:$explanation_var]
-            [ngs-bind-explanation <s> $agent_id <explanation-output>]
+            [ngs-bind-agent-explanation <s> $agent_id <explanation-output>]
             [ngs-bind <explanation-output> internal-operating-picture]
         -->
             [ngs-create-attribute <internal-operating-picture> element $explanation_var]"
