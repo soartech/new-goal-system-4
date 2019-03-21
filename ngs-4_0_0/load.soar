@@ -15,3 +15,4 @@ CORE_InternalSource ngs-output-handling.soar
 CORE_LoadDir batch-operators
 CORE_LoadDir behavior-explanation
 CORE_LoadDir context-variables
+CORE_LoadDir reinforcement-learning
