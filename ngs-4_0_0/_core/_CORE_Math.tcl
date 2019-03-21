@@ -41,6 +41,38 @@ proc MATH_Rad_to_Deg { radians } {
     return [expr $radians * (180 / $CORE_MATH_PI)] 
 }
 
+proc MATH_Square { val } { 
+    return "(* $val $val)" 
+}
+
+# Dot and cross products for 2D vectors
+proc MATH_Vec_Magnitude2d { dx dy } {
+    return "(sqrt (+ (* $dx $dx) (* $dy $dy)))"
+}
+
+# Dot product (by default it will not normalize the results)
+# Not normalizing (or pre-normalizing the vectors) saves some computation.              
+proc MATH_Vec_Dot2d { dx1 dy1 dx2 dy2 { normalize "" } } {
+    variable NGS_YES
+    if { $normalize == $NGS_YES } {
+        return "( / [MATH_Vec_Dot2d $dx1 $dy1 $dx2 $dy2] (* [MATH_Vec_Magnitude2d $dx1 $dy1] [MATH_Vec_Magnitude2d $dx2 $dy2]))"
+    } else {
+        return "(+ (* $dx1 $dx2) (* $dy1 $dy2))"
+    }
+}
+# Returns just the z component since a 2D vector cross is always in the positive or negative z direction
+# Not normalizing saves some computation. Typically, you only need to know the sign of a 2D cross product
+#  so you won't need to normalize the result (normalization just gives -1 or +1).
+proc MATH_Vec_Cross2d { dx1 dy1 dx2 dy2 { normalize "" } } {
+    variable NGS_YES
+    if { $normalize == $NGS_YES } {
+        return "( / [MATH_Vec_Cross2d $dx1 $dy1 $dx2 $dy2] (abs [MATH_Vec_Cross2d $dx1 $dy1 $dx2 $dy2]))"
+    } else {
+        return "(- (* $dx1 $dy2) (* $dy1 $dx2))"
+    }
+}
+
+# Euclidian distance between two points
 proc MATH_Distance2d { x1 y1 x2 y2 } {
     return "(sqrt (+ (* (- $x1 $x2) (- $x1 $x2)) (* (- $y1 $y2) (- $y1 $y2)) ))"
 }
