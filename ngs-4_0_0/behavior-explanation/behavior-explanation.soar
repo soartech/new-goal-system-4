@@ -19,14 +19,14 @@
 #
 
 #
-# Match the explanation structure.
+# Match the explanation output structure.
 # This should only be called by behaviour explanation code and unit tests.
 #
 # state_id - A variable bound to the top state.
 # agent_id - The name of the agent to bind explanation for.
 # explanation_id - A variable that will be bound to the agent's explanation structure.
 #
-proc ngs-bind-explanation { state_id agent_id explanation_id } {
+proc ngs-bind-agent-explanation { state_id agent_id explanation_id } {
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
     variable NGS_EXPLAIN_AGENT_ID_ATTRIBUTE
     variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
@@ -37,6 +37,32 @@ proc ngs-bind-explanation { state_id agent_id explanation_id } {
     [ngs-bind $output_link_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:${explanation_id}]
     [ngs-eq $explanation_id $NGS_EXPLAIN_AGENT_ID_ATTRIBUTE $agent_id]
     "
+}
+
+#
+# Match an explanation tag that was created using `ngs-create-explanation`
+#
+proc ngs-bind-explanation { root_id explanation_id { string_id "" } } {
+    variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+
+    set lhs "[ngs-bind $root_id @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE:$explanation_id]"
+    if { $string_id != "" } {
+        set lhs "$lhs [ngs-bind $explanation_id id:$string_id]"
+    }
+    return $lhs
+}
+
+#
+# Create an explanation structure as a tag on an object.
+# Other productions can bind this explanation using `ngs-bind-explanation`
+#
+proc ngs-create-explanation { root_id explanation_type explanation_id } {
+    variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+
+    return "
+    [ngs-create-typed-object $root_id @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE $explanation_type $explanation_id "
+        id {(concat $root_id)}
+    "]"
 }
 
 #
@@ -65,7 +91,10 @@ proc NGS_Explain_Initialize { agent_id } {
         [ngs-create-typed-object-from-stor <ol> $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
             NGS_Explain_Explanation {
                 $NGS_EXPLAIN_AGENT_ID_ATTRIBUTE $agent_id
-                $NGS_EXPLAIN_CONTEXT_VARIABLES_ATTRIBUTE { Set {} }
+                $NGS_EXPLAIN_CONTEXT_VARIABLES_ATTRIBUTE { NGS_Explain_ContextVariables {
+                    variables { Set {} }
+                    pools { Set {} }
+                } }
                 $NGS_EXPLAIN_GOAL_HIERARCHY_ATTRIBUTE { NGS_Explain_GoalHierarchy {
                     roots { Set {} }
                     goals { Set {} }

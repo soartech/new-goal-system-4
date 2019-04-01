@@ -335,6 +335,188 @@ proc ngs-this-not-that { this_id that_id args } {
   return "\{ $this_id <> $that_id $additionalTests \}"
 }
 
+# Use this to bind to the minimum value in a set with structure.
+#
+# This macro simplifies the logic required to bind to the minimum value of
+#  a set that has items with sub-structure. For example, a set as follows:
+#  
+#  ^my-set
+#   ^set-item
+#    ^a 5
+#    ^b foo
+#   ^set-item
+#    ^a 6
+#    ^b bar
+#   ...
+#
+# In this case, you could find the set-item with the smallest "a" as follows:
+#   [ngs-min-structured-set <my-set> set-item a <smallest-item> <smallest-a>]
+#
+# NOTE: In general, min/max macros in Soar are not guarranteed to bind to only
+#   one value.  Be aware that if two values have the same "min" value, this
+#   macro will bind twice.  To select between multiple minimums an operator
+#   or some other condition is required
+#
+# In general the form of the macro is as follows:
+#
+# [ngs-min-structured-set set_id item_attr val_attr min_item_id min_val_id]
+#
+# set_id    - variable bound to thid of the set for which to find the minimimum
+# item_attr - name of the multi-valued attribute referencing set items
+# val_attr  - name of the attribute to test for minimum. This could be a dot separate
+#               path to that item as well.
+# min_item_id - variable that will be bound to the item with the minimum value
+# min_val_id  - variable that will be bound to actual minimum value (a scalar)
+#
+proc ngs-min-structured-set { set_id
+                              item_attr
+                              val_attr
+                              min_item_id
+                              min_val_id } {
+
+  set larger_item [CORE_GenVarName "larger-item"]
+  set item_attr [ngs-expand-tags $item_attr]
+  set val_attr  [ngs-expand-tags $val_attr]
+
+  set lhs_ret "($set_id       ^$item_attr $min_item_id)
+               ($min_item_id  ^$val_attr  $min_val_id)
+              -{($set_id      ^$item_attr {$larger_item <> $min_item_id})
+                ($larger_item ^$val_attr < $min_val_id)}"
+
+  return $lhs_ret
+}
+
+# Use this to bind to the minimum value in a set without substructure.
+#
+# This macro simplifies the logic required to bind to the minimum value of
+#  a set of primitives. For example, a set as follows:
+#  
+#  ^my-set
+#   ^set-item 5
+#   ^set-item 6
+#   ^set-item 10
+#   ...
+#
+# In this case, you could find the smallest valued set-item as follows:
+#   [ngs-min-primitive-set <my-set> set-item <smallest>]
+#
+# NOTE: In general, min/max macros in Soar are not guarranteed to bind to only
+#   one value.  Be aware that if two values have the same "min" value, this
+#   macro will bind twice.  To select between multiple minimums an operator
+#   or some other condition is required
+#
+# In general the form of the macro is as follows:
+#
+# [ngs-min-primitive-set set_id item_attr min_val_id]
+#
+# set_id    - variable bound to thid of the set for which to find the minimimum
+# val_attr  - name of the multi-valued attribute to test for minimum. 
+# min_val_id  - variable that will be bound to actual minimum value (a scalar)
+#
+proc ngs-min-primitive-set { set_id
+                             val_attr
+                             min_val_id } {
+
+  set val_attr [ngs-expand-tags $val_attr]
+
+  set lhs_ret "($set_id  ^$val_attr  $min_val_id)
+             -{($set_id  ^$val_attr < $min_val_id)}"
+
+  return $lhs_ret
+}
+
+# Use this to bind to the maximum value in a set with structure.
+#
+# This macro simplifies the logic required to bind to the maximum value of
+#  a set that has items with sub-structure. For example, a set as follows:
+#  
+#  ^my-set
+#   ^set-item
+#    ^a 5
+#    ^b foo
+#   ^set-item
+#    ^a 6
+#    ^b bar
+#   ...
+#
+# In this case, you could find the set-item with the largest "a" as follows:
+#   [ngs-max-structured-set <my-set> set-item a <largest-item> <largest-a>]
+#
+# NOTE: In general, min/max macros in Soar are not guarranteed to bind to only
+#   one value.  Be aware that if two values have the same "max" value, this
+#   macro will bind twice.  To select between multiple maximums an operator
+#   or some other condition is required
+#
+# In general the form of the macro is as follows:
+#
+# [ngs-max-structured-set set_id item_attr val_attr max_item_id max_val_id]
+#
+# set_id    - variable bound to thid of the set for which to find the maximum
+# item_attr - name of the multi-valued attribute referencing set items
+# val_attr  - name of the attribute to test for maximum. This could be a dot separate
+#               path to that item as well.
+# max_item_id - variable that will be bound to the item with the maximum value
+# max_val_id  - variable that will be bound to actual maximum value (a scalar)
+#
+proc ngs-max-structured-set { set_id
+                              item_attr
+                              val_attr
+                              max_item_id
+                              max_val_id } {
+
+  set smaller_item [CORE_GenVarName "smaller-item"]
+  set item_attr [ngs-expand-tags $item_attr]
+  set val_attr  [ngs-expand-tags $val_attr]
+
+  set lhs_ret "($set_id       ^$item_attr $max_item_id)
+               ($max_item_id  ^$val_attr  $max_val_id)
+              -{($set_id      ^$item_attr {$smaller_item <> $max_item_id})
+                ($smaller_item ^$val_attr > $max_val_id)}"
+
+  return $lhs_ret
+}
+
+# Use this to bind to the maximum value in a set without substructure.
+#
+# This macro simplifies the logic required to bind to the maximum value of
+#  a set of primitives. For example, a set as follows:
+#  
+#  ^my-set
+#   ^set-item 5
+#   ^set-item 6
+#   ^set-item 10
+#   ...
+#
+# In this case, you could find the largest valued set-item as follows:
+#   [ngs-max-primitive-set <my-set> set-item <largest>]
+#
+# NOTE: In general, min/max macros in Soar are not guarranteed to bind to only
+#   one value.  Be aware that if two values have the same "max" value, this
+#   macro will bind twice.  To select between multiple maximums an operator
+#   or some other condition is required
+#
+#
+# In general the form of the macro is as follows:
+#
+# [ngs-max-primitive-set set_id item_attr max_val_id]
+#
+# set_id    - variable bound to thid of the set for which to find the maximum
+# val_attr  - name of the multi-valued attribute to test for maximum. 
+# max_val_id  - variable that will be bound to actual largest value (a scalar)
+#
+proc ngs-max-primitive-set { set_id
+                             val_attr
+                             max_val_id } {
+
+  set val_attr [ngs-expand-tags $val_attr]
+
+  set lhs_ret "($set_id  ^$val_attr  $max_val_id)
+             -{($set_id  ^$val_attr > $max_val_id)}"
+
+  return $lhs_ret
+}
+
+
 # Use to construct a predicate logic "or" for a list of (possibly complex) conditions
 #
 # Use this macro for general disjunction tests. If you disjunction is between constant
@@ -597,7 +779,7 @@ proc ngs-bind { obj_id args } {
 # Call this macro if you'd like to bind to exactly a set of size N
 #  of multi-valued attributes and you'd like to have only one binding.
 # 
-# Example: Consider the set (s1 ^val <v1>) (s1 ^val <v2>) (s1 ^val <v2>)
+# Example: Consider the set (s1 ^val <v1>) (s1 ^val <v2>) (s1 ^val <v3>)
 # To bind this set one way (without multiple matches) use the following
 # 
 # IMPORTANT: As of the time of this writing, this requires the most 
@@ -615,9 +797,9 @@ proc ngs-bind { obj_id args } {
 #
 proc ngs-bind-multi { obj_id attr args } {
     
-	# If the arguments are passed in as a list, then process them that way
-	if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
-	    set args [lindex $args 0]
+    # If the arguments are passed in as a list, then process them that way
+    if {([llength $args] == 1) && ([llength [lindex $args 0]] > 1)} {
+        set args [lindex $args 0]
     }
 
     set attr [ngs-expand-tags $attr]
@@ -961,6 +1143,22 @@ proc ngs-has-not-decided { goal_id { decision_value "" } } {
   variable NGS_TAG_SELECTION_STATUS
   CORE_GenVarIfEmpty decision_value "__decision-value"
   return "[ngs-is-not-tagged $goal_id $NGS_TAG_SELECTION_STATUS $decision_value]"
+}
+
+# Evaluates to true if the given goal currently requires the named decision be made
+#
+# This macro is typically only needed for the core decision making control of a model.
+#  You might use it, for example, to decide when to do do some process (e.g. output or
+#  reinforcement learning) after a decision has been made.
+#
+# goal_id - variable bound to the goal identifer to check for a required decision
+# decision_name - name of the decision to check
+#
+proc ngs-requires-decision { goal_id decision_name } {
+    variable NGS_TAG_REQUIRES_DECISION
+    set decision_info_id [CORE_GenVarName decision-info]
+    return "[ngs-has-requested-decision $goal_id $decision_name {} {} {} $decision_info_id]
+            [ngs-is-tagged $decision_info_id $NGS_TAG_REQUIRES_DECISION]"
 }
 
 # Evaluates to true if the entire stack of decision goals of which this goal 
@@ -1371,7 +1569,7 @@ proc ngs-is-supergoal { goal_id supergoal_id {supergoal_type ""} } {
 
   set main_test_line "($goal_id ^supergoal $supergoal_id)"
   if { $supergoal_type != "" } {
-	   return "$main_test_line 
+       return "$main_test_line 
             [ngs-is-type $supergoal_id $supergoal_type]"
   } else {
       return $main_test_line
@@ -1435,6 +1633,32 @@ proc ngs-is-not-subgoal { goal_id subgoal_id {subgoal_type ""} } {
 
 #######################################################################################
 
+# Start an open ended production that binds to any state (top or sub-state)
+#
+# [ngs-match-any-state state_id (bindings)
+#
+# state_id - Variable bound to the the state identifer (bound by this macro)
+# bindings - (Optional) If provided, a string to be passed to ngs-bind as
+#               [ngs-bind <state_id> $bindings]
+# superstate_id - (Optional) If provided, a variable bound to the superstate
+#                    which could be nil if the binding is to the top-state
+#
+proc ngs-match-any-state { state_id {bindings ""} {superstate_id ""} } {
+
+  if { $superstate_id != "" } {
+     set lhs_ret "(state $state_id ^superstate $superstate_id)"
+  } else {
+     set lhs_ret "(state $state_id ^superstate [CORE_GenVarName superstate])"
+  }
+
+  if { $bindings != "" } {
+     set lhs_ret "$lhs_ret
+                  [ngs-bind $state_id $bindings]"
+  } 
+  
+  return $lhs_ret
+}
+                                                                                        
 # Start an open ended production that simply binds to the top state
 # 
 # [ngs-match-top-state state_id (bindings) (input_link) (output_link)]
@@ -1878,6 +2102,7 @@ proc ngs-match-to-set-return-val { substate_id
                                      {top_state_id ""}
                                      {superstate_id ""} } {
   variable NGS_RETURN_VALUES
+  variable NGS_ADD_TO_SET
 
   CORE_GenVarIfEmpty return_value_desc_id "val-desc"
 
@@ -1885,7 +2110,7 @@ proc ngs-match-to-set-return-val { substate_id
   set lhs_ret "[ngs-match-active-goal $substate_id $goal_type $goal_id {} $params_id $top_state_id $superstate_id]
                ($substate_id ^$NGS_RETURN_VALUES.value-description $return_value_desc_id)
                ($return_value_desc_id    ^name  $return_value_name)
-               [ngs-nex $return_value_desc_id value]"
+               [ngs-or [ngs-nex $return_value_desc_id value] [ngs-eq $return_value_desc_id replacement-behavior $NGS_ADD_TO_SET]]"
 
   return $lhs_ret
 }
@@ -1955,7 +2180,7 @@ proc ngs-match-to-create-return-goal { substate_id
 # op_name - (Optional) If provided, the name of the operator that is bound to op_id 
 #
 proc ngs-match-proposed-operator { state_id
-								   op_id
+                                   op_id
                                    {op_tags ""}
                                    {op_name ""} } {
 
@@ -1968,8 +2193,8 @@ proc ngs-match-proposed-operator { state_id
 
   if { $op_name != "" } {
      set lhs_ret "$lhs_ret
-            	  ($op_id ^name $op_name)"
-	} 
+                  ($op_id ^name $op_name)"
+    } 
 
   return $lhs_ret
 }
@@ -2123,8 +2348,8 @@ proc ngs-bind-creation-operator { op_id
                                   {replacement_behavior ""} } {
 
    set lhs_ret "($op_id ^dest-object $dest_obj
-                         ^dest-attribute $dest_attr
-                         ^new-obj $value)"
+                        ^dest-attribute [ngs-expand-tags $dest_attr]
+                        ^new-obj $value)"
    
    if { $replacement_behavior != "" } {
       set lhs_ret "lhs_ret
@@ -2175,7 +2400,7 @@ proc ngs-bind-return-operator { op_id
                               {replacement_behavior ""} } {
 
 
-   set lhs_ret "[ngs-is-creation-operator $op_id $dest_obj $dest_attr $value $replacement_behavior]
+   set lhs_ret "[ngs-bind-creation-operator $op_id $dest_obj $dest_attr $value $replacement_behavior]
                  ($op_id ^ret-val-name $return_value_name)"
 
    if { $value_bind != ""} {
@@ -2215,7 +2440,7 @@ proc ngs-bind-choice-operator { op_id
    set dest_obj [CORE_GenVarName "dest-obj"]
    set dest_attr [CORE_GenVarName "dest-attr"]
 
-   set lhs_ret "[ngs-is-creation-operator $op_id $dest_obj $dest_attr $NGS_YES]
+   set lhs_ret "[ngs-bind-creation-operator $op_id $dest_obj $dest_attr $NGS_YES]
                  ($op_id ^choice $choice_id)"
 
    if { $choice_type != "" } {
@@ -2254,7 +2479,7 @@ proc ngs-bind-removal-operator { op_id
                                value } {
 
    return "($op_id ^dest-object $dest_obj
-                   ^dest-attribute $dest_attr
+                   ^dest-attribute [ngs-expand-tags $dest_attr]
                    ^value-to-remove $value)"
 }
 
@@ -2341,7 +2566,7 @@ proc ngs-match-two-proposed-operators { state_id
 
 
   set lhs_ret "(state $state_id ^operator $op1_id +
-			                    ^operator { $op2_id <> $op1_id } +)"
+                                ^operator { $op2_id <> $op1_id } +)"
 
   if { $op1_tags != "" } {
     set lhs_ret "$lhs_ret
@@ -2364,11 +2589,11 @@ proc ngs-match-two-proposed-operators { state_id
   if { $op1_name != "" } {
      set lhs_ret "$lhs_ret
                   [ngs-is-named $op1_id $op1_name]"
-	} 
+    } 
   if { $op2_name != "" } {
      set lhs_ret "$lhs_ret
                   [ngs-is-named $op2_id $op2_name]"
-	} 
+    } 
 
   return $lhs_ret
 }
@@ -2397,7 +2622,7 @@ proc ngs-match-two-proposed-operators { state_id
 #
 proc ngs-match-selected-operator {state_id
                                   op_id
-								                  {op_name ""}
+                                                  {op_name ""}
                                   {goal_id ""} } {
 
   set lhs_ret "(state $state_id ^operator $op_id)"
@@ -2435,7 +2660,7 @@ proc ngs-match-selected-operator {state_id
 #
 proc ngs-match-selected-operator-on-top-state {state_id
                                                op_id
-											                         {op_name ""}
+                                                                     {op_name ""}
                                                {goal_id ""} } {
  
   return "[ngs-match-selected-operator $state_id $op_id $op_name $goal_id]
@@ -2468,7 +2693,7 @@ proc ngs-match-selected-operator-on-top-state {state_id
 #
 proc ngs-match-selected-operator-in-substate {substate_id                                               
                                               op_id
-											  {op_name ""}
+                                              {op_name ""}
                                               {goal_id ""} 
                                               {substate_name ""}
                                               {params_id ""}

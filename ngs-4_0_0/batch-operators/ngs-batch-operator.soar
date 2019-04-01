@@ -1,0 +1,399 @@
+variable NGS_OP_BATCH                  
+variable NGS_TAG_BOP_HAS_ITEMS       
+variable NGS_TAG_BOP_DISABLED         
+variable NGS_TAG_BOP_LAST_EX_CYCLE     
+variable NGS_TAG_BOP_NEXT_ACTIVE_CYCLE 
+variable NGS_TAG_BOP_LAST_EX_TIME      
+variable NGS_TAG_BOP_NEXT_ACTIVE_TIME  
+variable NGS_BOP_PERIOD_DECISION_CYCLE 
+variable NGS_BOP_PERIOD_TIME_IN_MS  
+variable NGS_BATCH_OP_CATEGORY          
+variable NGS_BATCH_OP_CTXVAR_STANDARD   
+variable NGS_CTX_VAR_DEF_BATCH_OP_PARAM 
+variable NGS_REPLACE_IF_EXISTS
+variable NGS_ADD_TO_SET
+variable NGS_NO
+variable NGS_YES
+
+NGS_DeclareType NGSBatchOperatorControl {
+}
+
+NGS_DeclareType NGSBatchOperatorPool {
+   value ""
+}
+
+NGS_DeclareType NGSBatchOperatorDescription {
+   value ""
+}
+NGS_DeclareType NGSBatchOperatorDefault {
+   type { NGSBatchOperatorDescription }
+}
+NGS_DeclareType NGSBatchOperatorCtxVar {
+   type { NGSBatchOperatorDescription }
+}
+NGS_DeclareType NGSBatchOperatorItem "
+    destination-object {}
+    destination-attribute {}
+    value {}
+    replacement-behavior {}
+    remove-item $NGS_NO
+    deep-copy $NGS_NO
+"
+
+########################################################
+##
+#
+#
+
+proc ngs-bind-bop-description { state_id bop_category bop_name batch_op_desc_id } {
+    set bop_pool_id [CORE_GenVarName bop-pool]
+    set bop_ctl_id  [CORE_GenVarName bop-ctl]
+    return "($state_id   ^batch-operators $bop_ctl_id)
+            ($bop_ctl_id ^$bop_category $bop_pool_id)
+            ($bop_pool_id ^$bop_name $batch_op_desc_id)"
+}
+
+proc ngs-match-proposed-batch-operator { state_id
+                                         op_id
+                                         batch_op_desc_id
+                                         {op_name ""}
+                                         {op_tags ""} } {
+
+  variable NGS_OP_BATCH
+  return "[ngs-match-proposed-operator $state_id $op_id $op_tags $op_name]
+          [ngs-bind $op_id batch-op:$batch_op_desc_id]
+          [ngs-is-type $op_id $NGS_OP_BATCH]"                                      
+
+}
+
+proc ngs-bind-batch-operator-ctx-var-parameters { op_id ctx_var_id ctx_var_val } {
+    set bo_desc_id [CORE_GenVarName bo]
+    return "($op_id      ^batch-op $bo_desc_id)
+            [ngs-is-type $bo_desc_id NGSBatchOperatorCtxVar]
+            ($bo_desc_id ^$ctx_var_val $ctx_var_id)
+            [ngs-is-type $ctx_var_id ContextVariable]"
+}
+ 
+proc ngs-bind-batch-operator-standard-parameters { op_id dest_obj_id attribute value { replacement_behavior "" } { removal_flag "" } { deep_copy_flag "" }} {
+    
+    variable NGS_NO
+
+    set bo_desc_id [CORE_GenVarName bo]
+    set item_id    [CORE_GenVarName item]
+    CORE_SetIfEmpty deep_copy_flag $NGS_NO
+    CORE_SetIfEmpty removal_flag   $NGS_NO
+    
+    set lhs_ret "($op_id      ^batch-op $bo_desc_id)
+		         [ngs-is-type $bo_desc_id NGSBatchOperatorDefault]
+		         ($bo_desc_id ^item        $item_id)
+		         ($item_id    ^destination-object    $dest_obj_id
+		                      ^destination-attribute $attribute
+		                      ^value                 $value
+                              ^deep-copy             $deep_copy_flag
+                              ^remove-item           $removal_flag)"
+
+    if { $replacement_behavior != "" } {
+        set lhs_ret "$lhs_ret
+                     ($item_id ^replacement-behavior $replacement_behavior)"
+    }
+
+    return $lhs_ret
+}
+
+proc ngs-set-batch-operator-disable { bop_id } {
+    variable NGS_TAG_BOP_DISABLED
+    return [ngs-tag $bop_id $NGS_TAG_BOP_DISABLED]
+}
+
+proc ngs-set-batch-operator-max-period { bop_id period { period_type "" }} {
+    variable NGS_BOP_PERIOD_DECISION_CYCLE
+    variable NGS_BOP_PERIOD_TIME_IN_MS
+    if { $period_type == $NGS_BOP_PERIOD_DECISION_CYCLE } {
+        return "[ngs-tag $bop_id $NGS_BOP_PERIOD_DECISION_CYCLE $period]"
+    } else {
+        return "[ngs-tag $bop_id $NGS_BOP_PERIOD_TIME_IN_MS $period]"
+    }
+}
+
+proc ngs-create-attribute-by-batch-operator { bop_id dest_obj_id attribute new_val { replacement_behavior "" }} {
+
+    variable NGS_REPLACE_IF_EXISTS
+
+    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+    set attribute [ngs-expand-tags $attribute]
+    set item_id [CORE_GenVarName item]
+    set attr_list "destination-object $dest_obj_id destination-attribute $attribute value {$new_val} 
+                   replacement-behavior $replacement_behavior" 
+
+    return [ngs-create-typed-object $bop_id item NGSBatchOperatorItem $item_id $attr_list]
+}
+
+proc ngs-deep-copy-by-batch-operator { bop_id dest_obj_id attribute new_val { replacement_behavior "" }} {
+
+    variable NGS_REPLACE_IF_EXISTS
+    variable NGS_YES
+
+    CORE_SetIfEmpty replacement_behavior $NGS_REPLACE_IF_EXISTS
+
+    set attribute [ngs-expand-tags $attribute]
+    set item_id [CORE_GenVarName item]
+    set attr_list "destination-object $dest_obj_id destination-attribute $attribute value $new_val 
+                   replacement-behavior $replacement_behavior deep-copy $NGS_YES" 
+
+    return [ngs-create-typed-object $bop_id item NGSBatchOperatorItem $item_id $attr_list]
+}
+
+proc ngs-remove-attribute-by-batch-operator { bop_id dest_obj_id attribute value } {
+
+    variable NGS_REPLACE_IF_EXISTS
+    variable NGS_YES
+
+    set attribute [ngs-expand-tags $attribute]
+    set item_id [CORE_GenVarName item]
+    set attr_list "destination-object $dest_obj_id destination-attribute $attribute value $value 
+                   remove-item $NGS_YES" 
+
+    return [ngs-create-typed-object $bop_id item NGSBatchOperatorItem $item_id $attr_list]
+}
+
+proc ngs-set-context-variable-by-batch-operator { bop_id ctx_var_id val } {
+    return "($bop_id ^$val $ctx_var_id)"
+}
+
+# Internal -- probably don't need to call this ever from client code
+#
+proc ngs-create-batch-operator { state_id
+                                 op_name
+                                 batch_op_id
+                                 new_obj_id
+                                 {add_prefs "="} } {
+  variable NGS_OP_BATCH
+  return "[ngs-create-operator $state_id "(concat |batch-operator--$op_name--| $batch_op_id)" $NGS_OP_BATCH $new_obj_id $add_prefs]
+          [ngs-create-attribute $new_obj_id batch-op $batch_op_id]
+          [core-trace NGS_TRACE_ATOMIC_OPERATORS "I PROPOSE-BATCH, | $state_id |.operator | $new_obj_id |, for | $batch_op_id |)."]"                                 
+}
+
+########################################################
+# Creates a control area to control batch operators
+sp "ngs*batch-operator*create*batch-operator-control
+   [ngs-match-any-state <s>]
+-->
+   [ngs-create-typed-object <s> batch-operators NGSBatchOperatorControl <boc>]"
+
+# Create a requested pool (requests are made by the NGS_DeclareBatchOperator macro
+sp "ngs*batch-operator*create*batch-operator-pool
+   [ngs-match-any-state <s> batch-operators.@create-pool]
+-->
+   [ngs-create-typed-object <batch-operators> <create-pool> NGSBatchOperatorPool <bop>]"
+
+## Apply the three defauilt cases
+sp "ngs*batch-operator*apply*batch-operator*default*replace*no-value
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-standard-parameters <o> <dest-obj> <dest-attr> <value> $NGS_REPLACE_IF_EXISTS]
+    [ngs-nex <dest-obj> <dest-attr>]
+-->
+    [ngs-create-attribute <dest-obj> <dest-attr> <value>]"
+
+sp "ngs*batch-operator*apply*batch-operator*default*replace*replace-existing-value
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-standard-parameters <o> <dest-obj> <dest-attr> <value> $NGS_REPLACE_IF_EXISTS]
+    [ngs-neq <dest-obj> <dest-attr> <value> <old-value>]
+-->
+    [ngs-create-attribute <dest-obj> <dest-attr> <value>]
+    [ngs-remove-attribute <dest-obj> <dest-attr> <old-value>]"
+
+sp "ngs*batch-operator*apply*batch-operator*default*add-to-set
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-standard-parameters <o> <dest-obj> <dest-attr> <value> $NGS_ADD_TO_SET]
+    [ngs-neq <dest-obj> <dest-attr> <value>]
+-->
+    [ngs-create-attribute <dest-obj> <dest-attr> <value>]"
+
+sp "ngs*batch-operator*apply*batch-operator*default*remove
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-standard-parameters <o> <dest-obj> <dest-attr> <value> {} $NGS_YES]
+    [ngs-eq <dest-obj> <dest-attr> <value>]
+-->
+    [ngs-remove-attribute <dest-obj> <dest-attr> <value>]"
+
+sp "ngs*batch-operator*apply*batch-operator*default*replace*no-value*deep-copy
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-standard-parameters <o> <dest-obj> <dest-attr> <value> $NGS_REPLACE_IF_EXISTS $NGS_NO $NGS_YES]
+    [ngs-nex <dest-obj> <dest-attr>]
+-->
+    [ngs-create-attribute <dest-obj> <dest-attr> "(deep-copy <value>)" "+"]"
+
+#
+# IMPORTANT: When using NGS_REPLACE_IF_EXISTS it is critical to properly set up your operator
+#     termination conditions on the LHS of the rule. The current implementation can generate infinite
+#     applies because it has no way to detect that the object it creates is different from the old
+#     value it replaces.  If your termination is set up correctly (e.g. to look for some identifying 
+#     features of the object you are creating) this will terminate after one apply wave. If not, the
+#     apply productions built into NGS will repeatedly remove and then create again the new structure.
+#     This only applies to NGS_REPLACE_IF_EXISTS, not NGS_ADD_TO_SET.
+sp "ngs*batch-operator*apply*batch-operator*default*replace*replace-existing-value*deep-copy
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-standard-parameters <o> <dest-obj> <dest-attr> <value> $NGS_REPLACE_IF_EXISTS $NGS_NO $NGS_YES]
+    [ngs-eq <dest-obj> <dest-attr> <old-value>]
+-->
+    [ngs-create-attribute <dest-obj> <dest-attr> "(deep-copy <value>)"]
+    [ngs-remove-attribute <dest-obj> <dest-attr> <old-value>]"
+
+sp "ngs*batch-operator*apply*batch-operator*default*add-to-set*deep-copy
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-standard-parameters <o> <dest-obj> <dest-attr> <value> $NGS_ADD_TO_SET $NGS_NO $NGS_YES]
+    [ngs-neq <dest-obj> <dest-attr> <value>]
+-->
+    [ngs-create-attribute <dest-obj> <dest-attr> "(deep-copy <value>)"]"
+
+## Apply the two ctx-var cases (always replace when exist)
+sp "ngs*batch-operator*apply*batch-operator*ctx-var*no-value
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-ctx-var-parameters <o> <ctx-var> <val>]
+    [ngs-nex <ctx-var> value]
+-->
+    [ngs-create-attribute <ctx-var> value <val>]"
+
+sp "ngs*batch-operator*apply*batch-operator*ctx-var*exists-so-replace
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind-batch-operator-ctx-var-parameters <o> <ctx-var> <val>]
+    [ngs-neq <ctx-var> value <val> <old-val>]
+-->
+    [ngs-create-attribute <ctx-var> value <val>]
+    [ngs-remove-attribute <ctx-var> value <old-val>]"
+
+## For cyle-limited batch operators (not allowed too frequently)
+sp "ngs*batch-operator*apply*batch-operator*set*last-dcycle*no-dcycle
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind <o> batch-op.@$NGS_BOP_PERIOD_DECISION_CYCLE]
+    [ngs-cycle <s> <cycle>]
+    [ngs-nex <batch-op> @$NGS_TAG_BOP_LAST_EX_CYCLE]
+-->
+    [ngs-tag <batch-op> $NGS_TAG_BOP_LAST_EX_CYCLE <cycle>]"
+
+sp "ngs*batch-operator*apply*batch-operator*set*last-dcycle*replace-dcycle
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind <o> batch-op.@$NGS_BOP_PERIOD_DECISION_CYCLE]
+    [ngs-cycle <s> <cycle>]
+    [ngs-neq <batch-op> @$NGS_TAG_BOP_LAST_EX_CYCLE <cycle> <old-cycle>]
+-->
+    [ngs-tag <batch-op>   $NGS_TAG_BOP_LAST_EX_CYCLE <cycle>]
+    [ngs-untag <batch-op> $NGS_TAG_BOP_LAST_EX_CYCLE <old-cycle>]"
+
+## For time-limited batch operators (not allowed too frequently)
+sp "ngs*batch-operator*apply*batch-operator*set*last-time*no-time
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind <o> batch-op.@$NGS_BOP_PERIOD_TIME_IN_MS]
+    [ngs-time <s> <time>]
+    [ngs-nex <batch-op> @$NGS_TAG_BOP_LAST_EX_TIME]
+-->
+    [ngs-tag <batch-op> $NGS_TAG_BOP_LAST_EX_TIME <time>]"
+
+sp "ngs*batch-operator*apply*batch-operator*set*last-time*replace-time
+    [ngs-match-selected-operator <s> <o>]
+    [ngs-is-type <o> $NGS_OP_BATCH]
+    [ngs-bind <o> batch-op.@$NGS_BOP_PERIOD_TIME_IN_MS]
+    [ngs-time <s> <time>]
+    [ngs-neq <batch-op> @$NGS_TAG_BOP_LAST_EX_TIME <time> <old-time>]
+-->
+    [ngs-tag <batch-op>   $NGS_TAG_BOP_LAST_EX_TIME <time>]
+    [ngs-untag <batch-op> $NGS_TAG_BOP_LAST_EX_TIME <old-time>]"
+                                                              
+
+# Add a DeclareBatchOperator (do  we need sub-pools?)
+# Will allow creation operators to work better with prefs
+proc NGS_DeclareBatchOperator { pool_name operator_name { bop_prefs ""  } { bop_type NGSBatchOperatorDefault } } {
+    
+    variable NGS_TAG_BOP_HAS_ITEMS
+    variable NGS_TAG_BOP_DISABLED
+    variable NGS_BOP_PERIOD_DECISION_CYCLE
+    variable NGS_TAG_BOP_LAST_EX_CYCLE
+    variable NGS_TAG_BOP_NEXT_ACTIVE_CYCLE
+    variable NGS_TAG_BOP_LAST_EX_TIME      
+    variable NGS_TAG_BOP_NEXT_ACTIVE_TIME  
+    variable NGS_BOP_PERIOD_TIME_IN_MS     
+    variable NGS_OP_ID
+    variable NGS_TEST_LESS_THAN
+
+    CORE_SetIfEmpty bop_prefs "=" 
+
+    sp "ngs*batch-operator*request-pool-creation*$pool_name
+        [ngs-match-any-state <s> batch-operators]
+    -->
+        [ngs-tag <batch-operators> create-pool $pool_name]"
+
+    sp "ngs*batch-operator*create*$pool_name*$operator_name
+        [ngs-match-any-state <s> batch-operators.$pool_name:<bop>]
+    -->
+        [ngs-create-typed-object <bop> $operator_name $bop_type <bo>]"
+
+    sp "ngs*batch-operator*propose*$pool_name*$operator_name
+        [ngs-match-any-state <s> batch-operators.$pool_name.$operator_name:<bo>]
+        [ngs-is-tagged <bo> $NGS_TAG_BOP_HAS_ITEMS]
+        [ngs-is-not-tagged <bo> $NGS_TAG_BOP_DISABLED]
+    -->
+        [ngs-create-batch-operator <s> $operator_name <bo> $NGS_OP_ID $bop_prefs]"
+
+    # Disable on too early active cycle
+    sp "ngs*batch-operator*next-active-cycle*$pool_name*$operator_name
+        [ngs-match-any-state <s> batch-operators.$pool_name.$operator_name:<bo>]
+        [ngs-is-tagged <bo> $NGS_BOP_PERIOD_DECISION_CYCLE <period>]
+        [ngs-is-tagged <bo> $NGS_TAG_BOP_LAST_EX_CYCLE <last-cycle>]
+    -->
+        [ngs-tag <bo> $NGS_TAG_BOP_NEXT_ACTIVE_CYCLE "(+ <last-cycle> <period>)"]"
+
+    sp "ngs*batch-operator*disable-until-next-active-cycle*$pool_name*$operator_name
+        [ngs-match-any-state <s> batch-operators.$pool_name.$operator_name:<bo>]
+        [ngs-is-tagged <bo> $NGS_TAG_BOP_NEXT_ACTIVE_CYCLE <next-active-cycle>]
+        [ngs-time <s> <next-active-cycle> <time> $NGS_TEST_LESS_THAN]
+    -->
+        [ngs-tag <bo> $NGS_TAG_BOP_DISABLED]"
+
+    # Disable on too early time
+    sp "ngs*batch-operator*next-active-time*$pool_name*$operator_name
+        [ngs-match-any-state <s> batch-operators.$pool_name.$operator_name:<bo>]
+        [ngs-is-tagged <bo> $NGS_BOP_PERIOD_TIME_IN_MS <period>]
+        [ngs-is-tagged <bo> $NGS_TAG_BOP_LAST_EX_TIME <last-time>]
+    -->
+        [ngs-tag <bo> $NGS_TAG_BOP_NEXT_ACTIVE_TIME "(+ <last-time> <period>)"]"
+
+    sp "ngs*batch-operator*disable-until-next-active-time*$pool_name*$operator_name
+        [ngs-match-any-state <s> batch-operators.$pool_name.$operator_name:<bo>]
+        [ngs-is-tagged <bo> $NGS_TAG_BOP_NEXT_ACTIVE_TIME <next-active-time>]
+        [ngs-time <s> <next-active-time> <time> $NGS_TEST_LESS_THAN]
+    -->
+        [ngs-tag <bo> $NGS_TAG_BOP_DISABLED]"
+
+    if { $bop_type == "NGSBatchOperatorDefault" } {
+	    sp "ngs*batch-operator*has-items*$pool_name*$operator_name
+	        [ngs-match-any-state <s> batch-operators.$pool_name.$operator_name:<bo>]
+            [ngs-bind <bo> item]
+   	    -->
+	        [ngs-tag <bo> $NGS_TAG_BOP_HAS_ITEMS]"
+    } else {
+        sp "ngs*batch-operator*has-items*$pool_name*$operator_name
+            [ngs-match-any-state <s> batch-operators.$pool_name.$operator_name:<bo>]
+            [ngs-bind <bo> <value>:<ctx-var>]
+            [ngs-is-type <ctx-var> ContextVariable]
+        -->
+            [ngs-tag <bo> $NGS_TAG_BOP_HAS_ITEMS]"
+    }
+}
+
+
+NGS_DeclareBatchOperator $NGS_BATCH_OP_CATEGORY $NGS_BATCH_OP_CTXVAR_STANDARD {} NGSBatchOperatorCtxVar
+NGS_DeclareBatchOperator $NGS_BATCH_OP_CATEGORY $NGS_BATCH_OP_GENERAL {} NGSBatchOperatorDefault
+NGS_DeclareBatchOperator $NGS_BATCH_OP_CATEGORY $NGS_BATCH_OP_GOAL_PROCESSING {} NGSBatchOperatorDefault

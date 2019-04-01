@@ -316,6 +316,36 @@ proc ngs-create-typed-object { parent_obj_id
 
 }
 
+# Augments an object with another freshly created i-supported object
+#
+# Note the newly created object is i-supported, but the original object
+#  that is being augmented can be o-supported or i-supported. As of now
+#  NGS does not have a macro to add new types by operator.
+#
+# Use this if you want to graft another new object onto an existing object
+#  at runtime. The object will retain its original "my-type" but will
+#  recieve new base types and any attributes you create.  You can add 
+#  substructure via calls to create-typed-object the same way you do
+#  when constructing complex objects using create-typed-object.
+#
+# [ngs-augment-with-new-typed-object obj_id type (attr_list)]
+#
+# obj_id - Variable bound to an existig object that you wish to augment
+# type   - The name of the type of the object with which you want to 
+#            augment the existing object
+# attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
+#                     (i.e. a multi-valued attribute), put the set values in a list (see example above).
+proc ngs-augment-with-new-typed-object { obj_id
+                                         type
+                                         {attribute_list ""} } {
+
+  set rhs_val [ngs-construct $obj_id $type [lappend attribute_list type $type] false]
+
+  return "$rhs_val
+          [core-trace NGS_TRACE_I_TYPED_OBJECTS "I ADD_TYPE, $type, (| $obj_id |)."]"
+
+}
+
 # Creates an i-supported tag as a new object
 #
 # Use this on the right-hand side of a production to create a typed object as a tag
@@ -490,7 +520,7 @@ proc ngs-create-output-command-by-operator { state_id
           [core-trace NGS_TRACE_OUTPUT "O OUTPUT-COMMAND-PROPOSED, $command_type, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $cmd_id |)."]"
 }
 
-# Takes an existing typed object and makes it an o utput command
+# Takes an existing typed object and makes it an output command
 #
 # Use this macro when you want to pre-create your output objects, and then copy them to the 
 #  output link using an operator.
@@ -498,8 +528,8 @@ proc ngs-create-output-command-by-operator { state_id
 # [ngs-execute-existing-object-as-output-command-by-operator state_id output_link_id command_id (add_prefs)]
 #
 # state_id - variable bound the state in which to propose the operator
-# output_link_id - variable boudn to the output link
-# cmd_id - variable bound to the object that represents the output command
+# output_link_id - variable bound to the output link
+# command_id - variable bound to the object that represents the output command
 # add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
 #  the indifferent preference is given but you can override using this argument.
 #
@@ -578,8 +608,16 @@ proc ngs-create-attribute-by-operator { state_id
 # Use this macro when you wish to completely copy a deep structure, 
 #  usually from the input link. You cannot create objects using deep
 #  copy any other way in NGS as if you use other methods 
-#  create-attribute-by-operator) the deep copied structure will get 
+#  (e.g. create-attribute-by-operator) the deep copied structure will get 
 #  i-support.
+#
+# IMPORTANT: When using NGS_REPLACE_IF_EXISTS it is critical to properly set up your operator
+#     termination conditions on the LHS of the rule. The current implementation can generate infinite
+#     applies because it has no way to detect that the object it creates is different from the old
+#     value it replaces.  If your termination is set up correctly (e.g. to look for some identifying 
+#     features of the object you are creating) this will terminate after one apply wave. If not, the
+#     apply productions built into NGS will repeatedly remove and then create again the new structure.
+#     This only applies to NGS_REPLACE_IF_EXISTS, not NGS_ADD_TO_SET.
 #
 # [ngs-deep-copy-by-operator state_id parent_obj_id attribute value (replacement_behavior) (add_prefs)]
 #
@@ -780,7 +818,7 @@ proc ngs-create-operator { state_id
   variable NGS_TAG_I_SUPPORTED
 
   CORE_GenVarIfEmpty state_id "s"
-    
+
   return "[ngs-create-attribute $state_id $NGS_OP_ATTRIBUTE $new_obj_id "+ $add_prefs"]
           ($new_obj_id ^name     $op_name
                        ^type     $type)

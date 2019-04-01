@@ -8,14 +8,38 @@
 # category_name - Name of the category into which the variable was placed. Set to NGS_CTX_VAR_USER_LOCATION if you placed the context variable in an arbitrary location speified by a path (see parameter pool_goal_or_path).
 #
 proc NGS_Explain_ExplainContext { agent_id pool_goal_or_path category_name } {
+    variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+
     set scope_id [CORE_GenVarName "scope"]
     set root_bind [ngs-ctx-var-gen-root-bindings $pool_goal_or_path $category_name "" "" $scope_id]
     set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name ""]
+    set explanation_id [CORE_GenVarName "explanation"]
 
-    sp "ngs*explain*variable-pool*tag*should-explain*$production_name_suffix
+    sp "ngs*explain*variable-pool*create-explanation*$production_name_suffix
         $root_bind
     -->
-        [ngs-tag $scope_id should-explain]"
+        [ngs-create-typed-object-from-stor $scope_id @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
+            NGS_Explain_VariablePool {
+                variables { NGS_Explain_VariableIdSet {} }
+            }
+         "]"
+
+    sp "ngs*explan*variable-pool*explanation*elaborate-id*$production_name_suffix
+        $root_bind
+        [ngs-bind-explanation $scope_id $explanation_id]
+    -->
+        [ngs-create-attribute $explanation_id id "(concat $scope_id)"]"
+
+    # Elaborate the explanation onto the output.
+    sp "ngs*explain*variable-pool*$production_name_suffix*output-explanation
+        $root_bind
+        [ngs-bind-explanation $scope_id $explanation_id]
+        [ngs-is-tagged $scope_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE $explanation_id]
+        [ngs-bind-agent-explanation <s> $agent_id <explain>]
+        [ngs-bind <explain> context-variables.pools:<pools>]
+    -->
+        [ngs-create-attribute <pools> pool $explanation_id]
+    "
 }
 
 #
@@ -27,10 +51,13 @@ proc NGS_Explain_ExplainContext { agent_id pool_goal_or_path category_name } {
 # category_name - Name of the category into which the variable was placed. Set to NGS_CTX_VAR_USER_LOCATION if you placed the context variable in an arbitrary location speified by a path (see parameter pool_goal_or_path).
 # variable_name - Name of the context variable.
 #
+#        [ngs-bind $var_id value]
+#        [ngs-is-tagged <goal-id> $NGS_EXPLAIN_TAG_SHOULD_EXPLAIN ${goal_type}]
 proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path category_name variable_name } {
     
     variable NGS_CTX_SCOPE_USER
     variable NGS_EXPLAIN_EXPLANATION_ATTRIBUTE
+    variable NGS_EXPLAIN_TAG_SHOULD_EXPLAIN
 
     set var_id <variable>
     set scope_id <scope-id>
@@ -42,32 +69,15 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
     # Create an explanation structure on the variable.
     sp "ngs*explain*variable*$production_name_suffix*create-explanation
         $root_bind
-        [ngs-is-tagged $scope_id should-explain]
         [ngs-is-my-type $var_id <variable-type>]
-        [ngs-bind $var_id value]
+        [ngs-is-tagged  $var_id $NGS_EXPLAIN_TAG_SHOULD_EXPLAIN]
     -->
-        [ngs-create-typed-object-from-stor $var_id @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE "
-            NGS_Explain_Variable {
-                variable-type <variable-type>
-                scope {
-                    NGS_Explain_VariableScope {
-                        scope-type $scope_type
-                        scope-id <scope-id>
-                        scope-path |$pool_goal_or_path|
-                        scope-category $category_name
-                    }
-                }
-                name $variable_name
-            }
-        "]
-    "
-
-    sp "ngs*explain*variable*$production_name_suffix*elaborate-id
-        $root_bind
-        [ngs-is-tagged $var_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE <explanation>]
-    -->
-        [ngs-create-attribute <explanation> id "(concat |ctxvar_| $var_id)"]
-    "
+        [ngs-create-typed-object $var_id @$NGS_EXPLAIN_EXPLANATION_ATTRIBUTE NGS_Explain_Variable <explanation> "
+            id {(concat $var_id)}
+            variable-type <variable-type>
+            scope {(concat <scope-id>)}
+            name $variable_name
+        "]"
 
     sp "ngs*explain*variable*$production_name_suffix*elaborate-value
         $root_bind
@@ -77,13 +87,23 @@ proc NGS_Explain_CreateProductionsForVariable { agent_id pool_goal_or_path categ
         [ngs-create-attribute <explanation> value <value>]
     "
 
+    # Elaborate the id into the set of variables for this pool
+    sp "ngs*explain*variable*$production_name_suffix*elaborate*variable-id-set
+        $root_bind
+        [ngs-is-tagged $scope_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE <pool-explanation>]
+        [ngs-bind <pool-explanation> variables]
+        [ngs-is-tagged $var_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE <variable-explanation>]
+        [ngs-bind <variable-explanation> id]
+    -->
+        [ngs-create-attribute <variables> id <id>]"
+
     # Elaborate the explanation onto the output.
     sp "ngs*explain*variable*$production_name_suffix*output-explanation
         $root_bind
         [ngs-is-tagged $var_id $NGS_EXPLAIN_EXPLANATION_ATTRIBUTE <explanation>]
-        [ngs-bind-explanation <s> $agent_id <explain>]
-        [ngs-bind <explain> context-variables:<variables>]
+        [ngs-bind-agent-explanation <s> $agent_id <explain>]
+        [ngs-bind <explain> context-variables.variables:<variables>]
     -->
-        [ngs-create-attribute <variables> context-variable <explanation>]
+        [ngs-create-attribute <variables> variable <explanation>]
     "
 }

@@ -1,5 +1,4 @@
 
-
 #
 # This file provides macro(s) for declaring goals. You must
 #  declare a goal before trying to create and test for them, otherwise
@@ -21,7 +20,7 @@ CORE_CreateMacroVar NGS_ALL_GOAL_TYPES ""
 # attribute_list - (Optional) List of attribute, value pairs for the given object. If attributes is a set
 #                  (i.e. a multi-valued attribute), put the set values in a list.
 #
-proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
+proc NGS_DeclareGoal { goal_type {attribute_list ""} { batch_op_cat_and_name "" }} {
 
   variable NGS_YES
   variable NGS_TAG_CONSTRUCTED
@@ -32,6 +31,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   variable NGS_TAG_I_SUPPORTED
   variable NGS_TAG_REMOVE_ACHIEVED
   variable GOAL_TAG_STACK_SELECTED
+  variable GOAL_TAG_STACK_ROOT
   variable NGS_TAG_REQUIRES_DECISION
   variable NGS_TAG_NO_OPTIONS
   variable NGS_TAG_ONE_OPTION
@@ -159,20 +159,41 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
 
   #############################################################
   ## Productions that support goal-based decision making
+  set batch_category ""
+  set batch_name ""
+  if { $batch_op_cat_and_name != "" } {
+    set batch_category [lindex $batch_op_cat_and_name 0]
+    set batch_name     [lindex $batch_op_cat_and_name 1]
+  }
+
+  # Mark a goal as the root goal of a decision tree
+  sp "ngs*core*goal*elaborate*is-root*$goal_type
+    [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
+    [ngs-has-requested-decision <g> <any-decision>]
+    [ngs-is-not-supergoal <g> <sg>]
+  -->
+    [ngs-tag <g> $GOAL_TAG_STACK_ROOT]"
 
   # i-supported production to mark a goal as "goal-stack-selected" meaning that this goal
   #  and all other decision goals above it on the stack are selected.
-  # JC: A selected goal stack just means that the goals were selected, not that
-  #     their actions occured.
+  # JC: A selected goal stack just means that this goal level doesn't require any decision be made
+  #    and its supergoal is stable (or is the root)
+  sp "ngs*core*goal*elaborate-goal-stack-selected*root*$goal_type
+    [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
+    [ngs-is-tagged <g> $GOAL_TAG_STACK_ROOT]
+    [ngs-not [ngs-requires-decision <g> <any-decision>]]       
+  -->
+    [ngs-tag <g> $GOAL_TAG_STACK_SELECTED]"
+
   sp "ngs*core*goal*elaborate-goal-stack-selected*parent-is-selected*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
     [ngs-is-my-type <g> $goal_type]
-    [ngs-or \
-      [ngs-and [ngs-has-requested-decision <g> <any-decision>] \
-               [ngs-is-not-supergoal <g> <sg2>]] \
-      [ngs-and [ngs-has-decided <g> $NGS_YES] \
-               [ngs-is-supergoal <g> <sg>] \
-               [ngs-is-tagged <sg> $GOAL_TAG_STACK_SELECTED]]]
+    [ngs-is-tagged  <g> $NGS_TAG_SELECTION_STATUS]
+    [ngs-is-supergoal <g> <supergoal>]
+    [ngs-is-tagged <supergoal> $GOAL_TAG_STACK_SELECTED]
+    [ngs-not [ngs-requires-decision <g> <any-decision>]]       
   -->
     [ngs-tag <g> $GOAL_TAG_STACK_SELECTED]"
 
@@ -197,6 +218,20 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
       [ngs-is-assigned-decision <sub-goal> <decision-name>]
       [ngs-has-decided <sub-goal> $NGS_YES]
     }
+  -->
+    [ngs-tag <decision-info> $NGS_TAG_REQUIRES_DECISION]"
+
+  # Same as above, but looks for multiple decide yess
+  sp "ngs*core*goal*elaborate-decision-is-required*more-than-one-yes*$goal_type
+    [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
+    [ngs-has-requested-decision <g> <decision-name> {} {} {} <decision-info>]
+    [ngs-is-subgoal <g> <subgoal>]
+    [ngs-is-assigned-decision <subgoal> <decision-name>]
+    [ngs-is-tagged <subgoal> $NGS_TAG_DECISION_STATUS $NGS_YES]
+    [ngs-is-subgoal <g> [ngs-this-not-that <subgoal2> <subgoal>]]
+    [ngs-is-assigned-decision <subgoal2> <decision-name>]
+    [ngs-is-tagged <subgoal2> $NGS_TAG_DECISION_STATUS $NGS_YES]
   -->
     [ngs-tag <decision-info> $NGS_TAG_REQUIRES_DECISION]"
   
@@ -230,19 +265,27 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
   -->
     [ngs-tag <decision-info> $NGS_TAG_ONE_OPTION]"
 
+  # if we are using batch operators, set up the left and right hand side additions
+  if { $batch_op_cat_and_name != "" } {
+	set lhs_batch "[ngs-bind-bop-description <s> $batch_category $batch_name <bo>]"
+	set rhs_batch "[ngs-create-attribute-by-batch-operator <bo> <sub-goal> @$NGS_TAG_DECISION_STATUS $NGS_YES]"
+  } else {
+    set lhs_batch ""
+    set rhs_batch "[ngs-create-tag-by-operator <s> <sub-goal> $NGS_TAG_DECISION_STATUS {} {} "< ="]"
+  }
 
   # Operator proposal to make a decision if there is only one option
   sp "ngs*core*goal*propose-to-make-decision-if-only-one*$goal_type
     [ngs-match-goal <s> $goal_type <sub-goal>]
     [ngs-is-my-type <sub-goal> $goal_type]
+    $lhs_batch
     [ngs-is-assigned-decision <sub-goal> <decision-name>]
-
     [ngs-is-supergoal <sub-goal> <supergoal>]
     [ngs-has-requested-decision <supergoal> <decision-name> {} {} {} <decision-info>]
     [ngs-is-tagged <decision-info> $NGS_TAG_REQUIRES_DECISION]
     [ngs-is-tagged <decision-info> $NGS_TAG_ONE_OPTION]
   -->
-    [ngs-create-tag-by-operator <s> <sub-goal> $NGS_TAG_DECISION_STATUS]"
+    $rhs_batch"
 
 
   # This marks the goal as selected only if it both has the "pre" selection flag and
@@ -264,7 +307,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-not-tagged <decision-info> $NGS_TAG_ONE_OPTION]
     [ngs-is-not-tagged <decision-info> $NGS_TAG_NO_OPTIONS]
   --> 
-    [ngs-create-function-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g>]
+    [ngs-create-function-operator <s> $NGS_OP_DECIDE_GOAL <o> <ret-vals> <g> {} "< ="]
     (<o> ^decision-name <decision-name>)"
 
   # This can happen when a goal was selected, ends up being unassigned from a decision
@@ -278,7 +321,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     [ngs-is-subgoal <g> <subgoal>]
     [ngs-is-assigned-decision <subgoal> <decision-name>]
     [ngs-is-tagged <subgoal> $NGS_TAG_DECISION_STATUS $NGS_YES]
-    [ngs-is-subgoal <g> "{ <subgoal2> <> <subgoal>}"]
+    [ngs-is-subgoal <g> [ngs-this-not-that <subgoal2> <subgoal>]]
     [ngs-is-assigned-decision <subgoal2> <decision-name>]
     [ngs-is-tagged <subgoal2> $NGS_TAG_DECISION_STATUS $NGS_YES]
   -->
@@ -286,13 +329,24 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} } {
     (<o> ^decision-name <decision-name>)
     (write (crlf) | --- WARNING: There are at least two goals with a decided flag set to *yes* - | <subgoal> |, | <subgoal2>)"
 
+# if we are using batch operators, set up the left and right hand side additions
+  if { $batch_op_cat_and_name != "" } {
+    set lhs_batch "[ngs-bind-bop-description <s> $batch_category $batch_name <bo>]"
+    set rhs_batch "[ngs-remove-attribute-by-batch-operator <bo> <g> @$NGS_TAG_DECISION_STATUS <decision-val>]"
+  } else {
+    set lhs_batch ""
+    set rhs_batch "[ngs-remove-tag-by-operator <s> <g> $NGS_TAG_DECISION_STATUS <decision-val> "> ="]"
+  }
+
   # We give this high priority since we want to set the state to be logically consistent as soon as possible
   sp "ngs*core*goal*propose-to-remove-status-flag*when-not-assigned-decision*$goal_type
     [ngs-match-goal <s> $goal_type <g>]
+    [ngs-is-my-type <g> $goal_type]
+    $lhs_batch
     [ngs-is-not-assigned-decision <g> <decision-name>]
-    [ngs-has-decided <g> <decision-val>]
+    [ngs-is-tagged <g> $NGS_TAG_DECISION_STATUS <decision-val>]
   -->
-    [ngs-remove-tag-by-operator <s> <g> NGS_TAG_DECISION_STATUS <decision-val> "> ="]"
+    $rhs_batch"
         
   # Automatically activate a goal after selection if it is flagged for auto-activation
   sp "ngs*core*goal*activate-goal-after-selection*$goal_type
@@ -320,4 +374,5 @@ sp "ngs*core*goal*create-decision-based-goal-pool
   (<master-pool> ^<decision-name> <new-pool>)
   [ngs-tag <new-pool> $NGS_TAG_CONSTRUCTED]
   [ngs-tag <new-pool> $NGS_TAG_DECISION_POOL]"
+
 

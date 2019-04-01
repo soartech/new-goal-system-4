@@ -6,6 +6,8 @@ NGS_DeclareType NGS_Explain_Explanation {
 	internal-operating-picture ""
 }
 
+NGS_DeclareType NGS_Explain_ContextVariables {}
+
 NGS_DeclareType NGS_Explain_Variable {
 	variable-type ""
 	scope ""
@@ -14,9 +16,15 @@ NGS_DeclareType NGS_Explain_Variable {
 	value ""
 }
 
+NGS_DeclareType NGS_Explain_VariableIdSet {}
+
+NGS_DeclareType NGS_Explain_VariablePool {}
+
+NGS_DeclareType NGS_Explain_VariablePools {}
+
 # There are three types of scopes.
 # The meaning of the parameters for each of the three types is as follows:
-# 
+#
 # scope-type     : global        | goal          | user
 # scope-id       : pool_id       | goal_id       | object_id
 # scope-path     : pool name     | goal name     | full path
@@ -154,4 +162,3 @@ NGS_DeclareType IOPUGV {
 NGS_DeclareType IOPUAV {
     type { IOPSpatialObject IOPOrientedObject IOPMovingObject IOPEntity IOPVehicle }
 }
-
