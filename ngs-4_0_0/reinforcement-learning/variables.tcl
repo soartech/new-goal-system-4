@@ -12,3 +12,4 @@ CORE_CreateMacroVar NGS_RL_EXPAND_STATIC_BINS bin
 
 CORE_CreateMacroVar NGS_RL_OP_PURPOSE_CREATE    create
 CORE_CreateMacroVar NGS_RL_OP_PURPOSE_REMOVE    remove
+CORE_CreateMacroVar NGS_RL_OP_PURPOSE_CHOICE    choice
