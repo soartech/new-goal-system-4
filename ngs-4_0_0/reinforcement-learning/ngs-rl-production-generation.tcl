@@ -4,7 +4,6 @@ proc ngs-rl-create-root-bindings { name body } {
     
     variable NGS_RL_OP_PURPOSE_CREATE
     variable NGS_RL_OP_PURPOSE_REMOVE
-    variable NGS_RL_OP_PURPOSE_CHOICE
 
     set op_id      [lindex $body 0] 
     set op_purpose [lindex $body 1]
@@ -24,8 +23,6 @@ proc ngs-rl-create-root-bindings { name body } {
         set bind_line [ngs-bind-creation-operator $op_id $dest_obj $dest_attr $dest_val] 
     } elseif { $op_purpose == $NGS_RL_OP_PURPOSE_REMOVE } { 
         set bind_line [ngs-bind-removal-operator  $op_id $dest_obj $dest_attr $dest_val]
-    } elseif { $op_purpose == $NGS_RL_OP_PURPOSE_CHOICE } { 
-        set bind_line [ngs-bind-choice-operator $op_id $dest_obj]
     }
  
     return "[ngs-match-proposed-operator <s> $op_id]
@@ -166,11 +163,10 @@ proc ngs-rl-recursive-expansion { prod_name prod_body prod_pref variation_list v
 #          Format: operator_id operator_purpose_enum operator_param_tuple other_tests*
 #
 #          operator_id: The id you will bind to the operator (use $NGS_OP_ID)  
-#          operator_purpose: One of NGS_RL_OP_PURPOSE_CREATE, NGS_RL_OP_PURPOSE_REMOVE, or NGS_RL_OP_PURPOSE_CHOICE
-#                             indicating whether the operator is creating or removing a WME or making a decision choice
+#          operator_purpose: One of NGS_RL_OP_PURPOSE_CREATE or NGS_RL_OP_PURPOSE_REMOVE indicating whether
+#                             the operator is creating or removing a WME
 #          operator_param_tuple: A list of three values { dest_obj dest_attr dest_val } that is bound
-#                             and/or matched to the WME the RL operator is creating/removing. For the case of making a
-#                             choice, dest_obj is bound to the choice and the other two values are ignored.
+#                             and/or matched to the WME the RL operator is creating/removing.
 #          other_tests: (Optional) Any additional conditions you want applied (e.g. type of object being created, etc)
 # bindings: a list of ngs-bind pairs { variable path }. Each of these pairs is passed to ngs-bind internally and
 #            expanded as they would normally be expanded.  The variables bound can be used in the expansion section.
