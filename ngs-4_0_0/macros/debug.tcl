@@ -63,7 +63,7 @@ proc ngs-debug-tree-view-prefix { level } {
 }
 
 # Prints out the WME tree (recursively called)
-proc ngs-print-identifiers-attributes-details { id level target_level prev_id_dict } {
+proc ngs-print-identifiers-attributes-details { id level target_level prev_id_dict {lti_id ""}} {
 
     upvar $prev_id_dict id_dict
     dict set id_dict $id $id
@@ -72,6 +72,7 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
     set print_this "$id ("
 
     set attributes [ngs-debug-get-all-attributes-for-id $id]
+    if {$level == 2} { echo $id: $attributes }
 
     if { [dict exists $attributes "my-type"] == 1 } {
         set my_type    [dict get $attributes my-type]
@@ -80,6 +81,8 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
         set my_type [ngs-debug-get-single-id-for-attribute $id "name"]
         if { $my_type != "" } {
             set print_this "$print_this$my_type"
+        } elseif { $lti_id != "" } {
+            set print_this "$print_this$lti_id in SMEM"
         } else {
             set print_this "${print_this}UNDEFINED"
         }
@@ -101,18 +104,22 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set attr_value [lindex $attr_props 1]
             set attr_type  [lindex $attr_props 2]
             set ctx_value  [lindex $attr_props 3]
+            set lti_value  [lindex $attr_props 4]
         
             if { $level == $target_level || [dict exists $id_dict $attr_value] == 1 || [ngs-debug-is-identifier $attr_value] == 0 } {
                 set print_this "$print_this\n$prefix $attr_name: $attr_value"
-                if {$ctx_value != ""} {
+                if {$ctx_value != "" && $ctx_value != $attr_value} {
                     set print_this "$print_this == $ctx_value"
                 }
                 if {$attr_type != ""} {
                     set print_this "$print_this ($attr_type)"
                 }
+                if {$lti_value != ""} {
+                    set print_this "$print_this (lti: $lti_value)"
+                }
             } else {
-               #echo "ngs-print-identifiers-attributes-details $attr_value [expr $level + 1] $target_level \{$id_dict\}"
-               set print_this "$print_this\n$prefix $attr_name: [ngs-print-identifiers-attributes-details $attr_value [expr $level + 1] $target_level id_dict]"
+               # echo "ngs-print-identifiers-attributes-details $attr_value [expr $level + 1] $target_level \{$id_dict\}"
+               set print_this "$print_this\n$prefix $attr_name: [ngs-print-identifiers-attributes-details $attr_value [expr $level + 1] $target_level id_dict $lti_value]"
             }
         }
     }
@@ -142,10 +149,18 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set tag_name  [lindex $tag_props 0]
             set tag_value [lindex $tag_props 1]
             set tag_type  [lindex $tag_props 2]
+            set ctx_value  [lindex $tag_props 3]
+            set lti_value  [lindex $tag_props 4]
 
             set print_this "$print_this\n$prefix TAG: $tag_name: $tag_value"
+            if {$ctx_value != "" && $ctx_value != $tag_value} {
+                set print_this "$print_this == $ctx_value"
+            }
             if {$tag_type != ""} {
                 set print_this "$print_this ($tag_type)"
+            }
+            if {$lti_value != ""} {
+                set print_this "$print_this (lti: $lti_value)"
             }
         }
     }
@@ -168,6 +183,17 @@ proc ngs-debug-is-identifier { symbol } {
     return 0
 }
 
+proc ngs-debug-is-lti { symbol } {
+
+    set first_letter [string index $symbol 0]
+    set the_rest     [string range $symbol 1 end]
+
+    if { $first_letter == "@" && [string is integer $the_rest] == 1 } {
+        return 1
+    }
+
+    return 0
+}
 # Grab a single attribute from an identifier
 proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
 
@@ -198,6 +224,12 @@ proc ngs-debug-process-id-print { line } {
 	            set value     [string trim [string range $pair $end_of_attribute end] "$TRIM_DEFAULTS)"]
 	            if { $value == "" } {
                     lappend ret_list "***EMPTY***"
+                } 
+                
+                set lti_id_start [string first "(@" $value]
+                if { $lti_id_start > 0 } {
+                    lappend ret_list [string trim [string range $value 0 [expr $lti_id_start - 2]] "$TRIM_DEFAULTS"]
+                    lappend ret_list [string trim [string range $value $lti_id_start end] "( $TRIM_DEFAULTS)"]
                 } elseif { [string index $value end] != "+" } { 
 	                lappend ret_list $value
 	            } else {
@@ -258,7 +290,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 
         if { $attr_val != "" } {
 
-            if { $is_attribute == 1 && $attr_val != "+"} {
+            if { $is_attribute == 1 && $attr_val != "+" && [ngs-debug-is-lti $attr_val] == 0 } {
 
                 # Insert the last value before starting a new one
                 if { $cur_key == "my-type" } {
@@ -301,6 +333,8 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 
                 if { $attr_val == "+" } {
                     lappend attribute_info "+"
+                } elseif { [ngs-debug-is-lti $attr_val] == 1 } {
+                    # Nothing extra to do in this case
                 } elseif { [ngs-debug-is-identifier $attr_val] == 1 } {
 
                     # This is an identifier
@@ -312,6 +346,10 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                     set variable_value [ngs-debug-get-single-id-for-attribute $attr_val "value"]
                     if { $variable_value != "" } {
                         lappend attribute_info $variable_value
+                    } else {
+                        # Append a second time if this does NOT have a value under it
+                        # We need to have some value here
+                        lappend attribute_info $attr_val
                     }
 
                 } elseif { [string is integer $attr_val] == 1 } {
