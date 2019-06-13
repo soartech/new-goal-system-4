@@ -137,7 +137,7 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
             set op_value [lindex $op_props 1]
             set op_name  [lindex $op_props 2]
 
-            if { [lindex $op_props 3] == "+" } {
+            if { [lindex $op_props 4] == "+" } {
                 set op_attr "OPERATOR (PROPOSAL)"
             } else {
                 set op_attr "OPERATOR (SELECTED)"
@@ -364,8 +364,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                 set identifier_type ""
 
                 if { $attr_val == "+" } {
-                    lappend attribute_info ""
-#                    lappend attribute_info "+"
+                    # lappend attribute_info "+"
                 } elseif { [ngs-debug-is-lti $attr_val] == 1 && [llength $attribute_info] > 1 } {
                     # We already appended the LTI above
                 } elseif { [ngs-debug-is-identifier $attr_val] == 1 } {
