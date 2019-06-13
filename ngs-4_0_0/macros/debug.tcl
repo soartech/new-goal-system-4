@@ -72,7 +72,9 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
     set print_this "$id ("
 
     set attributes [ngs-debug-get-all-attributes-for-id $id]
-    if {$level == 2} { echo $id: $attributes }
+    
+    # Not sure why this is here, but it seems like debug code
+    #if {$level == 2} { echo $id: $attributes }
 
     if { [dict exists $attributes "my-type"] == 1 } {
         set my_type    [dict get $attributes my-type]
@@ -97,6 +99,11 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
         }
     }
     set print_this "$print_this)"
+
+    if { [dict exists $attributes "activation"] == 1 } {
+        set activation_val [dict get $attributes activation]
+        set print_this "$print_this, ACTIVATION: $activation_val"
+    }
 
     if { [dict exists $attributes attributes] == 1 } {
         foreach attr_props [dict get $attributes attributes] {
@@ -176,7 +183,7 @@ proc ngs-debug-is-identifier { symbol } {
     set first_letter [string index $symbol 0]
     set the_rest     [string range $symbol 1 end]
 
-    if { $the_rest != "" && [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1 } {
+    if { $the_rest != "" && [string is digit $first_letter] == 0 && [string is integer $the_rest] == 1  }  {
         return 1
     }
 
@@ -188,12 +195,25 @@ proc ngs-debug-is-lti { symbol } {
     set first_letter [string index $symbol 0]
     set the_rest     [string range $symbol 1 end]
 
-    if { $first_letter == "@" && [string is integer $the_rest] == 1 } {
+    if { $first_letter == "@" && $the_rest != "" && [string is integer $the_rest] == 1 } {
         return 1
     }
 
     return 0
 }
+
+proc ngs-debug-is-activation { symbol } {
+
+    set first_letter [string index $symbol 0]
+    set the_rest     [string range $symbol 1 end]
+
+    if { ($first_letter == "+" || $first_letter == "-") && $the_rest != "" && [string is double $the_rest] == 1 } {
+        return 1
+    }
+
+    return 0
+}
+
 # Grab a single attribute from an identifier
 proc ngs-debug-get-single-id-for-attribute { identifier attribute } {
 
@@ -225,11 +245,16 @@ proc ngs-debug-process-id-print { line } {
 	            if { $value == "" } {
                     lappend ret_list "***EMPTY***"
                 } 
-                
+                # For LTIs in WM
                 set lti_id_start [string first "(@" $value]
+                # For activations
+                set activation_start [string first " \[" $value]
                 if { $lti_id_start > 0 } {
                     lappend ret_list [string trim [string range $value 0 [expr $lti_id_start - 2]] "$TRIM_DEFAULTS"]
                     lappend ret_list [string trim [string range $value $lti_id_start end] "( $TRIM_DEFAULTS)"]
+                } elseif { $activation_start > 0 } {
+                    lappend ret_list [string trim [string range $value 0 [expr $activation_start - 1]] "$TRIM_DEFAULTS"]
+                    lappend ret_list [string trim [string range $value $activation_start end] "\[ $TRIM_DEFAULTS\])"]
                 } elseif { [string index $value end] != "+" } { 
 	                lappend ret_list $value
 	            } else {
@@ -259,7 +284,9 @@ proc ngs-debug-process-id-print { line } {
 # 1 - the name of the attribute
 # 2 - the value of the attribute
 # 3 - the type of the attribute (or name of the operator)
-# 4 - operator preference (if attribute is an operator)
+# 4 - operator preference (if attribute is an operator) OR value if context variable
+# 5 - the LTI if the WM is a mirror from SMEM
+#
 #   | context variable value (if attribute is a context variable)
 #
 proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
@@ -319,6 +346,11 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                 } elseif { $attr_val == "operator" } {
                     set cur_key "operators"
                     lappend attribute_info $attr_val
+                } elseif { [ngs-debug-is-activation $attr_val] == 1 } {
+                    set cur_key "activation"
+                    lappend attribute_info "ACTIVATION"
+                    lappend attribute_info $attr_val 
+                    continue
                 } else {
                     set cur_key "attributes"
                     lappend attribute_info $attr_val
@@ -332,11 +364,12 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
                 set identifier_type ""
 
                 if { $attr_val == "+" } {
-                    lappend attribute_info "+"
-                } elseif { [ngs-debug-is-lti $attr_val] == 1 } {
-                    # Nothing extra to do in this case
+                    lappend attribute_info ""
+#                    lappend attribute_info "+"
+                } elseif { [ngs-debug-is-lti $attr_val] == 1 && [llength $attribute_info] > 1 } {
+                    # We already appended the LTI above
                 } elseif { [ngs-debug-is-identifier $attr_val] == 1 } {
-
+#
                     # This is an identifier
                     set identifier_type [ngs-debug-get-single-id-for-attribute $attr_val "my-type"]
                     if { $identifier_type == "" } {
@@ -354,11 +387,15 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
 
                 } elseif { [string is integer $attr_val] == 1 } {
                     lappend attribute_info ""
+                    lappend attribute_info ""
                 } elseif { [string is double $attr_val] == 1 } {
+                    lappend attribute_info ""
                     lappend attribute_info ""
                 } elseif { $attr_val == $NGS_YES || $attr_val == $NGS_NO || $attr_val == $NGS_UNKNOWN } {
                     lappend attribute_info ""
+                    lappend attribute_info ""
                 } else {
+                    lappend attribute_info ""
                     lappend attribute_info ""
                 }
 
@@ -369,7 +406,7 @@ proc ngs-debug-get-all-attributes-for-id { identifier {attribute ""} } {
     }
 
     # Final insertion
-    if { $cur_key == "my-type" } {
+    if { $cur_key == "my-type" || $cur_key == "activation" } {
         dict set ret_val $cur_key [lindex $attribute_info 1]
     } elseif { $cur_key != "" } {
         if { $attribute == "" || $attribute == [lindex $attribute_info 0] } {
