@@ -299,7 +299,6 @@ proc ngs-create-typed-object { parent_obj_id
 										 {attribute_list ""} } {
 	
   variable NGS_TAG_CONSTRUCTED
-  variable NGS_TAG_I_SUPPORTED
 
   set rhs_val "[ngs-create-attribute $parent_obj_id $attribute $new_obj_id]"
 
@@ -308,8 +307,7 @@ proc ngs-create-typed-object { parent_obj_id
               [ngs-construct $new_obj_id $type [lappend attribute_list type $type]]"
 
   set rhs_val "$rhs_val
-               [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]
-               [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
+               [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]"
 
   return "$rhs_val
           [core-trace NGS_TRACE_I_TYPED_OBJECTS "I CREATE-OBJECT, $type, (| $parent_obj_id |.$attribute | $new_obj_id |)."]"
@@ -821,8 +819,7 @@ proc ngs-create-operator { state_id
 
   return "[ngs-create-attribute $state_id $NGS_OP_ATTRIBUTE $new_obj_id "+ $add_prefs"]
           ($new_obj_id ^name     $op_name
-                       ^type     $type)
-          [ngs-tag $new_obj_id $NGS_TAG_I_SUPPORTED]"
+                       ^type     $type)"
     
 }
 
@@ -1332,7 +1329,8 @@ proc ngs-create-goal-in-place { goal_set_id
   if { $supergoal_id != "" } {
     lappend attribute_list supergoal $supergoal_id
   }
-
+ 
+  # Need to tag with I_SUPPORTED so that the cleanup doesn't happen (like for o-support)
   set lhs_val "[ngs-create-attribute $goal_set_id $NGS_GOAL_ATTRIBUTE $new_obj_id]
                [ngs-construct $new_obj_id $goal_type $attribute_list]
                [ngs-tag $new_obj_id $NGS_TAG_CONSTRUCTED]

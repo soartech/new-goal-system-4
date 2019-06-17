@@ -2304,7 +2304,7 @@ proc ngs-match-proposed-substate-operator { state_id
 
   if { $goal_id != "" } {
       set lhs_ret "$lhs_ret
-                   ($op_id goal $goal_id)"
+                   ($op_id ^goal $goal_id)"
   } 
   
   return $lhs_ret                                    
