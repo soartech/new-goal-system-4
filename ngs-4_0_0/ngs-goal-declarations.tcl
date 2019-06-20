@@ -267,7 +267,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} { batch_op_cat_and_name "" 
 
   # if we are using batch operators, set up the left and right hand side additions
   if { $batch_op_cat_and_name != "" } {
-	set lhs_batch "[ngs-bind-bop-description <s> $batch_category $batch_name <bo>]"
+	set lhs_batch "[ngs-bind-bop <s> <bo> $batch_category $batch_name]"
 	set rhs_batch "[ngs-create-attribute-by-batch-operator <bo> <sub-goal> @$NGS_TAG_DECISION_STATUS $NGS_YES]"
   } else {
     set lhs_batch ""
@@ -331,7 +331,7 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} { batch_op_cat_and_name "" 
 
 # if we are using batch operators, set up the left and right hand side additions
   if { $batch_op_cat_and_name != "" } {
-    set lhs_batch "[ngs-bind-bop-description <s> $batch_category $batch_name <bo>]"
+    set lhs_batch "[ngs-bind-bop <s> <bo> $batch_category $batch_name]"
     set rhs_batch "[ngs-remove-attribute-by-batch-operator <bo> <g> @$NGS_TAG_DECISION_STATUS <decision-val>]"
   } else {
     set lhs_batch ""

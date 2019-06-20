@@ -175,7 +175,7 @@ proc NGS_DefineStableValue { pool_goal_or_path category_name variable_name { bat
         set batch_category [lindex $batch_op_cat_and_name 0]
         set batch_name     [lindex $batch_op_cat_and_name 1]
         set root_bind "$root_bind
-                       [ngs-bind-bop-description <s> $batch_category $batch_name <bo>]"
+                       [ngs-bind-bop <s> <bo> $batch_category $batch_name]"
 
         set set_line  "[ngs-set-context-variable-by-batch-operator <bo> $var_id <src-val>]"
     } else {

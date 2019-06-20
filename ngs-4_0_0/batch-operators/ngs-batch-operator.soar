@@ -46,12 +46,6 @@ NGS_DeclareType NGSBatchOperatorItem "
 #
 proc ngs-match-top-state-to-propose-bop { state_id bop_id { state_bindings "" } { bop_category "" } { bop_name "" } } {
 
-    variable NGS_BATCH_OP_CATEGORY
-    variable NGS_BATCH_OP_GENERAL
-
-    CORE_SetIfEmpty bop_category $NGS_BATCH_OP_CATEGORY
-    CORE_SetIfEmpty bop_name     $NGS_BATCH_OP_GENERAL
-
     set lhs_ret ""
     if { $state_bindings != "" } {
         set lhs_ret [ngs-match-top-state $state_id $state_bindings]
@@ -60,12 +54,19 @@ proc ngs-match-top-state-to-propose-bop { state_id bop_id { state_bindings "" } 
     }
 
     set lhs_ret "$lhs_ret
-                 [ngs-bind-bop-description $state_id $bop_category $bop_name $bop_id]"
+                 [ngs-bind-bop $state_id $bop_id $bop_category $bop_name]"
 
     return $lhs_ret
 }
 
-proc ngs-bind-bop-description { state_id bop_category bop_name batch_op_desc_id } {
+proc ngs-bind-bop { state_id batch_op_desc_id { bop_category "" } { bop_name "" } } {
+
+    variable NGS_BATCH_OP_CATEGORY
+    variable NGS_BATCH_OP_GENERAL
+
+    CORE_SetIfEmpty bop_category $NGS_BATCH_OP_CATEGORY
+    CORE_SetIfEmpty bop_name     $NGS_BATCH_OP_GENERAL
+
     set bop_pool_id [CORE_GenVarName bop-pool]
     set bop_ctl_id  [CORE_GenVarName bop-ctl]
     return "($state_id   ^batch-operators $bop_ctl_id)
