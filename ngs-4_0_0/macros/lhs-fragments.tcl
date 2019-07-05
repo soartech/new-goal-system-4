@@ -2369,11 +2369,14 @@ proc ngs-bind-creation-operator { op_id
 # The return operators are tagged with one or more of the following:
 #   NGS_TAG_OP_RETURN_VALUE           
 #   NGS_TAG_OP_RETURN_NEW_GOAL        
-#   NGS_TAG_OP_RETURN_NEW_TYPED_OBJECT            
+#   NGS_TAG_OP_NEW_TYPED_OBJECT            
 #
 # These tags are NOT tested for in the macro, however. Instead this macro 
 #  binds to the parameters of the operator used in creation. This way
 #  your production can test for the item that is being constructed.
+#
+# You cannot bind to the destination attribute because this is a hidden value for return values
+#  Instead you bind to the return value name
 #
 # IMPORTANT NOTE: If the operator is returning a newly constructed typed object, or goal
 #  the "value" parameter will be bound to a temporary representation
@@ -2385,7 +2388,6 @@ proc ngs-bind-creation-operator { op_id
 # op_id - Variable bound to the operator for which to bind the  parameters
 # return_value_name - name of the return value that will have it's value set
 # dest_obj - The object that will recieve the created value 
-# dest_attr - The attribute that will recieve the created value 
 # value - The value that will be set. See IMPORTANT NOTE above.
 # value_bind - (Optional) If provided, a string passed to ngs-bind as [ngs-bind $value $value_bind]. This only makes
 #                sense if the value is an object and not a primitive.
@@ -2394,19 +2396,24 @@ proc ngs-bind-creation-operator { op_id
 proc ngs-bind-return-operator { op_id
                               return_value_name
                               dest_obj
-                              dest_attr
                               value
                               {value_bind ""}
                               {replacement_behavior ""} } {
 
 
-   set lhs_ret "[ngs-bind-creation-operator $op_id $dest_obj $dest_attr $value $replacement_behavior]
-                 ($op_id ^ret-val-name $return_value_name)"
+  set lhs_ret "($op_id ^new-obj $dest_obj
+                       ^ret-val-name $return_value_name
+                       ^new-obj $value)"
+   
+  if { $replacement_behavior != "" } {
+      set lhs_ret "lhs_ret
+                    ($op_id ^replacement-behavior $replacement_behavior)"
+  }
 
-   if { $value_bind != ""} {
+  if { $value_bind != ""} {
        set lhs_ret "$lhs_ret
                     [ngs-bind $value $value_bind]"
-   }
+  }
 
    return $lhs_ret
 }
