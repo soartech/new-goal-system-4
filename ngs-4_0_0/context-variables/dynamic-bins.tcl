@@ -75,7 +75,7 @@
 #          constant/variable (Form 1), a list with a min/max (Form 2), or a list with a delta 
 #          source obj/attr (Form 3). 
 # delta_type - (Optional). The type of delta being used. Either NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE (default),
-#                or NGS_CTX_VAR_DELTA_TYPE_PERCENTAGE if the delta should be interpreted as a percentage
+#                or NGS_CTX_VAR_DELTA_TYPE_PERCENT if the delta should be interpreted as a percentage
 #                of the maximum value.
 # variable_id - (Optional) If provided, a variable that is bound to the newly created stable value.
 #                You can use this, for exmaple, to tag the variable.

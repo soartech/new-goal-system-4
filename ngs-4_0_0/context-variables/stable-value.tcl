@@ -54,7 +54,7 @@
 #          a list with a delta source obj/attr (Form 3). All forms specify the bounds
 #          on the stable-value, indicating when it will be resampled from the source value.
 # delta_type - (Optional). The type of delta being used. Either NGS_CTX_VAR_DELTA_TYPE_ABSOLUTE (default),
-#                or NGS_CTX_VAR_DELTA_TYPE_PERCENTAGE.
+#                or NGS_CTX_VAR_DELTA_TYPE_PERCENT.
 # variable_id - (Optional) If provided, a variable that is bound to the newly created stable value.
 #                You can use this, for exmaple, to tag the variable.
 #
