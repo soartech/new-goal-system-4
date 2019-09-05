@@ -1,0 +1,150 @@
+
+
+
+##############################
+# Propose to do an action
+# 1. If query-info --> do query, return result
+# 2. If query fails OR no query-info --> store fact
+# 3. If return-to --> return LTI from query or store
+
+# Propose to do a query, elaborate the query sub-sets on operator
+# Execute the query
+sp "execute-smem-actions*propose*do-query
+   [ngs-match-substate <s> $NGS_OP_SMEM_ACTION <params>]
+   [ngs-is-not-tagged <s> query-failed]
+   [ngs-bind <params> query-description]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-nex <smem-command> <any-command>]
+-->
+   [ngs-create-atomic-operator <s> ngs-query-smem $NGS_OP_ID]
+   [ngs-create-attribute $NGS_OP_ID query <query-description>]
+"
+
+sp "execute-smem-actions*apply*queery-depth
+   [ngs-match-selected-operator <s> $NGS_OP_ID ngs-query-smem]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-bind $NGS_OP_ID query.query-depth]
+-->
+   [ngs-create-attribute <smem-command> depth <query-depth>]"
+
+sp "execute-smem-actions*apply*match-query
+   [ngs-match-selected-operator <s> $NGS_OP_ID ngs-query-smem]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-bind $NGS_OP_ID query.match-query]
+-->
+   [ngs-create-attribute <smem-command> query <match-query>]"
+
+sp "execute-smem-actions*apply*math-query
+   [ngs-match-selected-operator <s> $NGS_OP_ID ngs-query-smem]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-bind $NGS_OP_ID query.math-query]
+-->
+   [ngs-create-attribute <smem-command> math-query <math-query>]"
+
+sp "execute-smem-actions*apply*negated-query
+   [ngs-match-selected-operator <s> $NGS_OP_ID ngs-query-smem]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-bind $NGS_OP_ID query.negated-query]
+-->
+   [ngs-create-attribute <smem-command> neg-query <negated-query>]"
+
+sp "execute-smem-actions*apply*prohibits
+   [ngs-match-selected-operator <s> $NGS_OP_ID ngs-query-smem]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-bind $NGS_OP_ID query.prohibit-set.prohibit]
+-->
+   [ngs-create-attribute <smem-command> prohibit <prohibit>]"
+
+# If query and result
+# 1. successful
+# 2. failed with no store command
+sp "execute-smem-actions*propose*return-success
+   [ngs-match-substate <s> $NGS_OP_SMEM_ACTION <params>]
+   [ngs-bind-smem-success-query <s> <result>]
+   [ngs-bind <params> return-description]
+   [ngs-bind <return-description> destination-object destination-attribute replacement-behavior]
+   [ngs-neq <destination-object> <destination-attribute> <result>]
+-->
+   [ngs-create-attribute-by-operator <s> <destination-object> <destination-attribute> <result> <replacement-behavior>]"
+
+sp "execute-smem-actions*propose*return-failure
+   [ngs-match-substate <s> $NGS_OP_SMEM_ACTION <params>]
+   [ngs-bind-smem-failure <s> <result>]
+   [ngs-nex <params> store-set]
+   [ngs-bind <params> return-description]
+   [ngs-bind <return-description> destination-object destination-attribute replacement-behavior]
+   [ngs-neq <destination-object> <destination-attribute> $NGS_OP_SMEM_RETRIEVAL_FAILED]
+-->
+   [ngs-create-attribute-by-operator <s> <destination-object> <destination-attribute> $NGS_OP_SMEM_RETRIEVAL_FAILED <replacement-behavior>]"
+
+sp "execute-smem-actions*propose*store-failure
+   [ngs-match-substate <s> $NGS_OP_SMEM_ACTION <params>]
+   [ngs-bind-smem-failure <s> <result>]
+   [ngs-ex <params> store-set]
+-->
+   [ngs-create-attribute-by-operator <s> <s> @query-failed $NGS_YES]"
+
+# JC: I don't understand why this doesn't work in the production above
+#     I need to be able to step the debugger. When I put this in, the
+#     operator elaboration below to clear the commands doesn't work
+# [ngs-is-not-tagged <s> query-failed]
+   
+# Could do this with side effects, but it could be expensive for large stores and prohibits
+#  Do this the hard way to ensure efficiency
+# Only need to do this when the query fails and we'll try a store because
+#  otherwise we return from the substate and the old commands go away
+#
+sp "execute-smem-actions*propose*clear-failed-commands
+   [ngs-match-proposed-atomic-operator <s> $NGS_OP_ID]
+   [ngs-bind-creation-operator $NGS_OP_ID <s> @query-failed $NGS_YES]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-bind <smem-command> <any-command>:<command-val>]
+-->
+   [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_REMOVE <smem-command> <any-command> <command-val>]"
+
+# Propose to execute store, unless query is successful
+sp "execute-smem-actions*propose*do-store
+   [ngs-match-substate <s> $NGS_OP_SMEM_ACTION <params>]
+   [ngs-bind <params> store-set]
+   [ngs-or [ngs-nex <params> query-description] [ngs-is-tagged <s> query-failed]]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-nex <smem-command> <any-command>]
+-->
+   [ngs-create-atomic-operator <s> ngs-store-smem $NGS_OP_ID]
+   [ngs-create-attribute $NGS_OP_ID store-set <store-set>]"
+
+# Execute store
+sp "execute-smem-actions*apply*store
+   [ngs-match-selected-operator <s> $NGS_OP_ID ngs-store-smem]
+   [ngs-bind-smem-command-set <s> <smem-command>]
+   [ngs-bind $NGS_OP_ID store-set.item]
+-->
+   [ngs-create-attribute <smem-command> store <item>]
+   [ngs-tag <s> stored-items]"
+
+# During query and store, we return the value so the calling code
+#  can work the same in either case.
+sp "execute-smem-actions*propose*return-success*for-query-and-store
+   [ngs-match-substate <s> $NGS_OP_SMEM_ACTION <params>]
+   [ngs-is-tagged <s> stored-items]
+   [ngs-is-tagged <s> query-failed]
+   [ngs-bind-smem-success-store <s> <result>]
+   [ngs-bind <params> query-description return-description]
+   [ngs-bind <return-description> destination-object destination-attribute replacement-behavior]
+   [ngs-neq <destination-object> <destination-attribute> <result>]
+-->
+   [ngs-create-attribute-by-operator <s> <destination-object> <destination-attribute> <result> <replacement-behavior>]"
+
+# When only storing, we only return a flag
+# Soar will link the stored variables automatically to the LTI (effectively returning it)
+sp "execute-smem-actions*propose*return-success*for-store-only
+   [ngs-match-substate <s> $NGS_OP_SMEM_ACTION <params>]
+   [ngs-is-tagged <s> stored-items]
+   [ngs-nex <params> query-description]
+   [ngs-bind-smem-success-store <s> <result>]
+   [ngs-bind <params> return-description]
+   [ngs-bind <return-description> destination-object destination-attribute replacement-behavior]
+   [ngs-neq <destination-object> <destination-attribute> $NGS_YES]
+-->
+   [ngs-create-attribute-by-operator <s> <destination-object> <destination-attribute> $NGS_YES <replacement-behavior>]"
+

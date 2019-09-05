@@ -1,0 +1,10 @@
+{
+    "entryPoints": [
+        {
+            "path": "load.soar",
+            "name": "ngs-agent"
+        }
+    ],
+    "active": "ngs-agent",
+    "rhsFunctions": ["force-learn"]
+}

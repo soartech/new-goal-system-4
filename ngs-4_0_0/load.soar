@@ -16,3 +16,4 @@ CORE_LoadDir batch-operators
 CORE_LoadDir behavior-explanation
 CORE_LoadDir context-variables
 CORE_LoadDir reinforcement-learning
+CORE_LoadDir smem

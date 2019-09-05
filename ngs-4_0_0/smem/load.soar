@@ -1,0 +1,5 @@
+
+CORE_Source smem-variables.tcl
+CORE_Source smem-lhs.tcl
+CORE_Source smem-rhs.tcl
+CORE_Source retrieve-and-store.soar
