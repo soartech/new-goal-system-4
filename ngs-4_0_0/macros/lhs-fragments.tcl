@@ -211,7 +211,7 @@ proc ngs-gt-lte { obj_id attr low_val high_val { val_id ""} } {
 # The "stable" versions of inequalities will not "blink" when a value change. These
 #  are best to use when testing values on the input link which can change rapidly.
 #  Because the implementations of these macros use negated blocks, you cannot bind
-#  any variables internally (thous they do not have val_id parameters)
+#  any variables internally (thus they do not have val_id parameters)
 #
 proc ngs-stable-lt { obj_id attr val } {
   return [ngs-not [ngs-gte $obj_id $attr $val]]
