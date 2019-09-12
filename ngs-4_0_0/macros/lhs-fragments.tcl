@@ -75,6 +75,13 @@ proc ngs-expand-tags { attr } {
 #  quickly bind several attributes of an object, use ngs-bind
 #  instead.
 #
+# If you want to check equality to a value with a space, you
+#  need to include a little more syntax.
+#  For a tcl variable that may contain a space, do this:
+#   [ngs-eq <id> attr |$myVar|]
+#  For a string with a space, do this:
+#   [ngs-eq <id> attr {|my string|}]
+#
 # [ngs-COMP obj_id attr val (val_id)]
 #
 # obj_id - variable bound to the object to test
@@ -650,6 +657,10 @@ proc isnumeric { value } {
 #  
 # [ngs-bind obj_id attr1 attr2 ...] OR
 # [ngs-bind obj_id "attr1 attr2 ..."]
+#
+# Note that ngs-bind does not support binding to constants that contain spaces,
+#  either directly or through a tcl variable. If you need to bind to a value with
+#  spaces, use ngs-eq.
 #
 # obj_id - variable bound to the object for which to bind attributes
 # attr_list - list of attributes to bind
