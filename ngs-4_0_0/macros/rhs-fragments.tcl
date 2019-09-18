@@ -521,7 +521,12 @@ proc ngs-create-output-command-by-operator { state_id
 # Takes an existing typed object and makes it an output command
 #
 # Use this macro when you want to pre-create your output objects, and then copy them to the 
-#  output link using an operator.
+#  output link using an operator. 
+#
+# Note that the command you execute will get tagged as status complete and won't be able to
+#  be output again.  If you are keeping an output command around and periodically outputting
+#  it you should use ngs-deep-copy-object-as-output-command-by-operator which will create
+#  a copy of an existing output command on the output link.
 #
 # [ngs-execute-existing-object-as-output-command-by-operator state_id output_link_id command_id (add_prefs)]
 #
@@ -540,6 +545,35 @@ proc ngs-execute-existing-object-as-output-command-by-operator { state_id
   variable NGS_TAG_OP_CREATE_OUTPUT_COMMAND
 
   return "[ngs-create-attribute-by-operator <s> $output_link_id $NGS_OUTPUT_COMMAND_ATTRIBUTE $command_id $NGS_ADD_TO_SET $add_prefs]
+          [ngs-tag-operator $NGS_TAG_OP_CREATE_OUTPUT_COMMAND]
+          [core-trace NGS_TRACE_OUTPUT "O LATENT-OUTPUT-COMMAND-EXECUTED, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $command_id |)."]"
+}
+
+# Takes an existing typed object and deep copies it to the output link as an output command
+#
+# Use this macro when you want to periodically output an output command that you are maintaining
+#  elsewhere in working memory.  By deep copying you can continue to update your output command
+#  while the copy get's tagged as processed and cleaned up.
+#
+# This macro might be used, for example, to output explanation-like data.
+#
+# [ngs-deep-copy-object-as-output-command-by-operator state_id output_link_id command_id (add_prefs)]
+#
+# state_id - variable bound the state in which to propose the operator
+# output_link_id - variable bound to the output link
+# command_id - variable bound to the object that represents the output command (will be deep copied)
+# add_prefs - (Optional) any additional operator preferences over acceptable (+). By default 
+#  the indifferent preference is given but you can override using this argument.
+#
+proc ngs-deep-copy-object-as-output-command-by-operator { state_id
+                                                              output_link_id
+                                                              command_id 
+                                                              {add_prefs "="} } {
+  variable NGS_OUTPUT_COMMAND_ATTRIBUTE
+  variable NGS_ADD_TO_SET
+  variable NGS_TAG_OP_CREATE_OUTPUT_COMMAND
+
+  return "[ngs-deep-copy-by-operator <s> $output_link_id $NGS_OUTPUT_COMMAND_ATTRIBUTE $command_id $NGS_ADD_TO_SET $add_prefs]
           [ngs-tag-operator $NGS_TAG_OP_CREATE_OUTPUT_COMMAND]
           [core-trace NGS_TRACE_OUTPUT "O LATENT-OUTPUT-COMMAND-EXECUTED, (| $output_link_id |.$NGS_OUTPUT_COMMAND_ATTRIBUTE | $command_id |)."]"
 }
