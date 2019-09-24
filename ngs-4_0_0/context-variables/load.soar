@@ -8,6 +8,7 @@ CORE_InternalSource type-declarations.tcl
 CORE_InternalSource context-variables.tcl
 CORE_InternalSource stable-value.tcl
 CORE_InternalSource dynamic-bins.tcl
+CORE_InternalSource static-bins.tcl
 CORE_InternalSource computed-value.tcl
 CORE_InternalSource time-delayed-value.tcl
 CORE_InternalSource periodic-sampled-value.tcl
