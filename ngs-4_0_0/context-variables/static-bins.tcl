@@ -114,20 +114,28 @@ proc NGS_DefineStaticBinValue { pool_goal_or_path category_name variable_name bi
     set bin_min ""
     set bin_max ""
     set bin_val ""
+    
+    set first_bin_val [lindex [lindex $bin_definitions 0] 1]
+    set last_bin_val  [lindex [lindex $bin_definitions end-1] 1]
+    set avg_bin_size [expr ($last_bin_val - $first_bin_val) / [llength $bin_definitions]]
 
     foreach bin_max_pair $bin_definitions {
 
+        set cur_bin_size ""
         set bin_name [lindex $bin_max_pair 0]
         set bin_max  [lindex $bin_max_pair 1]
         set the_test ""
 
         if { $bin_min == "" } {
             set the_test "[ngs-stable-lt <src-obj> <src-attr> $bin_max]"
+            set cur_bin_size "$avg_bin_size"
         } elseif { $bin_max == "" } {
             set the_test "[ngs-stable-gt <src-obj> <src-attr> $bin_min]"
+            set cur_bin_size "$avg_bin_size"
         } else {
             set the_test "[ngs-stable-gte-lt <src-obj> <src-attr> $bin_min $bin_max]"
-        }
+            set cur_bin_size [expr $bin_max - $bin_min]
+       }
 
         set retract_cond ""
         if { $use_operator == ""  } {
@@ -139,6 +147,12 @@ proc NGS_DefineStaticBinValue { pool_goal_or_path category_name variable_name bi
             set retract_cond "[ngs-neq $var_id value $bin_name]"
             set set_line  "[ngs-set-context-variable-by-batch-operator <bo> $var_id $bin_name]"
         }
+        
+        sp "ctxvar*static-bins*elaborate*cur-bin-size*$bin_name
+            $root_bind
+            [ngs-bind $var_id src-obj src-attr]
+        -->
+            [ngs-create-attribute $var_id cur-bin-size $cur_bin_size]"
 
         sp "ctxvar*static-bins*propose*set-value*$production_name_suffix*$bin_name
             $root_bind
