@@ -150,7 +150,7 @@ proc NGS_DefineStaticBinValue { pool_goal_or_path category_name variable_name bi
         
         sp "ctxvar*static-bins*elaborate*cur-bin-size*$bin_name
             $root_bind
-            [ngs-bind $var_id src-obj src-attr]
+            [ngs-eq $var_id value $bin_name]
         -->
             [ngs-create-attribute $var_id cur-bin-size $cur_bin_size]"
 
