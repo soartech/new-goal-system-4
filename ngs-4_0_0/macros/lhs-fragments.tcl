@@ -2405,15 +2405,13 @@ proc ngs-bind-creation-operator { op_id
 # replacement_behavior - (Optional) a variable to bind to the replacement behavior for this decision object.attribute
 #
 proc ngs-bind-return-operator { op_id
-                              return_value_name
-                              dest_obj
-                              value
-                              {value_bind ""}
-                              {replacement_behavior ""} } {
+                                return_value_name
+                                value
+                                {value_bind ""}
+                                {replacement_behavior ""} } {
 
 
-  set lhs_ret "($op_id ^new-obj $dest_obj
-                       ^ret-val-name $return_value_name
+  set lhs_ret "($op_id ^ret-val-name $return_value_name
                        ^new-obj $value)"
    
   if { $replacement_behavior != "" } {
