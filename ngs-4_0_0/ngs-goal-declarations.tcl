@@ -84,7 +84,8 @@ proc NGS_DeclareGoal { goal_type {attribute_list ""} { batch_op_cat_and_name "" 
   sp "ngs*core*goals*mark-goal-achieved-if-supergoal-removed-by-o-support*$goal_type
     [ngs-match-goal <s> $goal_type <g> $NGS_GB_ACHIEVE]
     [ngs-is-my-type <g> $goal_type]
-    [ngs-is-supergoal <g> <supergoal> <supergoal-type>]
+    [ngs-is-supergoal <g> <supergoal>]
+    [ngs-is-my-type <supergoal> <supergoal-type>]
    -{
        [ngs-match-goal <s> <supergoal-type> <supergoal>]
     }

@@ -6,7 +6,8 @@ variable NGS_OP_FUNCTION
 sp "ngs*core*goals*prefer-new-operator-if-same-as-active-goal
     [ngs-match-two-proposed-operators <s> <o1> <o2> $NGS_TAG_REMOVE_ACHIEVED {} {} $NGS_OP_FUNCTION {} <o2-name>]
     (<o2> ^goal <g2>)
-    [ngs-match-active-goal <s2> <any-goal-type> <g2>]
+    [ngs-match-active-goal <s2> <goal-my-type> <g2>]
+    [ngs-is-my-type <g2> <goal-my-type>]
     [ngs-is-named <s2> <o2-name>]
     [ngs-bind <o1> goal:<g1>]
     [ngs-is-active <g1>]
