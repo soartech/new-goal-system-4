@@ -80,7 +80,7 @@ proc ngs-create-static-bin-value { pool_id
 # variable_name - Name of the variable
 # bin_definitions - A list of {bin-name bin-max} pairs.  This list should be in ascending order sorted by
 #   bin-max values.  The last bin should have an empty max (i.e. {bin-name {}}).
-# operator_info - (Optional) By default this is an empty strin indicating that values should be binned using
+# operator_info - (Optional) By default this is an empty string indicating that values should be binned using
 #  elaboration productions (i-support).  If you prefer to bin using a standard operator pass in the value 
 #  NGS_CTX_VAR_OP_STANDARD - the bin value will be set via an operator.  To use a batch operator to set the bin
 #  value provide a pair (TCL list) consisting of a batch operator category and name.
@@ -148,7 +148,7 @@ proc NGS_DefineStaticBinValue { pool_goal_or_path category_name variable_name bi
             set set_line  "[ngs-set-context-variable-by-batch-operator <bo> $var_id $bin_name]"
         }
         
-        sp "ctxvar*static-bins*elaborate*cur-bin-size*$bin_name
+        sp "ctxvar*static-bins*elaborate*cur-bin-size*$production_name_suffix*$bin_name
             $root_bind
             [ngs-eq $var_id value $bin_name]
         -->
