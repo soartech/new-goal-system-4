@@ -961,7 +961,7 @@ proc np { args } {
 
     if { [llength $args] == 0} {
         echo "+---------------------------------------+"
-        echo "Usage: npo (depth=1) expression1 expression2 expression3 ..."
+        echo "Usage: np (depth=1) expression1 expression2 expression3 ..."
     }
 
     set depth 1
