@@ -108,9 +108,9 @@ proc NGS_DefinePiecewiseFunctionValue { pool_goal_or_path category_name variable
 
     set batch_category ""
     set batch_name ""
-    if { [llength $use_operator] > 1 } {
-        set batch_category [lindex $use_operator 0]
-        set batch_name     [lindex $use_operator 1]
+    if { [llength $operator_info] > 1 } {
+        set batch_category [lindex $operator_info 0]
+        set batch_name     [lindex $operator_info 1]
     }
 
     set bin_count 0

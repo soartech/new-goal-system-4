@@ -14,6 +14,7 @@ CORE_InternalSource time-delayed-value.tcl
 CORE_InternalSource periodic-sampled-value.tcl
 CORE_InternalSource user-defined-context-variable.tcl
 CORE_InternalSource synced-object.tcl
+CORE_InternalSource piecewise-function.tcl
 
 CORE_InternalSource elaborations.soar
 
