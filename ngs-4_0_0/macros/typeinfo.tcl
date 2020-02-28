@@ -157,12 +157,11 @@ proc ngs-construct { object_id typename { attribute_list "" } { add_my_type true
 	# These are the values that were passed in (if any)
 	set new_vals [expand_variables $attribute_list]
 
-	variable NGS_TYPEINFO_$typename
-	if {[info exists NGS_TYPEINFO_$typename] != 0} {
-	
+	variable "NGS_TYPEINFO_$typename"
+	if {[info exists "NGS_TYPEINFO_$typename"] != 0} {	
 		# If a type was declared we want to grab any
 		#  default attribute values from its type definition
-		set defaults [subst \$NGS_TYPEINFO_$typename]
+		set defaults [subst \${NGS_TYPEINFO_$typename}]
 
 		# Create each of the default attribute/value pairs
 		# Defaults are created via NGS_DeclareType
