@@ -1,0 +1,112 @@
+proc NGS_SmemSyncContextVariable { pool_goal_or_path category_name variable_name smem_type } {
+    variable NGS_GB_MAINT
+    variable NGS_SIDE_EFFECT_ADD
+    variable NGS_SIDE_EFFECT_REMOVE
+    variable NGS_YES
+    variable ISO_SHOULD_SYNC_VALUE
+    variable ISO_TAG_MISSING_STATE_VARIABLE
+    variable ISO_VALUE_SYNC_PERIOD_MS
+    
+    # set the suffix for the template's names, removing any '.' charaters that appear (not allowed in production names)
+    set production_name_suffix [ngs-ctx-var-gen-production-name-suffix $pool_goal_or_path $category_name $variable_name]
+    set production_name_prefix "maintain-synchronized-global-context-variable*$production_name_suffix"
+    set goal_name "MaintainSynchronizedContextVariable*$production_name_suffix"
+    set var_id  <variable>
+    set root_bind "[ngs-ctx-var-gen-root-bindings $pool_goal_or_path $category_name $variable_name $var_id]"
+
+    NGS_DeclareGoal $goal_name { type MaintainSynchronizedGlobalContext }
+
+    sp "$production_name_prefix*tag-for-smem-sync
+    $root_bind
+    -->
+    [ngs-tag $var_id $ISO_SHOULD_SYNC_VALUE]
+    [ngs-tag $var_id smem-type $smem_type]"
+
+    # Create the goal to do the synchronization
+    sp "$production_name_prefix*create
+    [ngs-match-goalpool <s> <pool> $goal_name]
+    $root_bind
+    -->
+    [ngs-create-goal-in-place <pool> $goal_name $NGS_GB_MAINT <g> {} "context-var $var_id"]
+    [ngs-create-typed-object <g> values-to-sync Set <vts>]"
+
+    # Copy the values we want to synchronize into the set on the goal
+    sp "$production_name_prefix*values-to-sync*initialize
+    [ngs-match-goal <s> $goal_name <g>]
+    [ngs-bind <g> context-var:<ctx-var-to-sync>.@$ISO_SHOULD_SYNC_VALUE:$NGS_YES \
+                    values-to-sync]
+    [ngs-is-not-tagged <ctx-var-to-sync> $ISO_TAG_MISSING_STATE_VARIABLE]
+    -->
+    [ngs-create-attribute <values-to-sync> item <ctx-var-to-sync>]"
+
+    sp "$production_name_prefix*sync-required*set
+    [ngs-match-goal <s> $goal_name <g>]
+    [ngs-bind <g> values-to-sync.item.value]
+    [ngs-not [ngs-bind <item> @lti.value]]
+    -->
+    [ngs-tag <item> sync-required]
+    [ngs-tag <g> sync-required]"
+
+    # Timer code
+    sp "$production_name_prefix*sync-allowed-when-past-next-time
+    [ngs-match-goal <s> $goal_name <g>]
+    [ngs-time <s> <time>]
+    [ngs-stable-lt <g> next-sync-time <time>]
+    -->
+    [ngs-tag <g> sync-allowed]"
+
+    sp "$production_name_prefix*next-sync-time*set
+    [ngs-match-goal <s> $goal_name <g>]
+    [ngs-is-tagged <g> sync-allowed]
+    [ngs-is-not-tagged <g> sync-required]
+    [ngs-time <s> <time>]
+    -->
+    [ngs-create-attribute-by-operator <s> <g> next-sync-time "(+ <time> $ISO_VALUE_SYNC_PERIOD_MS)"]
+    "
+
+    # Create a subgoal to do the syncing
+    sp "$production_name_prefix*sync-context-values*propose
+    [ngs-match-goal <s> $goal_name <g>]
+    [ngs-is-tagged <g> sync-required]
+    [ngs-is-tagged <g> sync-allowed]
+    -->
+    [ngs-create-substate-operator <s> sync-context-values <o> <g>]
+    [ngs-write "SYNCING SMEM CTX VAR: $pool_goal_or_path $category_name $variable_name ***************"]
+    "
+
+    # Create operator to do the retrieval
+    sp "$production_name_prefix*sync-context-values*retrieve-value
+    [ngs-match-active-goal <s> $goal_name <g> sync-context-values]
+    [ngs-bind <g> values-to-sync.item.@sync-required:$NGS_YES]
+    [ngs-bind <item> value name]
+    [ngs-bind <item> @smem-type]
+    [ngs-bind <s> smem.command]
+    [ngs-is-not-tagged <s> item-being-queried <item>]
+    -->
+    [ngs-create-typed-object-by-operator <s> <command> query <smem-type> <query> "value <value>"]
+    [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_ADD <s> @item-being-queried <item>]
+    "
+
+    # This query should never fail ... the current logic would make it impossible to leave the
+    #  substate if the query fails ... this actually happens when activity recognition
+    #  isn't turned on (we don't get any state variable)
+    sp "$production_name_prefix*sync-context-values*retrieve-value*success
+    [ngs-match-active-goal <s> $goal_name <g> sync-context-values]
+    [ngs-bind <s> smem @item-being-queried.@sync-required:$NGS_YES]
+    [ngs-bind <smem> result command.query]
+    [ngs-bind <result> success:<query> retrieved:<smem-value>]
+    -->
+    [ngs-create-attribute-by-operator <s> <item-being-queried> @lti <smem-value>]
+    [ngs-add-primitive-side-effect $NGS_SIDE_EFFECT_REMOVE <command> query <query>]
+    "
+
+    # Best preference so it happens first in the substate
+    sp "$production_name_prefix*return*last-sync-time
+    [ngs-match-active-goal <s> $goal_name <g> sync-context-values]
+    [ngs-bind <g> next-sync-time]
+    [ngs-neq <g> last-sync-time <next-sync-time>]
+    -->
+    [ngs-create-attribute-by-operator <s> <g> last-sync-time <next-sync-time> {} "> ="]
+    "
+
+}
