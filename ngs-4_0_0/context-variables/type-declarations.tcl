@@ -102,6 +102,11 @@ NGS_DeclareType StaticBinnedValue {
     type { ContextVariable SingleSourceVariable }
 }
 
+# Stores data required to implement PiecewiseFunctionValue objects
+NGS_DeclareType PiecewiseFunctionValue {
+    type { ContextVariable SingleSourceVariable }
+}
+
 # Stores data required to implement a dynamic bin
 #
 # name - required (this is assigned to the DynamicBinnedValue value attribute when selected)

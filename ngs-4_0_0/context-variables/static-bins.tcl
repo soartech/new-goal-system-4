@@ -4,7 +4,6 @@
 # @created jacobcrossman 20190924
 
 
-CORE_CreateMacroVar NGS_CTX_VAR_OP_STANDARD basic-operator
 
 
 # Create a statically binned value
