@@ -106,13 +106,6 @@ proc NGS_DefinePiecewiseFunctionValue { pool_goal_or_path category_name variable
     set bin_min ""
     set cur_source_val [CORE_GenVarName "source-value"]
 
-    set batch_category ""
-    set batch_name ""
-    if { [llength $operator_info] > 1 } {
-        set batch_category [lindex $operator_info 0]
-        set batch_name     [lindex $operator_info 1]
-    }
-
     set bin_count 0
     foreach bin_max_pair $bin_definitions {
 
@@ -155,35 +148,42 @@ proc NGS_DefinePiecewiseFunctionValue { pool_goal_or_path category_name variable
         -->
             $set_line"
 
-        if { $operator_info != ""  } {      
-            # For an operator, we need two steps because of the required retraction condition.
-            # 1. Elaborate the value elsewhere (production above)
-            # 2. Use an operator to set the value (following productions)
-
-            if { $operator_info == $NGS_CTX_VAR_OP_STANDARD } {
-                sp "ctxvar*static-bins*propose*set-value*$production_name_suffix*$bin_count
-                    $root_bind
-                    [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
-                    [ngs-bind $var_id @val-to-set]
-                    [ngs-neq  $var_id value <val-to-set>]
-                -->
-                    [ngs-create-attribute-by-operator <s> $var_id value <val-to-set>]"
-            } else {
-                sp "ctxvar*static-bins*propose*set-value*$production_name_suffix*$bin_count
-                    $root_bind
-                    [ngs-bind-bop <s> <bo> $batch_category $batch_name]
-                    [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
-                    [ngs-bind $var_id @val-to-set]
-                    [ngs-neq  $var_id value <val-to-set>]
-                -->
-                    [ngs-set-context-variable-by-batch-operator <bo> $var_id <val-to-set>]"
-            }
-        }
-
         # The prior bin's max becomes the next bin's min
         set bin_min $bin_max
         incr bin_count
     }
-                        
+
+    set batch_category ""
+    set batch_name ""
+    if { [llength $operator_info] > 1 } {
+        set batch_category [lindex $operator_info 0]
+        set batch_name     [lindex $operator_info 1]
+    }
+    
+    if { $operator_info != ""  } {      
+        # For an operator, we need two steps because of the required retraction condition.
+        # 1. Elaborate the value elsewhere (production above)
+        # 2. Use an operator to set the value (following productions)
+
+        if { $operator_info == $NGS_CTX_VAR_OP_STANDARD } {
+            sp "ctxvar*static-bins*propose*set-value*$production_name_suffix
+                $root_bind
+                [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+                [ngs-bind $var_id @val-to-set]
+                [ngs-neq  $var_id value <val-to-set>]
+            -->
+                [ngs-create-attribute-by-operator <s> $var_id value <val-to-set>]"
+        } else {
+            sp "ctxvar*static-bins*propose*set-value*$production_name_suffix
+                $root_bind
+                [ngs-bind-bop <s> <bo> $batch_category $batch_name]
+                [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+                [ngs-bind $var_id @val-to-set]
+                [ngs-neq  $var_id value <val-to-set>]
+            -->
+                [ngs-set-context-variable-by-batch-operator <bo> $var_id <val-to-set>]"
+        }
+    }
+
 }
 
