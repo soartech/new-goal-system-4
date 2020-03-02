@@ -315,8 +315,15 @@ proc CORE_GetCommandOutput { args } {
 
         # read the file contents into a tcl var
         set fp [open "$FILENAME" r]
-        set result [read $fp]
+        set fullOutput [read $fp]
         close $fp
+
+        # remove the first line of the output, as it's always just a note from the clog command
+        # note that sometimes (but not always) the first character is a newline. A newline is output when the cursor position is not already on a newline. This extra newline messes things up finding the end of the first line, so we trim it away.
+        set fullOutput [string trim $fullOutput]
+        set resultStartIndex [expr [string first \n $fullOutput] + 1]
+        set result [string range $fullOutput $resultStartIndex end]
+
     } else {
 
         # log the command to a file

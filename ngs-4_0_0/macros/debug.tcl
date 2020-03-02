@@ -41,7 +41,6 @@ proc npx { args } {
         if {[string index [CORE_GetCommandOutput print $id] 0] != "("} {
             echo "$print_this $id does not exist"
         } else {
-            #echo $print_this
 	        set print_this "$print_this [ngs-print-identifiers-attributes-details $id 1 $depth prev_id_list]"
 	        echo $print_this
         }
@@ -72,7 +71,7 @@ proc ngs-print-identifiers-attributes-details { id level target_level prev_id_di
     set print_this "$id ("
 
     set attributes [ngs-debug-get-all-attributes-for-id $id]
-    
+
     # Not sure why this is here, but it seems like debug code
     #if {$level == 2} { echo $id: $attributes }
 
