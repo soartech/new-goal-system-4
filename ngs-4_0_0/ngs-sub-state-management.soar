@@ -144,8 +144,10 @@ sp "ngs*core*substate*propose*$NGS_OP_COPY_RETURN_VALUES
 	[ngs-match-substate <ss>]
 	(<ss> ^return-values <ret-val-set>)
 	[ngs-is-not-tagged <ss> $NGS_TAG_SUBSTATE_RESULT_RETURNED]
+  [ngs-not [ngs-match-proposed-operator <ss> <other-op>] \
+           [ngs-neq <other-op> name $NGS_OP_COPY_RETURN_VALUES]]
 -->
-	[ngs-create-atomic-operator <ss> $NGS_OP_COPY_RETURN_VALUES <o> <]"
+	[ngs-create-atomic-operator <ss> $NGS_OP_COPY_RETURN_VALUES <o>]"
 
 ############ THIS HAS TO REMAIN A SHALLOW COPY ####################
 # Apply operator to return the return values to the locations specified in the
