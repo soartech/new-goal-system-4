@@ -130,7 +130,7 @@ proc CORE_CreateMacroVar { variable_name variable_value } {
       
    if {[lsearch -exact $CORE_macro_var_list $variable_name ] == -1} {
      # echo "adding $variable_name to soar-var-list"
-     lappend CORE_macro_var_list $variable_name
+     lappend CORE_macro_var_list [uplevel 1 namespace which -variable $variable_name]
    } else {
      #echo \"$variable_name already exists!\"
      # do nothing 
