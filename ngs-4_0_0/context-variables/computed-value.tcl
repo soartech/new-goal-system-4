@@ -185,13 +185,15 @@ proc NGS_DefineComputedValue { pool_goal_or_path category_name variable_name val
 
 
     # Create the computed value (this is an elaboration, it is i-supported)
-    variable NGS_CTX_VAR_SUPPRESS_SAMPLING
-    sp "ctxvar*computed-value*elaborate*internal-vals*$production_name_suffix*value
-        $root_bind
-        [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
-        [ngs-computed-value-bind-expression $var_id $value_expression]
-    -->
-        [ngs-create-attribute $var_id value [ngs-computed-value-wrap-expression $value_expression]]"
+    if { $value_expression != "" } {
+        variable NGS_CTX_VAR_SUPPRESS_SAMPLING
+        sp "ctxvar*computed-value*elaborate*internal-vals*$production_name_suffix*value
+            $root_bind
+            [ngs-is-not-tagged $var_id $NGS_CTX_VAR_SUPPRESS_SAMPLING]
+            [ngs-computed-value-bind-expression $var_id $value_expression]
+        -->
+            [ngs-create-attribute $var_id value [ngs-computed-value-wrap-expression $value_expression]]"
+    }
 }
 
 # A helper function to wrap an expression with parentheses when required.
