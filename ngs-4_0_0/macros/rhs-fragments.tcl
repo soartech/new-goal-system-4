@@ -1311,7 +1311,7 @@ proc ngs-log { loggerName level text } {
 
     if { $SOAR_IMPLEMENTATION eq $JSOAR } {
         # for jsoar, use the built-in log command
-        return "(log $loggerName $level [ngs-process-string-for-writelog $text])"
+        return "(log |$loggerName| $level [ngs-process-string-for-writelog $text])"
     } else {
         # normalize
         set level [string toupper $level]
