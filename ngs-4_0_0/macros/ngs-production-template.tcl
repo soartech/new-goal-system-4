@@ -53,7 +53,16 @@ proc ngs-declare-tsp { production_name production_body } {
 #    { %item destination } 
 #    { %item desired-formation } 
 #    { %item desired-formation-position } 
-# } 
+# }
+#
+# You can also use ngs macros in the values:
+#
+# ngs-expand-tsp elaborate*context*subsurface-contact*buoy-readings { 
+#    { %groupName all %additionalConditions "" }
+#    { %groupName difar %additionalConditions "[ngs-bind <buoy> type:difar]" }
+#    { %groupName dicass %additionalConditions "[ngs-bind <buoy> type:dicass]" }
+#    { %groupName dicass-down %additionalConditions "[ngs-bind <buoy> type:dicass] [ngs-bind <reading> doppler:down]" }
+# }
 #
 # In this example there is only one template parameters. If there is
 #  more than one, the other parameters follow the first parameter in pairs
@@ -67,7 +76,8 @@ proc ngs-declare-tsp { production_name production_body } {
 # template_name: Name of the template as specified in the call to ngs-declare-tsp
 # expansion_lists: A list of lists, where the inner lists each hold the values for a single
 #                   template instantiation. The format of the inner lists is sequential pairs of
-#                   tempmlate variable name, template variable value.
+#                   tempmlate variable name, template variable value. The value may be a constant
+#                   or Soar code (i.e., calls to other ngs macros)
 #
 proc ngs-expand-tsp { template_name expansion_lists } {
     
@@ -76,18 +86,23 @@ proc ngs-expand-tsp { template_name expansion_lists } {
     set template_string [subst \$\{$template_name\}]
 
     foreach elist $expansion_lists {
+        # expand any tcl content in the list
+        set elist [subst $elist]
+        
         set production_body [string map $elist $template_string]
         
         set production_name $template_name
         foreach { key val } $elist {
             if { [string range $key 0 1] != "%%" } {
-                set production_name "$production_name*$val"
+                # since the value may consist of arbitrary soar code and float values, we need to convert any characters
+                # that don't work for a production name into characters that do work for a production name
+                set name_val [regsub -all {\s+} $val _]
+                set name_val [string map {( "" ) "" . - < "" > "" ^ ""} $name_val]
+
+                set production_name "$production_name*$name_val"
             }
         }
 
-        # Clean out "." characters (which sometimes happen if the template parameters
-        #  are float values)
-        set production_name [string map { "." "-" } $production_name]
         echo "Expanding template: $production_name"
         sp "$production_name
             $production_body"
