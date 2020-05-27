@@ -34,7 +34,7 @@
 #
 # [ngs-create-op-name description attribute value (object_id)]
 #
-# description - Short description fo the operator (e.g. create)
+# description - Short description of the operator (e.g. create)
 # attribute - attribute (or return value) affected by the operation
 # value - value involved in the operation
 # object_id - (Optional) Identifer for the object involved in the operation
