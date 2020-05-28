@@ -581,7 +581,7 @@ proc ngs-deep-copy-object-as-output-command-by-operator { state_id
 # Creates a primitive working memory element using an atomic operator.
 #
 # Use this method to create o-supported working memory elements. Attributes
-#  can include any of the symbol types exclusing ids (i.e. strings, integers, floating point values).
+#  can include any of the symbol types excluding ids (i.e. strings, integers, floating point values).
 #  To create identifiers, use other macros such as ngs-create-typed-object-by-operator or any of the
 #  various methods to create goals.
 #
