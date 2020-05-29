@@ -1261,7 +1261,7 @@ proc ngs-add-log-side-effect { loggerName levelName text {op_id ""}} {
   }
 
   return "($op_id ^side-effect $se_id)
-          ($se_id ^action $NGS_SIDE_EFFECT_LOG ^text (concat [ngs-process-string-for-writelog $text]) ^logger-name $loggerName ^level $level ^level-name $levelName)"
+          ($se_id ^action $NGS_SIDE_EFFECT_LOG ^text (concat [ngs-process-string-for-writelog $text]) ^logger-name |$loggerName| ^level $level ^level-name $levelName)"
 }
 
 # Write to the trace when the rule fires.
