@@ -1225,7 +1225,7 @@ proc ngs-add-write-side-effect { text {op_id ""}} {
 #  The final identifier for the object will not be created until the last phase
 #  of the construction process and is not accessible to a variable in the production.
 #
-# [ngs-add-log-side-effect text (op_id)]
+# [ngs-add-log-side-effect loggerName levelName text (op_id)]
 #
 # loggerName - the name of the logger to log to. Can be any useful string without whitespace.
 # level      - the level to log at. Use one of: NGS_TRACE, NGS_DEBUG, NGS_INFO, NGS_WARN, NGS_ERROR
