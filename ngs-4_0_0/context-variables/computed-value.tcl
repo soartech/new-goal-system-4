@@ -98,7 +98,7 @@ proc ngs-create-computed-val { pool_id
 # 2. (optional) one or more intermediate expressions that can be used to break the function into steps and
 #     create intermediate values.
 #
-# All expressions read from and right to the computed value's local scope. This scope is defined as the 
+# All expressions read from and write to the computed value's local scope. This scope is defined as the 
 #  computed value object identifer. All source objects (defined with ngs-create-computed-val) are 
 #  elaborated into this scope and can be referenced by the name given them in the call to 
 #  ngs-crate-computed-val. All intermediate expressions define exactly one additional local value that
