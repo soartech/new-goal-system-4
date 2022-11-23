@@ -30,7 +30,7 @@
 #        will be augmented with the template parameters to give each template
 #        expansion a unique name.
 # production_body: The body of the production (typically surrounded in quotes, but
-#                    curly brackets work as well for production bodis that don't
+#                    curly brackets work as well for production bodies that don't
 #                    use TCL variables). 
 #
 proc ngs-declare-tsp { production_name production_body } {
